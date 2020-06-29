@@ -1,13 +1,13 @@
 /*
  * 
- *  Driver for Salus SP600 Smart Plug
+ *  Salus SP600 Smart Plug v1.01 (29th June 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Salus SP600 Smart Plug v2", namespace: "Salus", author: "Salus") {
+	definition (name: "Salus SP600 Smart Plug", namespace: "Salus", author: "Salus") {
 
 		capability "Configuration"
 		capability "Switch"
@@ -40,7 +40,7 @@ def initialize() {
 
 def logsOff(){
 
-	log.warn "debug logging disabled!"
+	log.warn "Debug logging disabled!"
 
 	device.updateSetting("logEnable",[value:"false",type:"bool"])
 
@@ -62,7 +62,7 @@ def parse(String description) {
 	if (logEnable) {
 		
 		log.debug "Parse Called!"
-		log.debug "description is $description"
+		log.debug "Description is $description"
 
 	}
 	
@@ -86,7 +86,7 @@ def parse(String description) {
 //		log.warn "DID NOT PARSE MESSAGE for description: $description"			
 		
 		def descriptionMap = zigbee.parseDescriptionAsMap(description)
-		if (logEnable) log.debug "descriptionMAp: $descriptionMap"			
+		if (logEnable) log.debug "descriptionMap: $descriptionMap"			
 
 	}	
 
