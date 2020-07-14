@@ -1,20 +1,20 @@
 /*
  * 
- *  Salus SP600 Smart Plug v1.01 (29th June 2020)
+ *  Driver for AlertMe Lamp Device
  *	
  */
 
 
 metadata {
 
-	definition (name: "Salus SP600 Smart Plug", namespace: "Salus", author: "Salus") {
+	definition (name: "AlertMe Lamp Device", namespace: "AlertMe", author: "Andrew Davison") {
 
+		capability "Battery"
 		capability "Configuration"
 		capability "Switch"
-		capability "Power Meter"
 		capability "Refresh"
 
-		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus SP600 Smart Plug"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
 	}
 
 }
@@ -23,16 +23,15 @@ metadata {
 preferences {
 	
 	input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
-	input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
-	input name: "ReportMin", type: "number", title: "Minimum Report Time (seconds)", defaultValue: 1
-	input name: "ReportDelta", type: "long", title: "Minimum Report Watt change 1 to 10", defaultValue: 5
+	input name: "txtEnable", type: "bool", title: "Enable text logging", defaultValue: true
+	
 }
 
 
 
 def initialize() {
 	
-	log.warn "Initialize called!"
+	log.warn "Initialize Called!"
 
 	configure()
 	
@@ -40,7 +39,7 @@ def initialize() {
 
 def logsOff(){
 
-	log.warn "Debug logging disabled!"
+	log.warn "debug logging disabled!"
 
 	device.updateSetting("logEnable",[value:"false",type:"bool"])
 
@@ -48,7 +47,7 @@ def logsOff(){
 
 def updated(){
 
-	log.info "Updated called!"
+	log.info "Update called!"
 
 	log.warn "debug logging is: ${logEnable == true}"
 	log.warn "description logging is: ${txtEnable == true}"
@@ -61,8 +60,8 @@ def parse(String description) {
 
 	if (logEnable) {
 		
-		log.debug "Parse called!"
-		log.debug "Description is $description"
+		log.debug "Parse Called!"
+		log.debug "description is $description"
 
 	}
 	
@@ -83,7 +82,7 @@ def parse(String description) {
 	}
 	else {
 		
-//		log.warn "DID NOT PARSE MESSAGE for description: $description"			
+		log.warn "DID NOT PARSE MESSAGE for description: $description"			
 		
 		def descriptionMap = zigbee.parseDescriptionAsMap(description)
 		if (logEnable) log.debug "descriptionMap: $descriptionMap"			
@@ -94,11 +93,16 @@ def parse(String description) {
 
 def off() {
 
+	if (logEnable) log.debug "Turn it on."
+
 	zigbee.off()
 
 }
 
 def on() {
+
+	if (logEnable) log.debug "Turn it off."
+
 
 	zigbee.on()
 
@@ -106,27 +110,32 @@ def on() {
 
 def refresh() {
 	
-	if (logEnable) log.debug "Refresh called!"
+	if (logEnable) log.debug "Refresh Called!"
 	
-	zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
+	if (logEnable) log.debug "Trying randomRefreshAttempt..."
+	randomRefreshAttempt()
+
+	//zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
 
 }
 
 def configure() {
 
-	if (logEnable) log.debug "Configure called!"
+	if (logEnable) log.debug "Configure Called! But I don't do anything right now."
 
-	zigbee.onOffConfig() + simpleMeteringPowerConfig() + zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
+	//zigbee.onOffConfig() + simpleMeteringPowerConfig() + zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
 
-}
 
-def simpleMeteringPowerRefresh() {
-
-	zigbee.readAttribute(0x0702, 0x0400)
 
 }
 
-def simpleMeteringPowerConfig(minReportTime=ReportMin.toInteger(), maxReportTime=600, reportableChange=ReportDelta.toInteger()) {
+def randomRefreshAttempt() {
+
+	zigbee.readAttribute(0x00F5, 0x0400)
+
+}
+
+def simpleMeteringPowerConfig(minReportTime=1, maxReportTime=600, reportableChange=0x05) {
 
 	zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange)
 
