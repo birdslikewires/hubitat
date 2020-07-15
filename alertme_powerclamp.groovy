@@ -10,9 +10,8 @@ metadata {
 	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison") {
 
 		capability "Battery"
-		//capability "Configuration"
+		capability "Initialize"
         capability "Power Meter"
-		//capability "Refresh"
         capability "Temperature Measurement"
 
         attribute "batteryWithUnit", "string"
@@ -35,25 +34,37 @@ preferences {
 	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 2.5)",defaultValue: "2.5",range: "2.1..2.8"
     input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.9..3.4"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
-	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: true
+	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
 	
 }
 
-def initialize() {
+void initialize() {
 	
 	configure()
-	logging("Initialise Called!",100)
+	updated()
+
+    sendEvent(name:"deviceType",value:"Unconfirmed",isStateChange: false)
+    sendEvent(name:"battery",value:0,unit: "%", isStateChange: false)
+    sendEvent(name:"batteryWithUnit",value:"Unknown",isStateChange: false)
+	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name:"batteryVoltageWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name:"powerWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name:"temperatureWithUnit", value: "Unknown", unit: "C", isStateChange: false)
+
+	logging("Initialised!",100)
 	
 }
 
-def debugLogOff(){
+void debugLogOff(){
 
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	logging("Debug logging disabled.",101)
 
 }
 
-def updated(){
+void updated(){
 
 	unschedule()
 
@@ -167,7 +178,7 @@ def outputValues(map) {
 		batteryValue = zigbee.convertHexToInt(batteryValue) / 1000
 		parseAndSendBatteryStatus(batteryValue)
 		sendEvent(name:"batteryVoltage", value: batteryValue, unit: "V", isStateChange: false)
-		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: true)
+		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: false)
 
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
