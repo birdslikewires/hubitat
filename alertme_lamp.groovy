@@ -1,20 +1,26 @@
 /*
  * 
- *  Driver for AlertMe Lamp Device
+ *  AlertMe Lamp Driver v1.00 (15th July 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Lamp Device", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison") {
 
 		capability "Battery"
-		capability "Configuration"
-		capability "Switch"
-		capability "Refresh"
+		capability "Initialize"
+        capability "Temperature Measurement"
+
+        attribute "batteryWithUnit", "string"
+        attribute "batteryVoltage", "string"
+        attribute "batteryVoltageWithUnit", "string"
+        attribute "deviceType", "string"
+        attribute "temperatureWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
+        
 	}
 
 }
@@ -22,166 +28,203 @@ metadata {
 
 preferences {
 	
-	input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
-	input name: "txtEnable", type: "bool", title: "Enable text logging", defaultValue: true
+	//input name: "powerOffset", type: "int", title: "Power Offset", description: "Offset in Watts (default: 0)", defaultValue: "0"
+	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 2.5)",defaultValue: "2.5",range: "2.1..2.8"
+    input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.9..3.4"
+	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
+	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
 	
 }
 
-
-
-def initialize() {
+void initialize() {
 	
-	log.warn "Initialize Called!"
-
 	configure()
+	updated()
+
+    sendEvent(name:"deviceType",value:"Unconfirmed",isStateChange: false)
+    sendEvent(name:"battery",value:0,unit: "%", isStateChange: false)
+    sendEvent(name:"batteryWithUnit",value:"Unknown",isStateChange: false)
+	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name:"batteryVoltageWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name:"temperatureWithUnit", value: "Unknown", unit: "C", isStateChange: false)
+
+	logging("Initialised!",100)
 	
 }
 
-def logsOff(){
+void debugLogOff(){
 
-	log.warn "debug logging disabled!"
-
-	device.updateSetting("logEnable",[value:"false",type:"bool"])
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
+	logging("Debug logging disabled.",101)
 
 }
 
-def updated(){
+void updated(){
 
-	log.info "Update called!"
+	unschedule()
 
-	log.warn "debug logging is: ${logEnable == true}"
-	log.warn "description logging is: ${txtEnable == true}"
+	logging("Info logging is: ${infoLogging == true}",101)
+	logging("Debug logging is: ${debugLogging == true}",101)
 	
-	if (logEnable) runIn(1800,logsOff)
+	if (debugLogging) runIn(1800,debugLogOff)
 
 }
 
 def parse(String description) {
-
-	if (logEnable) {
-		
-		log.debug "Parse Called!"
-		log.debug "description is $description"
-
-	}
+	    
+    def descriptionMap = zigbee.parseDescriptionAsMap(description)
+    
+	if (descriptionMap) {
 	
-	def eventMap = zigbee.getEvent(description)
+        logging("splurge: ${descriptionMap}",1)
+		outputValues(descriptionMap)
 
-	if (!eventMap) {
+	} else {
 		
-		eventMap = getDescription(zigbee.parseDescriptionAsMap(description))	
-
-	}
-
-	if (eventMap) {
-	
-		if (txtEnable) log.info "$device eventMap name: ${eventMap.name} value: ${eventMap.value}"
-
-		sendEvent(eventMap)
-
-	}
-	else {
-		
-		log.warn "DID NOT PARSE MESSAGE for description: $description"			
-		
-		def descriptionMap = zigbee.parseDescriptionAsMap(description)
-		if (logEnable) log.debug "descriptionMap: $descriptionMap"			
+		logging("PARSE FAILED: $description",101)
 
 	}	
 
 }
 
-def off() {
-
-	if (logEnable) log.debug "Turn it on."
-
-	zigbee.off()
-
-}
-
-def on() {
-
-	if (logEnable) log.debug "Turn it off."
-
-
-	zigbee.on()
-
-}
-
 def refresh() {
-	
-	if (logEnable) log.debug "Refresh Called!"
-	
-	if (logEnable) log.debug "Trying randomRefreshAttempt..."
-	randomRefreshAttempt()
 
-	//zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
+	logging("There's really nothing to be refreshed on this device.",1)
+
+	// Test parsing.
+    //def fixedDescription = "catchall: C216 00F0 02 02 0040 00 B893 01 00 0000 FB 01 1BBC5F621C870B1401B4FF0000"
+    //logging("Attempting to parse fixed data where battery = 2.951 and temperature = 17.25",1)
+    //parse(fixedDescription)
 
 }
 
 def configure() {
 
-	if (logEnable) log.debug "Configure Called! But I don't do anything right now."
-
-	//zigbee.onOffConfig() + simpleMeteringPowerConfig() + zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
-
-
+	logging("There's really nothing to be configured on this device.",1)
 
 }
 
-def randomRefreshAttempt() {
+def outputValues(map) {
 
-	zigbee.readAttribute(0x00F5, 0x0400)
+	String[] receivedData = map.data
+
+	Map alertMeDevices = [
+	    '1A': 'Unknown (1A)',
+	    '1B': 'Power Clamp',
+	    '1C': 'Switch',
+	    '1D': 'Key Fob',
+	    '1E': 'Unknown (1E)',
+	    '1F': 'Lamp',
+	    '1G': 'Unknown (1G)',
+	]
+
+	if (map.clusterId == "00F0") {
+
+		// Cluster 00F0 deals with device status, including battery and temperature data.
+
+		// Look up the real device type from the AlertMe device map.
+        def deviceValue = receivedData[0]
+        sendEvent(name:"deviceType",value:alertMeDevices[deviceValue],isStateChange: false)
+
+        // Report the battery voltage and calculated percentage.
+		def batteryValue = "undefined"
+		batteryValue = receivedData[5..6].reverse().join()
+		logging("${device} : batteryValue byte flipped : ${batteryValue}",1)
+		batteryValue = zigbee.convertHexToInt(batteryValue) / 1000
+		parseAndSendBatteryStatus(batteryValue)
+		sendEvent(name:"batteryVoltage", value: batteryValue, unit: "V", isStateChange: false)
+		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: false)
+
+		def temperatureValue = "undefined"
+		temperatureValue = receivedData[7..8].reverse().join()
+		logging("${device} : temperatureValue byte flipped : ${temperatureValue}",1)
+        temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
+		logging("${device} : Temperature : ${temperatureValue} C",100)
+
+		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
+		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
+
+	} else if (map.clusterId == "00F3") {
+
+		logging("I think this is the tamper button status. We don't know what to do with this yet.",100)
+		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",100)
+
+	} else {
+
+		logging("Unknown cluster received! Please report this to the developer.",101)
+		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
+
+	}
+
+	return null
 
 }
 
-def simpleMeteringPowerConfig(minReportTime=1, maxReportTime=600, reportableChange=0x05) {
+void parseAndSendBatteryStatus(BigDecimal vCurrent) {
 
-	zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange)
+    BigDecimal bat = 0
+    BigDecimal vMin = vMinSetting == null ? 2.5 : vMinSetting
+    BigDecimal vMax = vMaxSetting == null ? 3.0 : vMaxSetting    
+
+    if(vMax - vMin > 0) {
+        bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
+    } else {
+        bat = 100
+    }
+    bat = bat.setScale(0, BigDecimal.ROUND_HALF_UP)
+    bat = bat > 100 ? 100 : bat
+    
+    vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
+
+    logging("${device} : Battery : $bat% ($vCurrent V)", 100)
+    sendEvent(name:"battery",value:bat,unit: "%", isStateChange: false)
+    sendEvent(name:"batteryWithUnit",value:"${bat} %",isStateChange: false)
 
 }
 
-def getDescription(descMap) {
+private boolean logging(message, level) {
 
-	def powerValue = "undefined"
+    boolean didLog = false
+     
+    Integer logLevelLocal = 0
 
-	if (descMap.cluster == "0702") {
+    if (infoLogging == null || infoLogging == true) {
+        logLevelLocal = 100
+    }
 
-		if (descMap.attrId == "0400") {
+    if (debugLogging == true) {
+        logLevelLocal = 1
+    }
+     
+    if (logLevelLocal != 0){
 
-			if(descMap.value != "ffff") powerValue = zigbee.convertHexToInt(descMap.value)
+        switch (logLevelLocal) {
+	        case 1:  
+	            if (level >= 1 && level < 99) {
+	                log.debug "$message"
+	                didLog = true
+	            } else if (level == 100) {
+	                log.info "$message"
+	                didLog = true
+	            } else if (level > 100) {
+					log.warn "$message"
+	                didLog = true
+	            }
+	        break
+	        case 100:  
+	            if (level == 100) {
+	                log.info "$message"
+	                didLog = true
+	            } else if (level > 100) {
+					log.warn "$message"
+	                didLog = true
+	            }
+	        break
+        }
 
-		}
+    }
 
-	}
-	else if (descMap.clusterId == "0702") {
-
-		if(descMap.command == "07"){
-
-			return	[name: "update", value: "power (0702) capability configured successfully"]
-
-		}
-
-	}
-	else if (descMap.clusterId == "0006") {
-
-		if(descMap.command == "07"){
-
-			return	[name: "update", value: "switch (0006) capability configured successfully"]
-
-		}
-
-	}
-
-	if (powerValue != "undefined"){
-
-		return	[name: "power", value: powerValue]
-
-	}
-	else {
-
-		return null
-
-	}
+    return didLog
 
 }

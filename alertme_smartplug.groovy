@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.00 (15th July 2020)
+ *  AlertMe Smart Plug Driver v1.00 (15th July 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Smart Plug", namespace: "AlertMe", author: "Andrew Davison") {
 
 		capability "Battery"
 		capability "Initialize"
@@ -17,11 +17,11 @@ metadata {
         attribute "batteryWithUnit", "string"
         attribute "batteryVoltage", "string"
         attribute "batteryVoltageWithUnit", "string"
-        //attribute "deviceType", "string"
+        attribute "deviceType", "string"
         attribute "powerWithUnit", "string"
         attribute "temperatureWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00EF,00EE", outClusters: "", manufacturer: "AlertMe.com", model: "SmartPlug", deviceJoinName: "AlertMe Smart Plug"
         
 	}
 
@@ -113,7 +113,6 @@ def outputValues(map) {
 
 	String[] receivedData = map.data
 
-	// Hmm, this may not be terribly accurate or useful.
 	Map alertMeDevices = [
 	    '1A': 'Unknown (1A)',
 	    '1B': 'Power Clamp',
@@ -166,8 +165,8 @@ def outputValues(map) {
 		// Cluster 00F0 deals with device status, including battery and temperature data.
 
 		// Look up the real device type from the AlertMe device map.
-        //def deviceValue = receivedData[0]
-        //sendEvent(name:"deviceType",value:alertMeDevices[deviceValue],isStateChange: false)
+        def deviceValue = receivedData[0]
+        sendEvent(name:"deviceType",value:alertMeDevices[deviceValue],isStateChange: false)
 
         // Report the battery voltage and calculated percentage.
 		def batteryValue = "undefined"
