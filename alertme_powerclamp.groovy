@@ -17,9 +17,11 @@ metadata {
         attribute "batteryWithUnit", "string"
         attribute "batteryVoltage", "string"
         attribute "batteryVoltageWithUnit", "string"
-        //attribute "deviceType", "string"
         attribute "powerWithUnit", "string"
         attribute "temperatureWithUnit", "string"
+        attribute "uptime", "string"
+        attribute "usage", "string"
+        attribute "usageWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
         
@@ -43,7 +45,6 @@ void initialize() {
 	configure()
 	updated()
 
-    sendEvent(name:"deviceType",value:"Unconfirmed",isStateChange: false)
     sendEvent(name:"battery",value:0,unit: "%", isStateChange: false)
     sendEvent(name:"batteryWithUnit",value:"Unknown",isStateChange: false)
 	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
@@ -51,7 +52,10 @@ void initialize() {
 	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name:"powerWithUnit", value: "Unknown", isStateChange: false)
 	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name:"temperatureWithUnit", value: "Unknown", unit: "C", isStateChange: false)
+	sendEvent(name:"temperatureWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
+	sendEvent(name:"usageWithUnit", value: "Unknown", isStateChange: false)
 
 	logging("Initialised!",100)
 	
@@ -113,61 +117,68 @@ def outputValues(map) {
 
 	String[] receivedData = map.data
 
-	// Hmm, this may not be terribly accurate or useful.
-	Map alertMeDevices = [
-	    '1A': 'Unknown (1A)',
-	    '1B': 'Power Clamp',
-	    '1C': 'Switch',
-	    '1D': 'Key Fob',
-	    '1E': 'Unknown (1E)',
-	    '1F': 'Lamp',
-	    '1G': 'Unknown (1G)',
-	]
-
 	if (map.clusterId == "00EF") {
 
 		// Cluster 00EF deals with power usage information.
 
-		if (receivedData.length == 2) {
+		if (map.command == "81") {
 
-			// If we receive two 8-bit values, we know it's the instant reading. 
+			// Command 81 returns immediate power readings.
 
 			def powerValueHex = "undefined"
 			def int powerValue = 0
 
 			powerValueHex = receivedData[0..1].reverse().join()
 			logging("${device} : power byte flipped : ${powerValueHex}",1)
-
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}",1)
 
-			//if (powerOffset != null) powerValue = powerValue + powerOffset
-			logging("${device} : Power Usage : ${powerValue} W",100)
+			logging("${device} : Power Reading : ${powerValue} W",100)
 
 			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: true)
 			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: true)
 
-		} else if (receivedData.length == 9) {
+		} else if (map.command == "82") {
 
-			// Nine 8-bit values and we've received the power usage summary. Not seen anyone work this one out yet.
+			// Command 82 returns usage summary in watt-hours with an uptime counter.
 
-			logging("Power usage summary data received, but we don't know how to decipher this yet.",1)
-			logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",1)
+			def usageValueHex = "undefined"
+			def int usageValue = 0 
+
+			usageValueHex = receivedData[0..3].reverse().join()
+			logging("${device} : usage byte flipped : ${usageValueHex}",1)
+			usageValue = zigbee.convertHexToInt(usageValueHex)
+			logging("${device} : usage counter reports : ${usageValue}",1)
+
+			usageValue = usageValue / 3600
+
+			logging("${device} : Power Usage : ${usageValue} Wh",100)
+
+			sendEvent(name:"usage", value: usageValue, unit: "Wh", isStateChange: false)
+			sendEvent(name:"usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
+
+			def uptimeValueHex = "undefined"
+			def int uptimeValue = 0
+
+			uptimeValueHex = receivedData[4..8].reverse().join()
+			logging("${device} : uptime byte flipped : ${uptimeValueHex}",1)
+			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
+			logging("${device} : uptime counter reports : ${uptimeValue}",1)
+
+			logging("${device} : Uptime : ${uptimeValue} s",100)
+
+			sendEvent(name:"uptime", value: uptimeValue, unit: "s", isStateChange: false)
 
 		} else {
 
 			logging("Unknown power usage information! Please report this to the developer.",101)
-			logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
+			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
 
 		}
 
 	} else if (map.clusterId == "00F0") {
 
 		// Cluster 00F0 deals with device status, including battery and temperature data.
-
-		// Look up the real device type from the AlertMe device map.
-        //def deviceValue = receivedData[0]
-        //sendEvent(name:"deviceType",value:alertMeDevices[deviceValue],isStateChange: false)
 
         // Report the battery voltage and calculated percentage.
 		def batteryValue = "undefined"
@@ -178,12 +189,12 @@ def outputValues(map) {
 		sendEvent(name:"batteryVoltage", value: batteryValue, unit: "V", isStateChange: false)
 		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: false)
 
+		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}",1)
         temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
 		logging("${device} : Temperature : ${temperatureValue} C",100)
-
 		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
 		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
 
