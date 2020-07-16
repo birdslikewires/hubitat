@@ -158,8 +158,8 @@ def outputValues(map) {
 			//   01 01 - Cold mains power on with relay on (only occurs when battery dead or after reset)
 			//   02 00 - Mains power off and relay off [BATTERY OPERATION]
 			//   03 01 - Mains power off and relay on [BATTERY OPERATION]
-			//   04 00 - Mains power returns with relay off (only follows a 00)
-			//   05 01 - Mains power returns with relay on (only follows a 01)
+			//   04 00 - Mains power returns with relay off (only follows a 00 00)
+			//   05 01 - Mains power returns with relay on (only follows a 01 01)
 			//   06 00 - Mains power on and relay off (normal actuation)
 			//   07 01 - Mains power on and relay on (normal actuation)
 
@@ -297,6 +297,7 @@ def outputValues(map) {
 			state.batteryInstalled = true
 			parseAndSendBatteryStatus(batteryVoltage)
 		} else {
+			state.batteryInstalled = false
 			sendEvent(name:"battery", value:0, unit: "%", isStateChange: false)
     		sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
 		}
@@ -312,8 +313,8 @@ def outputValues(map) {
 
 	} else if (map.clusterId == "00F3") {
 
-		logging("I think this is the tamper button status. We don't know what to do with this yet.",100)
-		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",100)
+		logging("Received tamper button status. Smart Plugs don't normally send this, please report to developer.",101)
+		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
 
 	} else if (map.clusterId == "00F6") {
 
@@ -324,7 +325,9 @@ def outputValues(map) {
 
 		} else {
 
-			logging("Receiving end of the join request. This Smart Plug probably wants us to ask how it's feeling.",101)
+			logging("Receiving a message on the join cluster. This Smart Plug probably wants us to ask how it's feeling.",101)
+			logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
+			refresh()
 
 		}
 
