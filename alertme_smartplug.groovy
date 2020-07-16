@@ -14,13 +14,17 @@ metadata {
 		capability "Initialize"
 		capability "Outlet"
         capability "Power Meter"
+        capability "Refresh"
         capability "Switch"
         capability "Temperature Measurement"
 
-        attribute "batteryWithUnit", "string"
+        attribute "batteryState", "string"    
         attribute "batteryVoltage", "string"
         attribute "batteryVoltageWithUnit", "string"
+        attribute "batteryWithUnit", "string"
         attribute "powerWithUnit", "string"
+        attribute "stateMismatch", "boolean"
+        attribute "supplyPresent", "boolean"
         attribute "temperatureWithUnit", "string"
         attribute "uptime", "string"
         attribute "usage", "string"
@@ -43,23 +47,42 @@ preferences {
 	
 }
 
-void initialize() {
+def initialize() {
 	
-	configure()
-	updated()
+    state.batteryInstalled = false
+    
+	// Remove any scheduled events.
+	unschedule()
 
-    sendEvent(name:"battery",value:0,unit: "%", isStateChange: false)
-    sendEvent(name:"batteryWithUnit",value:"Unknown",isStateChange: false)
+	// Bunch of zero or null values.
+    sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
+    sendEvent(name:"batteryState",value: "unknown", isStateChange: false)
 	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name:"batteryVoltageWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
 	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name:"powerWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"powerWithUnit", value: "unknown", isStateChange: false)
+    sendEvent(name:"stateMismatch",value: true, isStateChange: false)
+    sendEvent(name:"supplyPresent",value: false, isStateChange: false)
+	sendEvent(name:"switch", value: "unknown")
 	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name:"temperatureWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name:"uptime", value: 0, unit: "s", isStateChange: false)
 	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
-	sendEvent(name:"usageWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"usageWithUnit", value: "unknown", isStateChange: false)
 
+	// Reschedule our refresh check-in and turn off the debug logs after 30 minutes.
+	schedule("0 */10 * ? * *", refresh)
+	runIn(1800,debugLogOff)
+
+	// Report our logging status.
+	logging("Info logging is: ${infoLogging == true}",100)
+	logging("Debug logging is: ${debugLogging == true}",1)
+
+	// Perform the refresh which should bring remote control online.
+	refresh()
+
+	// All done.
 	logging("Initialised!",100)
 	
 }
@@ -67,18 +90,36 @@ void initialize() {
 void debugLogOff(){
 
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	logging("Debug logging disabled.",101)
+	logging("Debug logging disabled.",100)
 
 }
 
-void updated(){
+def off() {
 
-	unschedule()
+	// The off command is custom to AlertMe equipment, so has to be constructed.
+	def offCommand = []
+	offCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(offCommand, hubitat.device.Protocol.ZIGBEE))
 
-	logging("Info logging is: ${infoLogging == true}",101)
-	logging("Debug logging is: ${debugLogging == true}",101)
-	
-	if (debugLogging) runIn(1800,debugLogOff)
+}
+
+def on() {
+
+	// The on command is custom to AlertMe equipment, so has to be constructed.
+	def onCommand = []
+	onCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(onCommand, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+def refresh() {
+
+	// The Smart Plug becomes active after joining once it has received this status update request.
+	// It also requires the Hub to check in occasionally, otherwise remot econtrol is dropped. 
+	def stateRequest = []
+	stateRequest.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(stateRequest, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Refreshed",100)
 
 }
 
@@ -99,44 +140,85 @@ def parse(String description) {
 
 }
 
-def off() {
-
-	def offCommand = []
-	offCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(offCommand, hubitat.device.Protocol.ZIGBEE))
-
-}
-
-def on() {
-
-	def onCommand = []
-	onCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(onCommand, hubitat.device.Protocol.ZIGBEE))
-
-}
-
-def refresh() {
-
-	logging("There's really nothing to be refreshed on this device.",1)
-
-	// Test parsing.
-    //def fixedDescription = "catchall: C216 00F0 02 02 0040 00 B893 01 00 0000 FB 01 1BBC5F621C870B1401B4FF0000"
-    //logging("Attempting to parse fixed data where battery = 2.951 and temperature = 17.25",1)
-    //parse(fixedDescription)
-
-}
-
-def configure() {
-
-	logging("There's really nothing to be configured on this device.",1)
-
-}
-
 def outputValues(map) {
 
 	String[] receivedData = map.data
 
-	if (map.clusterId == "00EF") {
+	if (map.clusterId == "00EE") {
+
+		// Cluster 00EE deals with switch actuation results and power states.
+
+		if (map.command == "80") {
+
+			def powerStateHex = "undefined"
+			powerStateHex = receivedData[0]
+
+			// Power states are fun.
+			//   00 00 - Cold mains power on with relay off (only occurs when battery dead or after reset)
+			//   01 01 - Cold mains power on with relay on (only occurs when battery dead or after reset)
+			//   02 00 - Mains power off and relay off [BATTERY OPERATION]
+			//   03 01 - Mains power off and relay on [BATTERY OPERATION]
+			//   04 00 - Mains power returns with relay off (only follows a 00)
+			//   05 01 - Mains power returns with relay on (only follows a 01)
+			//   06 00 - Mains power on and relay off (normal actuation)
+			//   07 01 - Mains power on and relay on (normal actuation)
+
+			if (powerStateHex == "02" || powerStateHex == "03") {
+
+				sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
+				sendEvent(name: "supplyPresent", value: false, isStateChange: true)
+
+				if (powerStateHex == "02") {
+
+					sendEvent(name: "stateMismatch", value: false, isStateChange: true)
+
+				} else {
+
+					sendEvent(name: "stateMismatch", value: true, isStateChange: true)
+
+				}
+
+			} else {
+
+				if (state.batteryInstalled) {
+
+					sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+
+				} else {
+
+					sendEvent(name: "batteryState", value: "faulty", isStateChange: true)
+
+				}
+
+				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
+				sendEvent(name: "supplyPresent", value: true, isStateChange: true)
+
+			}
+
+			def switchStateHex = "undefined"
+			switchStateHex = receivedData[1]
+
+			if (switchStateHex == "01") {
+
+				sendEvent(name:"switch", value: "on")
+				logging("${device} : Switch : On",100)
+
+			} else {
+
+				sendEvent(name:"switch", value: "off")
+				logging("${device} : Switch : Off",100)
+
+			}
+
+		} else {
+
+			logging("Unknown switch information! Please report this to the developer.",101)
+			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+			logging("Splurge! ${map}",101)
+
+		}
+
+	} else if (map.clusterId == "00EF") {
 
 		// Cluster 00EF deals with power usage information.
 
@@ -192,7 +274,7 @@ def outputValues(map) {
 
 			logging("Unknown power usage information! Please report this to the developer.",101)
 			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
-			logging("Splurge! ${map}")
+			logging("Splurge! ${map}",101)
 
 		}
 
@@ -201,13 +283,23 @@ def outputValues(map) {
 		// Cluster 00F0 deals with device status, including battery and temperature data.
 
         // Report the battery voltage and calculated percentage.
-		def batteryValue = "undefined"
-		batteryValue = receivedData[5..6].reverse().join()
-		logging("${device} : batteryValue byte flipped : ${batteryValue}",1)
-		batteryValue = zigbee.convertHexToInt(batteryValue) / 1000
-		parseAndSendBatteryStatus(batteryValue)
-		sendEvent(name:"batteryVoltage", value: batteryValue, unit: "V", isStateChange: false)
-		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: false)
+		def batteryVoltageHex = "undefined"
+		def float batteryVoltage = 0
+		batteryVoltageHex = receivedData[5..6].reverse().join()
+		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}",1)
+		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
+		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
+		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
+
+		// If the battery voltage (or more correctly the charge circuitry) is reporting
+		// over 4.5 V then the battery is very likely missing or faulty.
+		if (batteryVoltage <= 4.5) {
+			state.batteryInstalled = true
+			parseAndSendBatteryStatus(batteryVoltage)
+		} else {
+			sendEvent(name:"battery", value:0, unit: "%", isStateChange: false)
+    		sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
+		}
 
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
@@ -222,6 +314,19 @@ def outputValues(map) {
 
 		logging("I think this is the tamper button status. We don't know what to do with this yet.",100)
 		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",100)
+
+	} else if (map.clusterId == "00F6") {
+
+		if (map.command == "FD") {
+
+			logging("${device} : Refresh request received!",100)
+			refresh()
+
+		} else {
+
+			logging("Receiving end of the join request. This Smart Plug probably wants us to ask how it's feeling.",101)
+
+		}
 
 	} else {
 
