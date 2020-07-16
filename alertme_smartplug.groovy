@@ -13,25 +13,25 @@ metadata {
 		capability "Battery"
 		capability "Initialize"
 		capability "Outlet"
-        capability "Power Meter"
-        capability "Refresh"
-        capability "Switch"
-        capability "Temperature Measurement"
+		capability "Power Meter"
+		capability "Refresh"
+		capability "Switch"
+		capability "Temperature Measurement"
 
-        attribute "batteryState", "string"    
-        attribute "batteryVoltage", "string"
-        attribute "batteryVoltageWithUnit", "string"
-        attribute "batteryWithUnit", "string"
-        attribute "powerWithUnit", "string"
-        attribute "stateMismatch", "boolean"
-        attribute "supplyPresent", "boolean"
-        attribute "temperatureWithUnit", "string"
-        attribute "uptime", "string"
-        attribute "usage", "string"
-        attribute "usageWithUnit", "string"
+		attribute "batteryState", "string"    
+		attribute "batteryVoltage", "string"
+		attribute "batteryVoltageWithUnit", "string"
+		attribute "batteryWithUnit", "string"
+		attribute "powerWithUnit", "string"
+		attribute "stateMismatch", "boolean"
+		attribute "supplyPresent", "boolean"
+		attribute "temperatureWithUnit", "string"
+		attribute "uptime", "string"
+		attribute "usage", "string"
+		attribute "usageWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00EF,00EE", outClusters: "", manufacturer: "AlertMe.com", model: "Smart Plug", deviceJoinName: "AlertMe Smart Plug"
-        
+		
 	}
 
 }
@@ -41,7 +41,7 @@ preferences {
 	
 	//input name: "powerOffset", type: "int", title: "Power Offset", description: "Offset in Watts (default: 0)", defaultValue: "0"
 	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.7..3.3"
-    input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.3..3.9"
+	input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.3..3.9"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
 	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
 	
@@ -49,21 +49,21 @@ preferences {
 
 def initialize() {
 	
-    state.batteryInstalled = false
-    
+	state.batteryInstalled = false
+	
 	// Remove any scheduled events.
 	unschedule()
 
 	// Bunch of zero or null values.
-    sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
-    sendEvent(name:"batteryState",value: "unknown", isStateChange: false)
+	sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name:"batteryState",value: "unknown", isStateChange: false)
 	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
 	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name:"powerWithUnit", value: "unknown", isStateChange: false)
-    sendEvent(name:"stateMismatch",value: true, isStateChange: false)
-    sendEvent(name:"supplyPresent",value: false, isStateChange: false)
+	sendEvent(name:"stateMismatch",value: true, isStateChange: false)
+	sendEvent(name:"supplyPresent",value: false, isStateChange: false)
 	sendEvent(name:"switch", value: "unknown")
 	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name:"temperatureWithUnit", value: "unknown", isStateChange: false)
@@ -124,12 +124,12 @@ def refresh() {
 }
 
 def parse(String description) {
-	    
-    def descriptionMap = zigbee.parseDescriptionAsMap(description)
-    
+		
+	def descriptionMap = zigbee.parseDescriptionAsMap(description)
+	
 	if (descriptionMap) {
 	
-        logging("splurge: ${descriptionMap}",1)
+		logging("splurge: ${descriptionMap}",1)
 		outputValues(descriptionMap)
 
 	} else {
@@ -282,7 +282,7 @@ def outputValues(map) {
 
 		// Cluster 00F0 deals with device status, including battery and temperature data.
 
-        // Report the battery voltage and calculated percentage.
+		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
 		def float batteryVoltage = 0
 		batteryVoltageHex = receivedData[5..6].reverse().join()
@@ -299,14 +299,14 @@ def outputValues(map) {
 		} else {
 			state.batteryInstalled = false
 			sendEvent(name:"battery", value:0, unit: "%", isStateChange: false)
-    		sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
+			sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
 		}
 
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}",1)
-        temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
+		temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
 		logging("${device} : Temperature : ${temperatureValue} C",100)
 		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
 		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
@@ -345,68 +345,68 @@ def outputValues(map) {
 
 void parseAndSendBatteryStatus(BigDecimal vCurrent) {
 
-    BigDecimal bat = 0
-    BigDecimal vMin = vMinSetting == null ? 2.9 : vMinSetting
-    BigDecimal vMax = vMaxSetting == null ? 3.9 : vMaxSetting    
+	BigDecimal bat = 0
+	BigDecimal vMin = vMinSetting == null ? 2.9 : vMinSetting
+	BigDecimal vMax = vMaxSetting == null ? 3.9 : vMaxSetting    
 
-    if(vMax - vMin > 0) {
-        bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
-    } else {
-        bat = 100
-    }
-    bat = bat.setScale(0, BigDecimal.ROUND_HALF_UP)
-    bat = bat > 100 ? 100 : bat
-    
-    vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
+	if(vMax - vMin > 0) {
+		bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
+	} else {
+		bat = 100
+	}
+	bat = bat.setScale(0, BigDecimal.ROUND_HALF_UP)
+	bat = bat > 100 ? 100 : bat
+	
+	vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
 
-    logging("${device} : Battery : $bat% ($vCurrent V)", 100)
-    sendEvent(name:"battery",value:bat,unit: "%", isStateChange: false)
-    sendEvent(name:"batteryWithUnit",value:"${bat} %",isStateChange: false)
+	logging("${device} : Battery : $bat% ($vCurrent V)", 100)
+	sendEvent(name:"battery",value:bat,unit: "%", isStateChange: false)
+	sendEvent(name:"batteryWithUnit",value:"${bat} %",isStateChange: false)
 
 }
 
 private boolean logging(message, level) {
 
-    boolean didLog = false
-     
-    Integer logLevelLocal = 0
+	boolean didLog = false
+	 
+	Integer logLevelLocal = 0
 
-    if (infoLogging == null || infoLogging == true) {
-        logLevelLocal = 100
-    }
+	if (infoLogging == null || infoLogging == true) {
+		logLevelLocal = 100
+	}
 
-    if (debugLogging == true) {
-        logLevelLocal = 1
-    }
-     
-    if (logLevelLocal != 0){
+	if (debugLogging == true) {
+		logLevelLocal = 1
+	}
+	 
+	if (logLevelLocal != 0){
 
-        switch (logLevelLocal) {
-	        case 1:  
-	            if (level >= 1 && level < 99) {
-	                log.debug "$message"
-	                didLog = true
-	            } else if (level == 100) {
-	                log.info "$message"
-	                didLog = true
-	            } else if (level > 100) {
+		switch (logLevelLocal) {
+			case 1:  
+				if (level >= 1 && level < 99) {
+					log.debug "$message"
+					didLog = true
+				} else if (level == 100) {
+					log.info "$message"
+					didLog = true
+				} else if (level > 100) {
 					log.warn "$message"
-	                didLog = true
-	            }
-	        break
-	        case 100:  
-	            if (level == 100) {
-	                log.info "$message"
-	                didLog = true
-	            } else if (level > 100) {
+					didLog = true
+				}
+			break
+			case 100:  
+				if (level == 100) {
+					log.info "$message"
+					didLog = true
+				} else if (level > 100) {
 					log.warn "$message"
-	                didLog = true
-	            }
-	        break
-        }
+					didLog = true
+				}
+			break
+		}
 
-    }
+	}
 
-    return didLog
+	return didLog
 
 }
