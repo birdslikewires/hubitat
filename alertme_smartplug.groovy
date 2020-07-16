@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.01 (16th July 2020)
+ *  AlertMe Smart Plug Driver v1.02 (16th July 2020)
  *	
  */
 
@@ -346,8 +346,8 @@ def outputValues(map) {
 void parseAndSendBatteryStatus(BigDecimal vCurrent) {
 
     BigDecimal bat = 0
-    BigDecimal vMin = vMinSetting == null ? 2.5 : vMinSetting
-    BigDecimal vMax = vMaxSetting == null ? 3.0 : vMaxSetting    
+    BigDecimal vMin = vMinSetting == null ? 2.9 : vMinSetting
+    BigDecimal vMax = vMaxSetting == null ? 3.9 : vMaxSetting    
 
     if(vMax - vMin > 0) {
         bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
