@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.02 (16th July 2020)
+ *  AlertMe Smart Plug Driver v1.03 (18th July 2020)
  *	
  */
 
@@ -18,11 +18,18 @@ metadata {
 		capability "Switch"
 		capability "Temperature Measurement"
 
+		//command "lockedMode"
+		command "normalMode"
+		command "rangingMode"
+		//command "silentMode"
+
 		attribute "batteryState", "string"    
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
+		attribute "mode", "string"
 		attribute "powerWithUnit", "string"
+		attribute "rssi", "string"
 		attribute "stateMismatch", "boolean"
 		attribute "supplyPresent", "boolean"
 		attribute "temperatureWithUnit", "string"
@@ -39,7 +46,6 @@ metadata {
 
 preferences {
 	
-	//input name: "powerOffset", type: "int", title: "Power Offset", description: "Offset in Watts (default: 0)", defaultValue: "0"
 	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.7..3.3"
 	input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.3..3.9"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
@@ -47,9 +53,11 @@ preferences {
 	
 }
 
+
 def initialize() {
 	
 	state.batteryInstalled = false
+	state.operatingMode = "normal"
 	
 	// Remove any scheduled events.
 	unschedule()
@@ -60,8 +68,10 @@ def initialize() {
 	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name:"mode", value: "unknown",isStateChange: false)
 	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name:"powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name:"rssi", value: "unknown")
 	sendEvent(name:"stateMismatch",value: true, isStateChange: false)
 	sendEvent(name:"supplyPresent",value: false, isStateChange: false)
 	sendEvent(name:"switch", value: "unknown")
@@ -71,57 +81,151 @@ def initialize() {
 	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
 	sendEvent(name:"usageWithUnit", value: "unknown", isStateChange: false)
 
-	// Reschedule our refresh check-in and turn off the debug logs after 30 minutes.
-	schedule("0 */10 * ? * *", refresh)
-	runIn(1800,debugLogOff)
+	// Schedule our refresh check-in and turn off the logs.
+	randomMinute = Math.abs(new Random().nextInt() % 60)
+	schedule("0 ${randomMinute} 0/1 1/1 * ? *", rangeAndRefresh)
+	runIn(600,debugLogOff)
+	runIn(600,infoLogOff)
 
 	// Report our logging status.
 	logging("Info logging is: ${infoLogging == true}",100)
 	logging("Debug logging is: ${debugLogging == true}",1)
 
-	// Perform the refresh which should bring remote control online.
-	refresh()
+	// Set the operating mode.
+	rangingMode()
+	runIn(6,normalMode)
 
 	// All done.
 	logging("Initialised!",100)
 	
 }
 
-void debugLogOff(){
 
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
+void debugLogOff(){
+	
 	logging("Debug logging disabled.",100)
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 
 }
+
+
+void infoLogOff(){
+	
+	logging("Logging disabled.",100)
+	device.updateSetting("infoLogging",[value:"false",type:"bool"])
+
+}
+
+
+def normalMode() {
+
+	// This is the standard, quite chatty, running mode of the outlet.
+
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	refresh()
+	state.operatingMode = "normal"
+	sendEvent(name: "mode", value: "normal")
+	logging("${device} : Mode : Normal",100)
+
+}
+
+
+def rangingMode() {
+
+	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator
+	// while reporting RSSI values. It's also a handy means of identifying a device.
+
+	// Don't set state.operatingMode here! Ranging is a temporary state only.
+
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	sendEvent(name: "mode", value: "ranging")
+	logging("${device} : Mode : Ranging",100)
+	runIn(60,normalMode)
+
+}
+
+
+def lockedMode() {
+
+	// Locked mode is not as useful as it might first appear. This disables the local power button on
+	// the outlet. However, this can be reset by rebooting the outlet by holding that same power
+	// button for ten seconds. Or you could just turn off the supply, of course.
+
+	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
+
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	refresh()
+	state.operatingMode = "locked"
+	sendEvent(name: "mode", value: "locked")
+	logging("${device} : Mode : Locked",100)
+
+}
+
+
+def silentMode() {
+
+	// Turns off all reporting. Not hugely useful as we can control logging in other ways.
+
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	refresh()
+	state.operatingMode = "silent"
+	sendEvent(name: "mode", value: "silent")
+	logging("${device} : Mode : Silent",100)
+
+}
+
 
 def off() {
 
 	// The off command is custom to AlertMe equipment, so has to be constructed.
+
 	def offCommand = []
 	offCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
 	sendHubCommand(new hubitat.device.HubMultiAction(offCommand, hubitat.device.Protocol.ZIGBEE))
 
 }
 
+
 def on() {
 
 	// The on command is custom to AlertMe equipment, so has to be constructed.
+
 	def onCommand = []
 	onCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
 	sendHubCommand(new hubitat.device.HubMultiAction(onCommand, hubitat.device.Protocol.ZIGBEE))
 
 }
 
+
 def refresh() {
 
 	// The Smart Plug becomes active after joining once it has received this status update request.
-	// It also requires the Hub to check in occasionally, otherwise remot econtrol is dropped. 
+	// It also expects the Hub to check in with this occasionally, otherwise remote control is dropped. 
+
 	def stateRequest = []
 	stateRequest.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
 	sendHubCommand(new hubitat.device.HubMultiAction(stateRequest, hubitat.device.Protocol.ZIGBEE))
 	logging("${device} : Refreshed",100)
 
 }
+
+
+def rangeAndRefresh() {
+
+	// This is a ranging report and refresh call.
+	rangingMode()
+	runIn(3,"${state.operatingMode}Mode")
+
+}
+
 
 def parse(String description) {
 		
@@ -139,6 +243,7 @@ def parse(String description) {
 	}	
 
 }
+
 
 def outputValues(map) {
 
@@ -186,7 +291,7 @@ def outputValues(map) {
 
 				} else {
 
-					sendEvent(name: "batteryState", value: "faulty", isStateChange: true)
+					sendEvent(name: "batteryState", value: "unknown", isStateChange: true)
 
 				}
 
@@ -291,8 +396,7 @@ def outputValues(map) {
 		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
 		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
 
-		// If the battery voltage (or more correctly the charge circuitry) is reporting
-		// over 4.5 V then the battery is very likely missing or faulty.
+		// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
 		if (batteryVoltage <= 4.5) {
 			state.batteryInstalled = true
 			parseAndSendBatteryStatus(batteryVoltage)
@@ -320,8 +424,21 @@ def outputValues(map) {
 
 		if (map.command == "FD") {
 
-			logging("${device} : Refresh request received!",100)
-			refresh()
+			def rssiRangingHex = "undefined"
+			def int rssiRanging = 0
+			rssiRangingHex = receivedData[0]
+			rssiRanging = zigbee.convertHexToInt(rssiRangingHex)
+			sendEvent(name:"rssi", value: rssiRanging, isStateChange: false)
+			logging("${device} : rssiRanging : ${rssiRanging}",1)
+
+			if (receivedData[1] == "FF") {
+				// If this is a general ranging report, trigger a refresh for good measure.
+				refresh()
+			} //else if (receivedData[1] == "77") {
+				// You are in ranging mode!
+				// This is to record that 77 is ranging mode.
+				// There might be something cool you could do here, but nothing springs to mind right now.
+			//}
 
 		} else {
 
