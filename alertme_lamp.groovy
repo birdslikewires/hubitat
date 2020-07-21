@@ -1,18 +1,17 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.01 (21st July 2020)
+ *  AlertMe Lamp Driver v1.01 (21st July 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison") {
 
 		capability "Battery"
 		capability "Initialize"
 		capability "Refresh"
-		capability "Power Meter"
 		capability "Temperature Measurement"
 
 		command "normalMode"
@@ -22,15 +21,12 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
-		attribute "powerWithUnit", "string"
 		attribute "rssi", "string"
 		attribute "temperatureWithUnit", "string"
 		attribute "uptime", "string"
-		attribute "usage", "string"
-		attribute "usageWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
-		
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
+
 	}
 
 }
@@ -38,33 +34,31 @@ metadata {
 
 preferences {
 	
-	//input name: "powerOffset", type: "int", title: "Power Offset", description: "Offset in Watts (default: 0)", defaultValue: "0"
-	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 2.5)",defaultValue: "2.5",range: "2.1..2.8"
-	input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.9..3.4"
+	input name: "vMinSetting",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.0)",defaultValue: "2.5",range: "2.1..2.8"
+	input name: "vMaxSetting",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.6)",defaultValue: "3.0",range: "2.9..3.4"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
 	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
 	
 }
 
-void initialize() {
+
+def initialize() {
 	
 	state.operatingMode = "normal"
-
+	
 	// Remove any scheduled events.
 	unschedule()
 
 	// Bunch of zero or null values.
-	sendEvent(name:"battery",value:0,unit: "%", isStateChange: false)
-	sendEvent(name:"batteryWithUnit",value:"Unknown",isStateChange: false)
+	sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
 	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name:"batteryVoltageWithUnit", value: "Unknown", isStateChange: false)
-	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name:"powerWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name:"mode", value: "unknown",isStateChange: false)
+	sendEvent(name:"rssi", value: "unknown")
 	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name:"temperatureWithUnit", value: "Unknown", isStateChange: false)
+	sendEvent(name:"temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name:"uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
-	sendEvent(name:"usageWithUnit", value: "Unknown", isStateChange: false)
 
 	// Schedule our refresh check-in and turn off the logs.
 	randomMinute = Math.abs(new Random().nextInt() % 60)
@@ -82,7 +76,7 @@ void initialize() {
 
 	// All done.
 	logging("Initialised!",100)
-
+	
 }
 
 
@@ -134,6 +128,23 @@ def rangingMode() {
 }
 
 
+def refresh() {
+
+	// Ssh. We don't really do anything here.
+	logging("${device} : Refreshed",100)
+
+}
+
+
+def rangeAndRefresh() {
+
+	// This is a ranging report and refresh call.
+	rangingMode()
+	runIn(3,"${state.operatingMode}Mode")
+
+}
+
+
 def parse(String description) {
 		
 	def descriptionMap = zigbee.parseDescriptionAsMap(description)
@@ -151,102 +162,33 @@ def parse(String description) {
 
 }
 
-def refresh() {
-
-	// Ssh. We don't really do anything here.
-	logging("${device} : Refreshed",100)
-
-}
-
-def rangeAndRefresh() {
-
-	// This is a ranging report and refresh call.
-	rangingMode()
-	runIn(3,"${state.operatingMode}Mode")
-
-}
-
-def configure() {
-
-	logging("There's really nothing to be configured on this device.",1)
-
-}
 
 def outputValues(map) {
 
 	String[] receivedData = map.data
 
-	if (map.clusterId == "00EF") {
-
-		// Cluster 00EF deals with power usage information.
-
-		if (map.command == "81") {
-
-			// Command 81 returns immediate power readings.
-
-			def powerValueHex = "undefined"
-			def int powerValue = 0
-
-			powerValueHex = receivedData[0..1].reverse().join()
-			logging("${device} : power byte flipped : ${powerValueHex}",1)
-			powerValue = zigbee.convertHexToInt(powerValueHex)
-			logging("${device} : power sensor reports : ${powerValue}",1)
-
-			logging("${device} : Power Reading : ${powerValue} W",100)
-
-			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: true)
-			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: true)
-
-		} else if (map.command == "82") {
-
-			// Command 82 returns usage summary in watt-hours with an uptime counter.
-
-			def usageValueHex = "undefined"
-			def int usageValue = 0 
-
-			usageValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : usage byte flipped : ${usageValueHex}",1)
-			usageValue = zigbee.convertHexToInt(usageValueHex)
-			logging("${device} : usage counter reports : ${usageValue}",1)
-
-			usageValue = usageValue / 3600
-
-			logging("${device} : Power Usage : ${usageValue} Wh",100)
-
-			sendEvent(name:"usage", value: usageValue, unit: "Wh", isStateChange: false)
-			sendEvent(name:"usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
-
-			def uptimeValueHex = "undefined"
-			def int uptimeValue = 0
-
-			uptimeValueHex = receivedData[4..8].reverse().join()
-			logging("${device} : uptime byte flipped : ${uptimeValueHex}",1)
-			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
-			logging("${device} : uptime counter reports : ${uptimeValue}",1)
-
-			logging("${device} : Uptime : ${uptimeValue} s",100)
-
-			sendEvent(name:"uptime", value: uptimeValue, unit: "s", isStateChange: false)
-
-		} else {
-
-			logging("Unknown power usage information! Please report this to the developer.",101)
-			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
-
-		}
-
-	} else if (map.clusterId == "00F0") {
+	if (map.clusterId == "00F0") {
 
 		// Cluster 00F0 deals with device status, including battery and temperature data.
 
 		// Report the battery voltage and calculated percentage.
-		def batteryValue = "undefined"
-		batteryValue = receivedData[5..6].reverse().join()
-		logging("${device} : batteryValue byte flipped : ${batteryValue}",1)
-		batteryValue = zigbee.convertHexToInt(batteryValue) / 1000
-		parseAndSendBatteryStatus(batteryValue)
-		sendEvent(name:"batteryVoltage", value: batteryValue, unit: "V", isStateChange: false)
-		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryValue} V", isStateChange: false)
+		def batteryVoltageHex = "undefined"
+		def float batteryVoltage = 0
+		batteryVoltageHex = receivedData[5..6].reverse().join()
+		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}",1)
+		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
+		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
+		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
+
+		// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
+		if (batteryVoltage <= 4.5) {
+			state.batteryInstalled = true
+			parseAndSendBatteryStatus(batteryVoltage)
+		} else {
+			state.batteryInstalled = false
+			sendEvent(name:"battery", value:0, unit: "%", isStateChange: false)
+			sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
+		}
 
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
@@ -259,7 +201,7 @@ def outputValues(map) {
 
 	} else if (map.clusterId == "00F3") {
 
-		logging("I think this is the tamper button status. We don't know what to do with this yet.",100)
+		logging("Received tamper button status. Smart Plugs don't normally send this, please report to developer.",101)
 		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
 
 	} else if (map.clusterId == "00F6") {
@@ -294,6 +236,7 @@ def outputValues(map) {
 
 		logging("Unknown cluster received! Please report this to the developer.",101)
 		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+		logging("Splurge! ${map}",101)
 
 	}
 

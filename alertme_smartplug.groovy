@@ -418,7 +418,7 @@ def outputValues(map) {
 	} else if (map.clusterId == "00F3") {
 
 		logging("Received tamper button status. Smart Plugs don't normally send this, please report to developer.",101)
-		logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
+		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
 
 	} else if (map.clusterId == "00F6") {
 
@@ -443,7 +443,7 @@ def outputValues(map) {
 		} else {
 
 			logging("Receiving a message on the join cluster. This Smart Plug probably wants us to ask how it's feeling.",101)
-			logging("Received clusterId ${map.clusterId} with ${receivedData.length} values: ${receivedData}",101)
+			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
 			refresh()
 
 		}
