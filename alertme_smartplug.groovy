@@ -103,7 +103,7 @@ def initialize() {
 
 void debugLogOff(){
 	
-	logging("Debug logging disabled.",100)
+	logging("Debug logging disabled.",101)
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 
 }
@@ -111,7 +111,7 @@ void debugLogOff(){
 
 void infoLogOff(){
 	
-	logging("Logging disabled.",100)
+	logging("Logging disabled.",101)
 	device.updateSetting("infoLogging",[value:"false",type:"bool"])
 
 }
