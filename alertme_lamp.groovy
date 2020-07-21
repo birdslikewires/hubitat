@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.01 (21st July 2020)
+ *  AlertMe Lamp Driver v1.02 (21st July 2020)
  *	
  */
 
@@ -124,6 +124,7 @@ def rangingMode() {
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging",100)
 	runIn(60,normalMode)
+	runIn(90,normalMode)  // It's kind of important we get out of this mode, so here's the safety.
 
 }
 
@@ -199,9 +200,14 @@ def outputValues(map) {
 		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
 		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
 
+	} else if (map.clusterId == "00F2") {
+
+		logging("Received tamper button status.",101)
+		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+
 	} else if (map.clusterId == "00F3") {
 
-		logging("Received tamper button status. Smart Plugs don't normally send this, please report to developer.",101)
+		logging("Received state change.",101)
 		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
 
 	} else if (map.clusterId == "00F6") {

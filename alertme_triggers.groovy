@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Triggers Driver v1.00 (21st July 2020)
+ *  AlertMe Triggers Driver v1.01 (21st July 2020)
  *	
  */
 
@@ -128,6 +128,7 @@ def rangingMode() {
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging",100)
 	runIn(60,normalMode)
+	runIn(90,normalMode)  // It's kind of important we get out of this mode, so here's the safety.
 
 }
 
@@ -203,10 +204,43 @@ def outputValues(map) {
 		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
 		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
 
+	} else if (map.clusterId == "00F2") {
+
+		logging("Received tamper button status.",101)
+		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+
 	} else if (map.clusterId == "00F3") {
 
-		logging("Received tamper button status. Smart Plugs don't normally send this, please report to developer.",101)
+		logging("Received state change.",101)
 		logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+
+	} else if (map.clusterId == "00F6") {
+
+		if (map.command == "FD") {
+
+			def rssiRangingHex = "undefined"
+			def int rssiRanging = 0
+			rssiRangingHex = receivedData[0]
+			rssiRanging = zigbee.convertHexToInt(rssiRangingHex)
+			sendEvent(name:"rssi", value: rssiRanging, isStateChange: false)
+			logging("${device} : rssiRanging : ${rssiRanging}",1)
+
+			if (receivedData[1] == "FF") {
+				// If this is a general ranging report, trigger a refresh for good measure.
+				refresh()
+			} //else if (receivedData[1] == "77") {
+				// You are in ranging mode!
+				// This is to record that 77 is ranging mode.
+				// There might be something cool you could do here, but nothing springs to mind right now.
+			//}
+
+		} else {
+
+			logging("Receiving a message on the join cluster. This Smart Plug probably wants us to ask how it's feeling.",101)
+			logging("Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
+			refresh()
+
+		}
 
 	} else {
 

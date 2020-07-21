@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.03 (18th July 2020)
+ *  AlertMe Smart Plug Driver v1.04 (21st July 2020)
  *	
  */
 
@@ -145,6 +145,7 @@ def rangingMode() {
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging",100)
 	runIn(60,normalMode)
+	runIn(90,normalMode)  // It's kind of important we get out of this mode, so here's the safety.
 
 }
 
