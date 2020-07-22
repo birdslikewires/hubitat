@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_lamp.groovy") {
 
 		capability "Battery"
 		capability "Initialize"

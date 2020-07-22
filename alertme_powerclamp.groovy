@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
 
 		capability "Battery"
 		capability "Initialize"

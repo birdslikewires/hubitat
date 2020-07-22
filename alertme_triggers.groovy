@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "AlertMe Trigger Device", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Trigger Device", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_triggers.groovy") {
 
 		capability "Battery"
 		capability "Initialize"

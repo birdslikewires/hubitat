@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "AlertMe Smart Plug", namespace: "AlertMe", author: "Andrew Davison") {
+	definition (name: "AlertMe Smart Plug", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_smartplug.groovy") {
 
 		capability "Actuator"
 		capability "Battery"
