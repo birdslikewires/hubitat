@@ -81,23 +81,23 @@ def configure() {
 	unschedule()
 
 	// Bunch of zero or null values.
-	sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name:"batteryState",value: "unknown", isStateChange: false)
-	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name:"mode", value: "unknown",isStateChange: false)
-	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name:"powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"rssi", value: "unknown")
-	sendEvent(name:"stateMismatch",value: true, isStateChange: false)
-	sendEvent(name:"supplyPresent",value: false, isStateChange: false)
-	sendEvent(name:"switch", value: "unknown")
-	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name:"temperatureWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
-	sendEvent(name:"usageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name: "mode", value: "unknown",isStateChange: false)
+	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "rssi", value: "unknown")
+	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
+	sendEvent(name: "supplyPresent",value: false, isStateChange: false)
+	sendEvent(name: "switch", value: "unknown")
+	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name: "usage", value: 0, unit: "Wh", isStateChange: false)
+	sendEvent(name: "usageWithUnit", value: "unknown", isStateChange: false)
 
 	// Schedule our refresh check-in and turn off the logs.
 	randomMinute = Math.abs(new Random().nextInt() % 60)
@@ -331,10 +331,6 @@ def outputValues(map) {
 
 					sendEvent(name: "batteryState", value: "charging", isStateChange: true)
 
-				} else {
-
-					sendEvent(name: "batteryState", value: "unknown", isStateChange: true)
-
 				}
 
 				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
@@ -347,12 +343,12 @@ def outputValues(map) {
 
 			if (switchStateHex == "01") {
 
-				sendEvent(name:"switch", value: "on")
+				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switch : On",200)
 
 			} else {
 
-				sendEvent(name:"switch", value: "off")
+				sendEvent(name: "switch", value: "off")
 				logging("${device} : Switch : Off",200)
 
 			}
@@ -400,8 +396,8 @@ def outputValues(map) {
 
 			logging("${device} : Power Usage : ${usageValue} Wh",100)
 
-			sendEvent(name:"usage", value: usageValue, unit: "Wh", isStateChange: false)
-			sendEvent(name:"usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
+			sendEvent(name: "usage", value: usageValue, unit: "Wh", isStateChange: false)
+			sendEvent(name: "usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
 
 			def uptimeValueHex = "undefined"
 			def int uptimeValue = 0
@@ -413,7 +409,7 @@ def outputValues(map) {
 
 			logging("${device} : Uptime : ${uptimeValue} s",100)
 
-			sendEvent(name:"uptime", value: uptimeValue, unit: "s", isStateChange: false)
+			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
 
 		} else {
 
@@ -432,17 +428,23 @@ def outputValues(map) {
 		batteryVoltageHex = receivedData[5..6].reverse().join()
 		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}",109)
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
-		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
-		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
+		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
+		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
 
 		// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
-		if (batteryVoltage <= 4.5) {
+		if (batteryVoltage >= 3.3 && batteryVoltage <= 4.4) {
 			state.batteryInstalled = true
-			parseAndSendBatteryStatus(batteryVoltage)
+			parseAndSendBatteryPercentage(batteryVoltage)
+		} else if (batteryVoltage < 3.3) {
+			state.batteryInstalled = true
+			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
+			sendEvent(name: "batteryState", value: "exhausted", isStateChange: true)
 		} else {
 			state.batteryInstalled = false
-			sendEvent(name:"battery", value:0, unit: "%", isStateChange: false)
-			sendEvent(name:"batteryWithUnit", value:"0 %", isStateChange: false)
+			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
+			sendEvent(name: "batteryState", value: "missing", isStateChange: true)
 		}
 
 		// Report the temperature in celsius.
@@ -451,8 +453,8 @@ def outputValues(map) {
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}",109)
 		temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
 		logging("${device} : Temperature : ${temperatureValue} C",100)
-		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
-		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
+		sendEvent(name: "temperature", value: temperatureValue, unit: "C", isStateChange: false)
+		sendEvent(name: "temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
 
 	} else if (map.clusterId == "00F2") {
 
@@ -472,7 +474,7 @@ def outputValues(map) {
 			def int rssiRanging = 0
 			rssiRangingHex = receivedData[0]
 			rssiRanging = zigbee.convertHexToInt(rssiRangingHex)
-			sendEvent(name:"rssi", value: rssiRanging, isStateChange: false)
+			sendEvent(name: "rssi", value: rssiRanging, isStateChange: false)
 			logging("${device} : rssiRanging : ${rssiRanging}",109)
 
 			if (receivedData[1] == "FF") {
@@ -494,7 +496,7 @@ def outputValues(map) {
 
 		}
 
-	} else if (map.clusterId == "8001" || map.clusterId == "8038" || ) {
+	} else if (map.clusterId == "8001" || map.clusterId == "8038") {
 
 		// These 8xxx clusters are sometimes received from the SPG100 and I have no idea why. Not all SPG100s send them.
 		// 8001 arrives with 12 bytes of data
@@ -514,7 +516,7 @@ def outputValues(map) {
 }
 
 
-void parseAndSendBatteryStatus(BigDecimal vCurrent) {
+void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
 
 	BigDecimal bat = 0
 	BigDecimal vMin = batteryVoltageMinimum == null ? 3.1 : batteryVoltageMinimum
@@ -531,8 +533,8 @@ void parseAndSendBatteryStatus(BigDecimal vCurrent) {
 	vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : Battery : $bat% ($vCurrent V)", 100)
-	sendEvent(name:"battery",value:bat,unit: "%", isStateChange: false)
-	sendEvent(name:"batteryWithUnit",value:"${bat} %",isStateChange: false)
+	sendEvent(name: "battery",value:bat,unit: "%", isStateChange: false)
+	sendEvent(name: "batteryWithUnit",value:"${bat} %",isStateChange: false)
 
 }
 
