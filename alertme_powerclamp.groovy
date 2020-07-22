@@ -384,6 +384,13 @@ private boolean logging(message, level) {
 
 	boolean didLog = false
 
+	// 100 = Normal logging, suppressed by user preference and silent mode.
+	// 101 = Normal warning, suppressed by user preference and silent mode.
+	// 109 = Normal debug, suppressed by user preference and silent mode.
+	// 200 = Critical logging, ignores user preference but respects silent mode.
+	// 201 = Critical warning, ignores all preferences.
+	// 209 = Critical debug, ignores user preference but respects silent mode.
+
 	// Critical warnings are always allowed.
 	if (level == 201) {
 		log.warn "$message"

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.05 (21st July 2020)
+ *  AlertMe Smart Plug Driver v1.06 (22nd July 2020)
  *	
  */
 
@@ -494,6 +494,14 @@ def outputValues(map) {
 
 		}
 
+	} else if (map.clusterId == "8001" || map.clusterId == "8038" || ) {
+
+		// These 8xxx clusters are sometimes received from the SPG100 and I have no idea why. Not all SPG100s send them.
+		// 8001 arrives with 12 bytes of data
+		// 8038 arrives with 27 bytes of data
+		// This response is the equivalent of a nod and a smile when you've not heard someone properly.
+		refresh()
+
 	} else {
 
 		// Not a clue what we've received.
@@ -532,6 +540,13 @@ void parseAndSendBatteryStatus(BigDecimal vCurrent) {
 private boolean logging(message, level) {
 
 	boolean didLog = false
+
+	// 100 = Normal logging, suppressed by user preference and silent mode.
+	// 101 = Normal warning, suppressed by user preference and silent mode.
+	// 109 = Normal debug, suppressed by user preference and silent mode.
+	// 200 = Critical logging, ignores user preference but respects silent mode.
+	// 201 = Critical warning, ignores all preferences.
+	// 209 = Critical debug, ignores user preference but respects silent mode.
 
 	// Critical warnings are always allowed.
 	if (level == 201) {
