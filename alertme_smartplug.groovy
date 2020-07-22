@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.06 (22nd July 2020)
+ *  AlertMe Smart Plug Driver v1.07 (22nd July 2020)
  *	
  */
 

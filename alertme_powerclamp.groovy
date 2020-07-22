@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.03 (21st July 2020)
+ *  AlertMe Power Clamp Driver v1.04 (22nd July 2020)
  *	
  */
 
@@ -294,7 +294,7 @@ def outputValues(map) {
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
 		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
-		parseAndSendBatteryStatus(batteryVoltage)
+		parseAndSendBatteryPercentage(batteryVoltage)
 
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
@@ -357,7 +357,7 @@ def outputValues(map) {
 }
 
 
-void parseAndSendBatteryStatus(BigDecimal vCurrent) {
+void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
 
 	BigDecimal bat = 0
 	BigDecimal vMin = batteryVoltageMinimum == null ? 2.5 : batteryVoltageMinimum
