@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.04 (22nd July 2020)
+ *  AlertMe Lamp Driver v1.05 (24th July 2020)
  *	
  */
 
@@ -16,6 +16,14 @@ metadata {
 
 		command "normalMode"
 		command "rangingMode"
+
+		command "lampOn"
+		command "lampOff"
+		command "lampGoRed"
+		command "lampGoGreen"
+		command "lampGoBlue"
+		command "lampSeqRGB"
+		command "lampSeqSleepy"
 
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
@@ -43,6 +51,114 @@ preferences {
 }
 
 
+// I can't believe this finally works! Incomplete, but working!
+//
+// The lamp operates with sequences, up to 10 steps in a sequence.
+// The lamp must be put into 'on' mode (done during configuration) and then a sequence uploaded and run.
+// Single colours are a one-step sequence.
+//
+// Lamp Cluster ID = 0x00F5
+//
+// {11 00 01 01 00 01 00 FF FF FF 00 01}
+//  AA AA BB CC CC DD DD EE FF GG HH II
+//
+//  AA - Unknown preamble, same for all AlertMe devices.
+//  BB - Cluster command; add state (01).
+//  CC - Cluster control; transition time in multiples of 0.2s, 0x0001 through 0xFFFE (little endian in command)
+//  DD - Cluster control; dwell time in multiples of 0.2s, 0x0001 through 0xFFFE (little endian in command)
+//  EE - Red level as 8-bit hex value
+//  FF - Green level as 8-bit hex value
+//  GG - Blue level as 8-bit hex value
+//  HH - Sequence behaviour; clear all previous (00), append (01) or append with confirmation (02). New sequences must commence with clear.
+//  II - Unknown postamble, also the same for all AlertMe devices.
+//
+// {11 00 04 01 01}
+//  AA AA BB CC DD
+//
+//  AA - Unknown preamble, same for all AlertMe devices.
+//  BB - Cluster command; set operating mode (04).
+//  CC - Cluster control; lamp off (00), lamp on (01) or local (02). Off (00) halts sequencing, on (01) enables sequencing, local (02)... not a clue.
+//  DD - Unknown postamble, also the same for all AlertMe devices.
+//
+// {11 00 05 FD 01}
+//  AA AA BB CC DD
+//
+//  AA - Unknown preamble, same for all AlertMe devices.
+//  BB - Cluster command; set play mode (04).
+//  CC - Cluster control; loop count, values between (00) and (FD) are valid, where (00) is load and hold and (FD) is loop indefinitely.
+//  DD - Unknown postamble, also the same for all AlertMe devices.
+
+
+def lampOn() {
+
+	def lampCommand = []
+	lampCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF FF FF 00 01} {0xC216}")
+	lampCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(lampCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Lamp On",201)
+
+}
+
+
+def lampOff() {
+
+	def lampCommand = []
+	lampCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 00 01} {0xC216}")
+	lampCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(lampCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Lamp Off",201)
+
+}
+
+
+def lampGoRed() {
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Attempt To Do Thing : Sent!",201)
+}
+
+
+def lampGoGreen() {
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 00 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Attempt To Do Thing : Sent!",201)
+}
+
+
+def lampGoBlue() {
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 00 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Attempt To Do Thing : Sent!",201)
+}
+
+
+def lampSeqRGB() {
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 01 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 01 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Attempt To Do Thing : Sent!",201)
+}
+
+
+def lampSeqSleepy() {
+	def someCommand = []
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 14 00 06 00 06 0A 0A 00 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 0F 00 01 00 58 7F 7F 01 01} {0xC216}")
+	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : Attempt To Do Thing : Sent!",201)
+}
+
+
 def installed() {
 	// Runs after pairing.
 	logging("${device} : Installing",100)
@@ -55,6 +171,7 @@ def initialize() {
 
 
 def configure() {
+
 	// Runs after installed() whenever a device is paired or rejoined.
 	
 	state.operatingMode = "normal"
@@ -87,8 +204,18 @@ def configure() {
 	// Report our logging status.
 	loggingStatus()
 
+	// Lamp test!
+	def lampTest = []
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 01 01} {0xC216}")
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF 00 00 00 01} {0xC216}")
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 FF 00 01 01} {0xC216}")
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 FF 01 01} {0xC216}")
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 01 01} {0xC216}")
+	lampTest.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 01 01} {0xC216}")
+	sendHubCommand(new hubitat.device.HubMultiAction(lampTest, hubitat.device.Protocol.ZIGBEE))
+
 	// Set the operating mode.
-	rangingMode()
+	runIn(3,rangingMode)
 	runIn(6,normalMode)
 
 	// All done.
