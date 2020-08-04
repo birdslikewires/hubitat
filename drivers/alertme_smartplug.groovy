@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.07 (22nd July 2020)
+ *  AlertMe Smart Plug Driver v1.09 (3rd August 2020)
  *	
  */
 
@@ -46,8 +46,8 @@ metadata {
 
 preferences {
 	
-	input name: "batteryVoltageMinimum",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.1)",defaultValue: "3.1",range: "2.8..3.3"
-	input name: "batteryVoltageMaximum",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.3..4.2"
+	input name: "batteryVoltageMinimum",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.2..4.0"
+	input name: "batteryVoltageMaximum",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 4.2)",defaultValue: "4.2",range: "3.6..4.8"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
 	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
 	input name: "silenceLogging",type: "bool",title: "Force silent mode (overrides log settings)",defaultValue: false
@@ -344,12 +344,12 @@ def outputValues(map) {
 			if (switchStateHex == "01") {
 
 				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch : On",200)
+				logging("${device} : Switch : On",200)		// We always log this because it's a low-overhead message that is reported automatically and on user interaction.
 
 			} else {
 
 				sendEvent(name: "switch", value: "off")
-				logging("${device} : Switch : Off",200)
+				logging("${device} : Switch : Off",200)		// We always log this because it's a low-overhead message that is reported automatically and on user interaction.
 
 			}
 
@@ -498,11 +498,18 @@ def outputValues(map) {
 
 	} else if (map.clusterId == "8001" || map.clusterId == "8038") {
 
-		// These 8xxx clusters are sometimes received from the SPG100 and I have no idea why. Not all SPG100s send them.
-		// 8001 arrives with 12 bytes of data
-		// 8038 arrives with 27 bytes of data
+		// These clusters are sometimes received from the SPG100 and I have no idea why. Not all SPG100s send them.
+		//   8001 arrives with 12 bytes of data
+		//   8038 arrives with 27 bytes of data
 		// This response is the equivalent of a nod and a smile when you've not heard someone properly.
 		refresh()
+
+	} else if (map.clusterId == "8032" ) {
+
+		// These clusters are sometimes received when joining new devices to the mesh.
+		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
+		// We don't do anything with this, the mesh re-jigs itself and is apparently a known thing with AlertMe devices.
+		logging("${device} : New join has triggered route table reshuffle. It may be worth checking all devices are still connected.",201)
 
 	} else {
 
@@ -519,8 +526,8 @@ def outputValues(map) {
 void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
 
 	BigDecimal bat = 0
-	BigDecimal vMin = batteryVoltageMinimum == null ? 3.1 : batteryVoltageMinimum
-	BigDecimal vMax = batteryVoltageMaximum == null ? 3.6 : batteryVoltageMaximum    
+	BigDecimal vMin = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
+	BigDecimal vMax = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum    
 
 	if(vMax - vMin > 0) {
 		bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
