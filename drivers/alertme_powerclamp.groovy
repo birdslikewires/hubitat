@@ -30,6 +30,7 @@ metadata {
 		attribute "usageWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "AlertMe Power Clamp"
 		
 	}
 

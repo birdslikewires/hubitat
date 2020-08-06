@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.11 (6th August 2020)
+ *  AlertMe Smart Plug Driver v1.13 (6th August 2020)
  *	
  */
 
@@ -13,11 +13,11 @@ metadata {
 		capability "Battery"
 		capability "Initialize"
 		capability "Outlet"
-		capability "Power Meter"
-        //capability "PresenceSensor"
+		capability "PowerMeter"
+        capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
-		capability "Temperature Measurement"
+		capability "TemperatureMeasurement"
 
 		//command "lockedMode"
 		command "normalMode"
@@ -35,6 +35,7 @@ metadata {
 		attribute "supplyPresent", "boolean"
 		attribute "temperatureWithUnit", "string"
 		attribute "uptime", "string"
+		attribute "uptimeReadable", "string"
 		attribute "usage", "string"
 		attribute "usageWithUnit", "string"
 
@@ -73,6 +74,7 @@ def configure() {
 	state.batteryInstalled = false
 	state.operatingMode = "normal"
 	state.rangingPulses = 0
+	state.uptimeReceived = 0
 
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"true",type:"bool"])
@@ -80,6 +82,10 @@ def configure() {
 
 	// Remove any scheduled events.
 	unschedule()
+
+	// Remove any old state variables.
+	state.remove("uptime")
+	state.remove("presentAt")
 
 	// Bunch of zero or null values.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
@@ -90,6 +96,7 @@ def configure() {
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "presence", value: "present")
 	sendEvent(name: "rssi", value: "unknown")
 	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
 	sendEvent(name: "supplyPresent",value: false, isStateChange: false)
@@ -97,18 +104,23 @@ def configure() {
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name: "uptimeReadable", value: "unknown")
 	sendEvent(name: "usage", value: 0, unit: "Wh", isStateChange: false)
 	sendEvent(name: "usageWithUnit", value: "unknown", isStateChange: false)
 
-	// Schedule our check-in and turn off the debug log.
+	// Schedule our ranging report.
 	randomValue = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomValue} ${randomValue}/59 * * * ? *", rangeAndRefresh)		// At X seconds past the minute, every 59 minutes, starting at X minutes past the hour.
-	runIn(240,debugLogOff)
-	runIn(120,traceLogOff)
 
-	// Set the operating mode.
+	// Schedule the presence check.
+	randomValue = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomValue} 0/1 * * * ? *", checkPresence)						// At X seconds past the minute, every minute.
+
+	// Set the operating mode and turn off advanced logging.
 	rangingMode()
 	runIn(6,normalMode)
+	runIn(240,debugLogOff)
+	runIn(120,traceLogOff)
 
 	// All done.
 	logging("${device} : Configured", "info")
@@ -117,9 +129,12 @@ def configure() {
 
 
 def updated() {
+
 	// Runs whenever preferences are saved.
+
 	loggingStatus()
 	refresh()
+
 }
 
 
@@ -271,6 +286,30 @@ def rangeAndRefresh() {
 }
 
 
+def checkPresence() {
+
+	// Check how long ago the last uptime report was received.
+	// These devices report uptime every 60 seconds. If no reports are seen after 240 seconds, we know something is wrong.
+
+	long timeNow = new Date().time / 1000
+
+	if (state.uptimeReceived > 0) {
+		if (timeNow - state.uptimeReceived > 240) {
+			sendEvent(name: "presence", value: "not present")
+			logging("${device} : No recent uptime reports.", "warn")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.uptimeReceived} > 240", "trace")
+		} else {
+			sendEvent(name: "presence", value: "present")
+			logging("${device} : Recent uptime report received.", "debug")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.uptimeReceived} < 240", "trace")
+		}
+	} else {
+		logging("${device} : checkPresence() : Waiting for first uptime.", "debug")
+	}
+
+}
+
+
 def parse(String description) {
 	
 	// Primary parse routine.
@@ -297,9 +336,11 @@ def outputValues(map) {
 
 	if (map.clusterId == "00EE") {
 
-		// Cluster 00EE deals with switch actuation results and power states.
+		// Switch actuation and power state messages.
 
 		if (map.command == "80") {
+
+			// Power States
 
 			def powerStateHex = "undefined"
 			powerStateHex = receivedData[0]
@@ -316,12 +357,12 @@ def outputValues(map) {
 
 			if (powerStateHex == "02" || powerStateHex == "03") {
 
-				// The supply has failed.
+				// Supply failed.
 
 				sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
 				sendEvent(name: "supplyPresent", value: false, isStateChange: true)
 
-				// Report whether this is a problem!
+				// Whether this is a problem!
 
 				if (powerStateHex == "02") {
 
@@ -335,25 +376,25 @@ def outputValues(map) {
 
 			} else if (powerStateHex == "06" || powerStateHex == "07") {
 
-				// The supply is present, nothing to worry about.
+				// Supply present.
 
 				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
 				sendEvent(name: "supplyPresent", value: true, isStateChange: true)
 
 			} else {
 
-				// The mains supply has returned!
+				// Supply returned!
 
 				if (state.batteryInstalled) {
-
 					sendEvent(name: "batteryState", value: "charging", isStateChange: true)
-
 				}
 
 				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
 				sendEvent(name: "supplyPresent", value: true, isStateChange: true)
 
 			}
+
+			// Relay Switch State
 
 			def switchStateHex = "undefined"
 			switchStateHex = receivedData[1]
@@ -378,21 +419,20 @@ def outputValues(map) {
 
 	} else if (map.clusterId == "00EF") {
 
-		// Cluster 00EF deals with power usage information.
+		// Power and usage messages.
 
 		if (map.command == "81") {
 
-			// Command 81 returns immediate power readings.
+			// Power Reading
 
 			def powerValueHex = "undefined"
 			def int powerValue = 0
 
+			// These power readings are so frequent that we only log them in debug or trace.
 			powerValueHex = receivedData[0..1].reverse().join()
 			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}", "debug")
-
-			// These power readings are so frequent that we only log them in debug or trace.
 
 			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: true)
 			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: true)
@@ -400,6 +440,8 @@ def outputValues(map) {
 		} else if (map.command == "82") {
 
 			// Command 82 returns usage summary in watt-hours with an uptime counter.
+
+			// Usage
 
 			def usageValueHex = "undefined"
 			def int usageValue = 0 
@@ -416,6 +458,8 @@ def outputValues(map) {
 			sendEvent(name: "usage", value: usageValue, unit: "Wh", isStateChange: false)
 			sendEvent(name: "usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
 
+			// Uptime
+
 			def uptimeValueHex = "undefined"
 			def int uptimeValue = 0
 
@@ -424,9 +468,18 @@ def outputValues(map) {
 			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
-			logging("${device} : Uptime : ${uptimeValue} s", "info")
+			def newDhmsUptime = []
+			newDhmsUptime = secondsToDhms(uptimeValue)
+			def String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
+			logging("${device} : Uptime : ${uptimeReadable}", "info")
 
 			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
+			sendEvent(name: "uptimeReadable", value: uptimeReadable, isStateChange: false)
+
+			// Presence
+
+			long timeNow = new Date().time / 1000
+			state.uptimeReceived = timeNow
 
 		} else {
 
@@ -441,7 +494,7 @@ def outputValues(map) {
 
 		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
-		def float batteryVoltage = 0
+		def BigDecimal batteryVoltage = 0
 		batteryVoltageHex = receivedData[5..6].reverse().join()
 		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "trace")
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
@@ -450,18 +503,42 @@ def outputValues(map) {
 
 		// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
 		if (batteryVoltage >= 3.3 && batteryVoltage <= 4.4) {
+
 			state.batteryInstalled = true
-			parseAndSendBatteryPercentage(batteryVoltage)
+
+			BigDecimal batteryPercentage = 0
+			BigDecimal minVoltage = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
+			BigDecimal maxVoltage = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum
+
+			if(maxVoltage - minVoltage > 0) {
+				batteryPercentage = ((batteryVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100.0
+			} else {
+				batteryPercentage = 100
+			}
+
+			batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
+			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
+			batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
+
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			sendEvent(name: "battery",value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
+			sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+
 		} else if (batteryVoltage < 3.3) {
+
 			state.batteryInstalled = true
 			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
 			sendEvent(name: "batteryState", value: "exhausted", isStateChange: true)
+
 		} else {
+
 			state.batteryInstalled = false
 			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
-			sendEvent(name: "batteryState", value: "missing", isStateChange: true)
+			sendEvent(name: "batteryState", value: "fault", isStateChange: true)
+
 		}
 
 		// Report the temperature in celsius.
@@ -543,28 +620,19 @@ def outputValues(map) {
 }
 
 
-void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
+private String[] secondsToDhms(int timeToParse) {
 
-	BigDecimal bat = 0
-	BigDecimal vMin = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
-	BigDecimal vMax = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum    
-
-	if(vMax - vMin > 0) {
-		bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
-	} else {
-		bat = 100
-	}
-	bat = bat.setScale(0, BigDecimal.ROUND_HALF_UP)
-	bat = bat > 100 ? 100 : bat
-	
-	vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
-
-	logging("${device} : Battery : $bat% ($vCurrent V)", "debug")
-	sendEvent(name: "battery",value:bat,unit: "%", isStateChange: false)
-	sendEvent(name: "batteryWithUnit",value:"${bat} %",isStateChange: false)
+	def dhms = []
+	dhms.add(timeToParse % 60)
+	timeToParse = timeToParse / 60
+	dhms.add(timeToParse % 60)
+	timeToParse = timeToParse / 60
+	dhms.add(timeToParse % 24)
+	timeToParse = timeToParse / 24
+	dhms.add(timeToParse % 365)
+	return dhms
 
 }
-
 
 private boolean logging(String message, String level) {
 
