@@ -251,7 +251,7 @@ def on() {
 void refresh() {
 
 	// The Smart Plug becomes active after joining once it has received this status update request.
-	// It also expects the Hub to check in with this occasionally, otherwise remote control is dropped. 
+	// It also expects the Hub to check in with this occasionally, otherwise remote control is eventually dropped. 
 
 	def stateRequest = []
 	stateRequest.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
@@ -497,7 +497,8 @@ def outputValues(map) {
 			logging("${device} : rssiRanging : ${rssiRanging}", "debug")
 
 			if (receivedData[1] == "FF") {
-				// This is a general ranging report, trigger a refresh for good measure.
+				// This is an arbitrary ranging report, trigger a refresh for good measure.
+				logging("${device} : arbitrary ranging report received, sending status update request : refresh() ", "trace")
 				refresh()
 			} else if (receivedData[1] == "77") {
 				// This is ranging mode, which must be temporary. Make sure we come out of it.
