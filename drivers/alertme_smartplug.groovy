@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.10 (5th August 2020)
+ *  AlertMe Smart Plug Driver v1.11 (6th August 2020)
  *	
  */
 
@@ -388,7 +388,7 @@ def outputValues(map) {
 			def int powerValue = 0
 
 			powerValueHex = receivedData[0..1].reverse().join()
-			logging("${device} : power byte flipped : ${powerValueHex}", "debug")
+			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}", "debug")
 
@@ -405,7 +405,7 @@ def outputValues(map) {
 			def int usageValue = 0 
 
 			usageValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : usage byte flipped : ${usageValueHex}", "debug")
+			logging("${device} : usage byte flipped : ${usageValueHex}", "trace")
 			usageValue = zigbee.convertHexToInt(usageValueHex)
 			logging("${device} : usage counter reports : ${usageValue}", "debug")
 
@@ -420,7 +420,7 @@ def outputValues(map) {
 			def int uptimeValue = 0
 
 			uptimeValueHex = receivedData[4..8].reverse().join()
-			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "debug")
+			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
 			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
@@ -437,13 +437,13 @@ def outputValues(map) {
 
 	} else if (map.clusterId == "00F0") {
 
-		// Cluster 00F0 deals with device status, including battery and temperature data.
+		// Device status, including battery and temperature data.
 
 		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
 		def float batteryVoltage = 0
 		batteryVoltageHex = receivedData[5..6].reverse().join()
-		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "debug")
+		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "trace")
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
 		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
@@ -467,9 +467,9 @@ def outputValues(map) {
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
-		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "debug")
+		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
 		temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
-		logging("${device} : Temperature : ${temperatureValue} C", "info")
+		logging("${device} : Temperature : ${temperatureValue} C", "debug")
 		sendEvent(name: "temperature", value: temperatureValue, unit: "C", isStateChange: false)
 		sendEvent(name: "temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
 
@@ -484,6 +484,8 @@ def outputValues(map) {
 		reportToDev(map)
 
 	} else if (map.clusterId == "00F6") {
+
+		// Ranging and join information. Hubitat deals with joining, we deal with ranging.
 
 		if (map.command == "FD") {
 
@@ -556,7 +558,7 @@ void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
 	
 	vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
 
-	logging("${device} : Battery : $bat% ($vCurrent V)", "info")
+	logging("${device} : Battery : $bat% ($vCurrent V)", "debug")
 	sendEvent(name: "battery",value:bat,unit: "%", isStateChange: false)
 	sendEvent(name: "batteryWithUnit",value:"${bat} %",isStateChange: false)
 
