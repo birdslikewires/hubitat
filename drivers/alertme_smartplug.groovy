@@ -74,6 +74,7 @@ def configure() {
 	state.batteryInstalled = false
 	state.operatingMode = "normal"
 	state.rangingPulses = 0
+	state.relayClosed = false
 	state.uptimeReceived = 0
 
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
@@ -401,11 +402,13 @@ def outputValues(map) {
 
 			if (switchStateHex == "01") {
 
+				state.relayClosed = true
 				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switch : On", "info")
 
 			} else {
 
+				state.relayClosed = false
 				sendEvent(name: "switch", value: "off")
 				logging("${device} : Switch : Off", "info")
 
@@ -506,9 +509,9 @@ def outputValues(map) {
 
 			state.batteryInstalled = true
 
-			BigDecimal batteryPercentage = 0
-			BigDecimal minVoltage = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
-			BigDecimal maxVoltage = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum
+			def BigDecimal batteryPercentage = 0
+			def BigDecimal minVoltage = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
+			def BigDecimal maxVoltage = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum
 
 			if(maxVoltage - minVoltage > 0) {
 				batteryPercentage = ((batteryVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100.0
@@ -521,22 +524,30 @@ def outputValues(map) {
 			batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
-			sendEvent(name: "battery",value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
 			sendEvent(name: "batteryState", value: "charging", isStateChange: true)
 
 		} else if (batteryVoltage < 3.3) {
 
 			state.batteryInstalled = true
-			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
+
+			batteryPercentage = 0
+
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
 			sendEvent(name: "batteryState", value: "exhausted", isStateChange: true)
 
 		} else {
 
 			state.batteryInstalled = false
-			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryWithUnit", value:"0 %", isStateChange: false)
+
+			batteryPercentage = 0
+
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
 			sendEvent(name: "batteryState", value: "fault", isStateChange: true)
 
 		}
@@ -545,10 +556,16 @@ def outputValues(map) {
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
-		logging("${device} : Temperature : ${temperatureValue} C", "debug")
-		sendEvent(name: "temperature", value: temperatureValue, unit: "C", isStateChange: false)
-		sendEvent(name: "temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
+		def BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+
+		// Smart plugs warm up while being used, so here's how we attempt to correct for this.
+		def BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
+		def BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
+		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
+		logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
+		sendEvent(name: "temperature", value: temperatureCelsiusCorrected, unit: "C", isStateChange: false)
+		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsiusCorrected} °C", isStateChange: false)
 
 	} else if (map.clusterId == "00F2") {
 
