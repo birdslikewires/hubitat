@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.13 (6th August 2020)
+ *  AlertMe Smart Plug Driver v1.15 (7th August 2020)
  *	
  */
 
@@ -48,8 +48,6 @@ metadata {
 
 preferences {
 	
-	input name: "batteryVoltageMinimum",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 3.6)",defaultValue: "3.6",range: "3.2..4.0"
-	input name: "batteryVoltageMaximum",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 4.2)",defaultValue: "4.2",range: "3.6..4.8"
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
 	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: true
 	input name: "traceLogging",type: "bool",title: "Enable trace logging",defaultValue: true
@@ -73,9 +71,9 @@ def configure() {
 
 	state.batteryInstalled = false
 	state.operatingMode = "normal"
+	state.presenceUpdated = 0
 	state.rangingPulses = 0
 	state.relayClosed = false
-	state.uptimeReceived = 0
 
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"true",type:"bool"])
@@ -86,6 +84,7 @@ def configure() {
 
 	// Remove any old state variables.
 	state.remove("uptime")
+	state.remove("uptimeReceived")
 	state.remove("presentAt")
 
 	// Bunch of zero or null values.
@@ -148,16 +147,6 @@ void loggingStatus() {
 }
 
 
-void reportToDev(map) {
-
-	String[] receivedData = map.data
-	logging("${device} : UNKNOWN DATA! PLEASE REPORT THESE WARNINGS TO THE DEVELOPER", "warn")
-	logging("${device} : Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}", "warn")
-	logging("${device} : Splurge! ${map}", "warn")
-
-}
-
-
 void traceLogOff(){
 	
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
@@ -170,6 +159,16 @@ void debugLogOff(){
 	
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	log.debug "${device} : Debug Logging : Automatically Disabled"
+
+}
+
+
+void reportToDev(map) {
+
+	String[] receivedData = map.data
+	logging("${device} : UNKNOWN DATA! PLEASE REPORT THESE WARNINGS TO THE DEVELOPER", "warn")
+	logging("${device} : Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}", "warn")
+	logging("${device} : Splurge! ${map}", "warn")
 
 }
 
@@ -289,38 +288,45 @@ def rangeAndRefresh() {
 
 def checkPresence() {
 
-	// Check how long ago the last uptime report was received.
-	// These devices report uptime every 60 seconds. If no reports are seen after 240 seconds, we know something is wrong.
+	// Check how long ago the last presence report was received.
+	// These devices report uptime every 60 seconds. If no reports are seen, we know something is wrong.
 
 	long timeNow = new Date().time / 1000
 
-	if (state.uptimeReceived > 0) {
-		if (timeNow - state.uptimeReceived > 240) {
+	if (state.presenceUpdated > 0) {
+		if (timeNow - state.presenceUpdated > 360) {
 			sendEvent(name: "presence", value: "not present")
-			logging("${device} : No recent uptime reports.", "warn")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.uptimeReceived} > 240", "trace")
+			logging("${device} : No recent presence reports.", "warn")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 360", "trace")
+			rangeAndRefresh()
+		} else if (timeNow - state.presenceUpdated > 180) {
+			logging("${device} : Missed a few presence reports, prodding.", "debug")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 180", "trace")
+			rangeAndRefresh()
 		} else {
 			sendEvent(name: "presence", value: "present")
-			logging("${device} : Recent uptime report received.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.uptimeReceived} < 240", "trace")
+			logging("${device} : Recent presence report received.", "debug")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 240", "trace")
 		}
 	} else {
-		logging("${device} : checkPresence() : Waiting for first uptime.", "debug")
+		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
 	}
 
 }
 
 
 def parse(String description) {
-	
+
 	// Primary parse routine.
 
+	logging("${device} : Parse!", "debug")
+	logging("${device} : Description : $description", "debug")
+
 	def descriptionMap = zigbee.parseDescriptionAsMap(description)
-	
+
 	if (descriptionMap) {
 	
-		logging("${device} : Splurge!: ${descriptionMap}", "trace")
-		outputValues(descriptionMap)
+		processMap(descriptionMap)
 
 	} else {
 		
@@ -331,13 +337,16 @@ def parse(String description) {
 }
 
 
-def outputValues(map) {
+def processMap(map) {
 
+	logging("${device} : processMap() : ${map}", "trace")
+
+	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
 	if (map.clusterId == "00EE") {
 
-		// Switch actuation and power state messages.
+		// Relay actuation and power state messages.
 
 		if (map.command == "80") {
 
@@ -395,7 +404,7 @@ def outputValues(map) {
 
 			}
 
-			// Relay Switch State
+			// Relay States
 
 			def switchStateHex = "undefined"
 			switchStateHex = receivedData[1]
@@ -437,8 +446,8 @@ def outputValues(map) {
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}", "debug")
 
-			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: true)
-			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: true)
+			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
+			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
 
 		} else if (map.command == "82") {
 
@@ -482,7 +491,7 @@ def outputValues(map) {
 			// Presence
 
 			long timeNow = new Date().time / 1000
-			state.uptimeReceived = timeNow
+			state.presenceUpdated = timeNow
 
 		} else {
 
@@ -510,11 +519,11 @@ def outputValues(map) {
 			state.batteryInstalled = true
 
 			def BigDecimal batteryPercentage = 0
-			def BigDecimal minVoltage = batteryVoltageMinimum == null ? 3.6 : batteryVoltageMinimum
-			def BigDecimal maxVoltage = batteryVoltageMaximum == null ? 4.2 : batteryVoltageMaximum
+			def BigDecimal batteryVoltageMinimum = 3.6
+			def BigDecimal batteryVoltageMaximum = 4.2
 
-			if(maxVoltage - minVoltage > 0) {
-				batteryPercentage = ((batteryVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100.0
+			if(batteryVoltageMaximum - batteryVoltageMinimum > 0) {
+				batteryPercentage = ((batteryVoltage - batteryVoltageMinimum) / (batteryVoltageMaximum - batteryVoltageMinimum)) * 100.0
 			} else {
 				batteryPercentage = 100
 			}
