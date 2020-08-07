@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.15 (7th August 2020)
+ *  AlertMe Smart Plug Driver v1.16 (7th August 2020)
  *	
  */
 
@@ -62,6 +62,7 @@ def installed() {
 
 
 def initialize() {
+	logging("${device} : Initialising", "info")
 	configure()
 }
 
@@ -96,7 +97,7 @@ def configure() {
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "present")
+	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "rssi", value: "unknown")
 	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
 	sendEvent(name: "supplyPresent",value: false, isStateChange: false)
@@ -114,7 +115,7 @@ def configure() {
 
 	// Schedule the presence check.
 	randomValue = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomValue} 0/1 * * * ? *", checkPresence)						// At X seconds past the minute, every minute.
+	schedule("${randomValue} 0/3 * * * ? *", checkPresence)						// At X seconds past the minute, every 3 minutes.
 
 	// Set the operating mode and turn off advanced logging.
 	rangingMode()
@@ -177,9 +178,7 @@ def normalMode() {
 
 	// This is the standard, quite chatty, running mode of the outlet.
 
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
 	refresh()
 	state.operatingMode = "normal"
 	sendEvent(name: "mode", value: "normal")
@@ -195,9 +194,7 @@ def rangingMode() {
 
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}")
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging", "info")
 
@@ -215,9 +212,7 @@ def lockedMode() {
 
 	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
 
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}")
 	refresh()
 	state.operatingMode = "locked"
 	sendEvent(name: "mode", value: "locked")
@@ -228,11 +223,8 @@ def lockedMode() {
 
 def silentMode() {
 
-	// Turns off all reporting. Not hugely useful as we can control logging in other ways.
-
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}")
 	refresh()
 	state.operatingMode = "silent"
 	sendEvent(name: "mode", value: "silent")
@@ -244,10 +236,7 @@ def silentMode() {
 def off() {
 
 	// The off command is custom to AlertMe equipment, so has to be constructed.
-
-	def offCommand = []
-	offCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(offCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
 
 }
 
@@ -255,10 +244,7 @@ def off() {
 def on() {
 
 	// The on command is custom to AlertMe equipment, so has to be constructed.
-
-	def onCommand = []
-	onCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(onCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
 
 }
 
@@ -267,11 +253,8 @@ void refresh() {
 
 	// The Smart Plug becomes active after joining once it has received this status update request.
 	// It also expects the Hub to check in with this occasionally, otherwise remote control is eventually dropped. 
-
-	def stateRequest = []
-	stateRequest.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(stateRequest, hubitat.device.Protocol.ZIGBEE))
-	logging("${device} : Refreshed", "info")
+	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
+	logging("${device} : Refresh", "info")
 
 }
 
@@ -289,24 +272,20 @@ def rangeAndRefresh() {
 def checkPresence() {
 
 	// Check how long ago the last presence report was received.
-	// These devices report uptime every 60 seconds. If no reports are seen, we know something is wrong.
+	// These devices report power every 10 seconds. If no reports are seen, we know something is wrong.
 
 	long timeNow = new Date().time / 1000
 
 	if (state.presenceUpdated > 0) {
-		if (timeNow - state.presenceUpdated > 360) {
+		if (timeNow - state.presenceUpdated > 240) {
 			sendEvent(name: "presence", value: "not present")
 			logging("${device} : No recent presence reports.", "warn")
 			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 360", "trace")
 			rangeAndRefresh()
-		} else if (timeNow - state.presenceUpdated > 180) {
-			logging("${device} : Missed a few presence reports, prodding.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 180", "trace")
-			rangeAndRefresh()
 		} else {
 			sendEvent(name: "presence", value: "present")
 			logging("${device} : Recent presence report received.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 240", "trace")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 360", "trace")
 		}
 	} else {
 		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
@@ -433,6 +412,8 @@ def processMap(map) {
 
 		// Power and usage messages.
 
+		// We also use this to update our presence detection given its frequency.
+
 		if (map.command == "81") {
 
 			// Power Reading
@@ -448,6 +429,11 @@ def processMap(map) {
 
 			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
 			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
+
+			// Presence Update
+
+			long timeNow = new Date().time / 1000
+			state.presenceUpdated = timeNow
 
 		} else if (map.command == "82") {
 
@@ -487,11 +473,6 @@ def processMap(map) {
 
 			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
 			sendEvent(name: "uptimeReadable", value: uptimeReadable, isStateChange: false)
-
-			// Presence
-
-			long timeNow = new Date().time / 1000
-			state.presenceUpdated = timeNow
 
 		} else {
 
@@ -611,6 +592,12 @@ def processMap(map) {
 				}
 			}
 
+			// Presence Update and Check
+
+			long timeNow = new Date().time / 1000
+			state.presenceUpdated = timeNow
+			checkPresence()
+
 		} else {
 
 			logging("${device} : Receiving a message on the join cluster. This Smart Plug probably wants us to ask how it's feeling.", "debug")
@@ -646,6 +633,40 @@ def processMap(map) {
 }
 
 
+void sendZigbeeCommands(ArrayList<String> cmd) {
+
+	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
+
+    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+    cmd.each {
+        if (it.startsWith("delay") == true) {
+			allActions.add(new hubitat.device.HubAction(it))
+        } else {
+            allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
+        }
+    }
+
+    logging("${device} : sendZigbeeCommands : $cmd", "trace")
+    sendHubCommand(allActions)
+
+}
+
+
+void sendZigbeeRawCommands(String[] cmd) {
+
+	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
+
+    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+    cmd.each {
+        allActions.add(it)
+    }
+
+    logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+    sendHubCommand(allActions)
+
+}
+
+
 private String[] secondsToDhms(int timeToParse) {
 
 	def dhms = []
@@ -659,6 +680,7 @@ private String[] secondsToDhms(int timeToParse) {
 	return dhms
 
 }
+
 
 private boolean logging(String message, String level) {
 

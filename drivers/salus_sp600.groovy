@@ -17,11 +17,6 @@ metadata {
 		capability "Refresh"
 		capability "Switch"
 
-		command "simpleMeteringPowerRefresh"
-		command "simpleMeteringPowerConfig"
-		command "zigbeeOnOffConfig"
-		command "zigbeeOnOffRefresh"
-
 		attribute "powerWithUnit", "string"
 
 		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus SP600 Smart Plug"
@@ -40,13 +35,15 @@ preferences {
 }
 
 
+def installed() {
+	// Runs after pairing.
+	logging("${device} : Installed", "info")
+}
+
 
 def initialize() {
-	
-	log.warn "Initialize Called!"
-    
+	logging("${device} : Initialising", "info")
 	configure()
-	
 }
 
 
@@ -65,21 +62,23 @@ def configure() {
 	// Bunch of zero or null values.
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "present")
+	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "unknown")
 
+	// Schedule the presence check.
+	randomValue = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomValue} 0/3 * * * ? *", checkPresence)						// At X seconds past the minute, every 3 minutes.
+
     // Set the operating and reporting modes and turn off advanced logging.
-	zigbee.onOffConfig() + simpleMeteringPowerConfig() + zigbee.onOffRefresh() + simpleMeteringPowerRefresh()
-
-
-	// WHY DO THESE FUNCTIONS NOT RNU (OR COMPLETE) IF SOMETHING ELSE COMES AFTER EHRE?!?!?!
-
-
-	//runIn(240,debugLogOff)
-	//runIn(120,traceLogOff)
+	onOffConfig()
+	onOffRefresh()
+	powerMeteringConfig()
+	powerMeteringRefresh()
+	runIn(240,debugLogOff)
+	runIn(120,traceLogOff)
 
 	// All done.
-	//logging("${device} : Configured", "info")
+	logging("${device} : Configured", "info")
 
 }
 
@@ -134,56 +133,57 @@ void reportToDev(map) {
 }
 
 
-def zigbeeOnOffRefresh() {
+def onOffRefresh() {
 
-	logging("${device} : Relay State : Refreshing...", "info")
-	zigbee.onOffRefresh()
+	sendZigbeeCommands(zigbee.onOffRefresh())
+
+}
+
+
+def onOffConfig() {
+
+	sendZigbeeCommands(zigbee.onOffConfig())
 
 }
 
 
-def zigbeeOnOffConfig() {
+def powerMeteringRefresh() {
 
-	logging("${device} : on off configging ", "debug")
-	zigbee.onOffConfig()
-}
-
-def simpleMeteringPowerRefresh() {
-
-	logging("${device} : Power : Refreshing...", "info")
-	zigbee.readAttribute(0x0702, 0x0400)
+	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))
 
 }
 
-def simpleMeteringPowerConfig() {
 
-	logging("${device} : Power Reporting : Configuring", "info")
+def powerMeteringConfig() {
 
 	minReportTime=10
 	maxReportTime=20
 	reportableChange=0x01
 
-	zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange)
+	sendZigbeeCommands(zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange))
 
 }
 
 
 def off() {
 
-	zigbee.off()
+	sendZigbeeCommands(zigbee.off())
 
 }
+
 
 def on() {
 
-	zigbee.on()
+	sendZigbeeCommands(zigbee.on())
 
 }
 
+
 def refresh() {
 	
-	logging("${device} : Refreshing...", "info")
-	simpleMeteringPowerRefresh() + zigbee.onOffRefresh()
+	logging("${device} : Refreshing", "info")
+	powerMeteringRefresh()
+	onOffRefresh()
 
 }
 
@@ -191,7 +191,7 @@ def refresh() {
 def checkPresence() {
 
 	// Check how long ago the last presence report was received.
-	// These devices report uptime every 60 seconds. If no reports are seen after 240 seconds, we know something is wrong.
+	// These devices report power every 10 seconds. If no reports are seen, we know something is wrong.
 
 	long timeNow = new Date().time / 1000
 
@@ -199,11 +199,11 @@ def checkPresence() {
 		if (timeNow - state.presenceUpdated > 240) {
 			sendEvent(name: "presence", value: "not present")
 			logging("${device} : No recent presence reports.", "warn")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 240", "trace")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 360", "trace")
 		} else {
 			sendEvent(name: "presence", value: "present")
 			logging("${device} : Recent presence report received.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 240", "trace")
+			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 360", "trace")
 		}
 	} else {
 		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
@@ -274,7 +274,7 @@ void processMap(map) {
 
 		} else if (map.command == "0B") {
 
-			// Relay State Confirmations
+			// Relay State Confirmations?
 
 			String[] receivedData = map.data
 			def String powerStateHex = receivedData[0]
@@ -282,12 +282,10 @@ void processMap(map) {
 			if (powerStateHex == "01") {
 
 				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch Confirmed : On", "info")
 
 			} else {
 
 				sendEvent(name: "switch", value: "off")
-				logging("${device} : Switch Confirmed : Off", "info")
 
 			}
 
@@ -300,6 +298,8 @@ void processMap(map) {
 	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
 		// Power configuration and response handling.
+
+		// We also use this to update our presence detection given its frequency.
 
 		if (map.command == "07") {
 
@@ -323,12 +323,17 @@ void processMap(map) {
 			if (map.command == "01") {
 				// If this has been requested by the user, return the value in the log.
 				logging("${device} : Power : ${powerValue} W", "info")
-
 			}
 
 			if (powerValue > 0) {
-				sendEvent(name: "switch", value: "on", isStateChange: false)		// In case we've initialised and never toggle the relay.
+				sendEvent(name: "switch", value: "on", isStateChange: false)		// Just in case.
 			}
+
+			// Presence Update
+
+			long timeNow = new Date().time / 1000
+			state.presenceUpdated = timeNow
+			checkPresence()
 
 		} else {
 
@@ -349,7 +354,56 @@ void processMap(map) {
 }
 
 
-def logging(String message, String level) {
+void sendZigbeeCommands(ArrayList<String> cmd) {
+
+	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
+
+    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+    cmd.each {
+        if (it.startsWith("delay") == true) {
+			allActions.add(new hubitat.device.HubAction(it))
+        } else {
+            allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
+        }
+    }
+
+    logging("${device} : sendZigbeeCommands : $cmd", "trace")
+    sendHubCommand(allActions)
+
+}
+
+
+void sendZigbeeRawCommands(String[] cmd) {
+
+	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
+
+    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+    cmd.each {
+        allActions.add(it)
+    }
+
+    logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+    sendHubCommand(allActions)
+
+}
+
+
+private String[] secondsToDhms(int timeToParse) {
+
+	def dhms = []
+	dhms.add(timeToParse % 60)
+	timeToParse = timeToParse / 60
+	dhms.add(timeToParse % 60)
+	timeToParse = timeToParse / 60
+	dhms.add(timeToParse % 24)
+	timeToParse = timeToParse / 24
+	dhms.add(timeToParse % 365)
+	return dhms
+
+}
+
+
+private boolean logging(String message, String level) {
 
 	if (level == "error") {
 		log.error "$message"
