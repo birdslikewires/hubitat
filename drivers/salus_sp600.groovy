@@ -13,7 +13,7 @@ metadata {
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
-        capability "PresenceSensor"
+		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
 
@@ -69,7 +69,7 @@ def configure() {
 	randomValue = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomValue} 0/3 * * * ? *", checkPresence)						// At X seconds past the minute, every 3 minutes.
 
-    // Set the operating and reporting modes and turn off advanced logging.
+	// Set the operating and reporting modes and turn off advanced logging.
 	onOffConfig()
 	onOffRefresh()
 	powerMeteringConfig()
@@ -358,17 +358,17 @@ void sendZigbeeCommands(ArrayList<String> cmd) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-    cmd.each {
-        if (it.startsWith("delay") == true) {
+	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+	cmd.each {
+		if (it.startsWith("delay") == true) {
 			allActions.add(new hubitat.device.HubAction(it))
-        } else {
-            allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
-        }
-    }
+		} else {
+			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
+		}
+	}
 
-    logging("${device} : sendZigbeeCommands : $cmd", "trace")
-    sendHubCommand(allActions)
+	logging("${device} : sendZigbeeCommands : $cmd", "trace")
+	sendHubCommand(allActions)
 
 }
 
@@ -377,13 +377,13 @@ void sendZigbeeRawCommands(String[] cmd) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-    cmd.each {
-        allActions.add(it)
-    }
+	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+	cmd.each {
+		allActions.add(it)
+	}
 
-    logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
-    sendHubCommand(allActions)
+	logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+	sendHubCommand(allActions)
 
 }
 
