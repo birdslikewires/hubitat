@@ -14,7 +14,7 @@ metadata {
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
-        capability "PresenceSensor"
+		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
 		capability "TemperatureMeasurement"
@@ -637,17 +637,17 @@ void sendZigbeeCommands(ArrayList<String> cmd) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-    cmd.each {
-        if (it.startsWith("delay") == true) {
+	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+	cmd.each {
+		if (it.startsWith("delay") == true) {
 			allActions.add(new hubitat.device.HubAction(it))
-        } else {
-            allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
-        }
-    }
+		} else {
+			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
+		}
+	}
 
-    logging("${device} : sendZigbeeCommands : $cmd", "trace")
-    sendHubCommand(allActions)
+	logging("${device} : sendZigbeeCommands : $cmd", "trace")
+	sendHubCommand(allActions)
 
 }
 
@@ -656,13 +656,13 @@ void sendZigbeeRawCommands(String[] cmd) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-    cmd.each {
-        allActions.add(it)
-    }
+	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+	cmd.each {
+		allActions.add(it)
+	}
 
-    logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
-    sendHubCommand(allActions)
+	logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+	sendHubCommand(allActions)
 
 }
 
