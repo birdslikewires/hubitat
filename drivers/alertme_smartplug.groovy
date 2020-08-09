@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.16 (7th August 2020)
+ *  AlertMe Smart Plug Driver v1.17 (9th August 2020)
  *	
  */
 
@@ -11,33 +11,34 @@ metadata {
 
 		capability "Actuator"
 		capability "Battery"
+		capability "EnergyMeter"
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
+		capability "PowerSource"
 		capability "PresenceSensor"
 		capability "Refresh"
+		capability "SignalStrength"
 		capability "Switch"
 		capability "TemperatureMeasurement"
 
 		//command "lockedMode"
 		command "normalMode"
 		command "rangingMode"
-		//command "silentMode"
+		command "quietMode"
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
+		attribute "energyWithUnit", "string"
 		attribute "mode", "string"
 		attribute "powerWithUnit", "string"
-		attribute "rssi", "string"
 		attribute "stateMismatch", "boolean"
 		attribute "supplyPresent", "boolean"
 		attribute "temperatureWithUnit", "string"
 		attribute "uptime", "string"
 		attribute "uptimeReadable", "string"
-		attribute "usage", "string"
-		attribute "usageWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00EF,00EE", outClusters: "", manufacturer: "AlertMe.com", model: "Smart Plug", deviceJoinName: "AlertMe Smart Plug"
 		
@@ -87,6 +88,7 @@ def configure() {
 	state.remove("uptime")
 	state.remove("uptimeReceived")
 	state.remove("presentAt")
+	state.remove("rssi")
 
 	// Bunch of zero or null values.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
@@ -94,11 +96,14 @@ def configure() {
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
+	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "lqi", value: 0)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name: "powerSource", value: "unknown", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "rssi", value: "unknown")
 	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
 	sendEvent(name: "supplyPresent",value: false, isStateChange: false)
 	sendEvent(name: "switch", value: "unknown")
@@ -106,8 +111,6 @@ def configure() {
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
 	sendEvent(name: "uptimeReadable", value: "unknown")
-	sendEvent(name: "usage", value: 0, unit: "Wh", isStateChange: false)
-	sendEvent(name: "usageWithUnit", value: "unknown", isStateChange: false)
 
 	// Schedule our ranging report.
 	randomValue = Math.abs(new Random().nextInt() % 60)
@@ -179,8 +182,8 @@ def normalMode() {
 	// This is the standard, quite chatty, running mode of the outlet.
 
 	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
-	refresh()
 	state.operatingMode = "normal"
+	refresh()
 	sendEvent(name: "mode", value: "normal")
 	logging("${device} : Mode : Normal", "info")
 
@@ -190,7 +193,7 @@ def normalMode() {
 def rangingMode() {
 
 	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator
-	// while reporting RSSI values. It's also a handy means of identifying or pinging a device.
+	// while reporting LQI values. It's also a handy means of identifying or pinging a device.
 
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
@@ -216,19 +219,32 @@ def lockedMode() {
 	refresh()
 	state.operatingMode = "locked"
 	sendEvent(name: "mode", value: "locked")
+
 	logging("${device} : Mode : Locked", "info")
 
 }
 
 
-def silentMode() {
+def quietMode() {
 
 	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
 	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}")
+	state.operatingMode = "quiet"
 	refresh()
-	state.operatingMode = "silent"
-	sendEvent(name: "mode", value: "silent")
-	logging("${device} : Mode : Silent", "info")
+	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
+	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "mode", value: "quiet")
+	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name: "uptimeReadable", value: "unknown")
+	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+	logging("${device} : Mode : Quiet", "info")
 
 }
 
@@ -261,7 +277,7 @@ void refresh() {
 
 def rangeAndRefresh() {
 
-	// This toggles ranging mode to check presence and update the device's RSSI value.
+	// This toggles ranging mode to check presence and update the device's LQI value.
 
 	rangingMode()
 	runIn(3, "${state.operatingMode}Mode")
@@ -274,21 +290,34 @@ def checkPresence() {
 	// Check how long ago the last presence report was received.
 	// These devices report power every 10 seconds. If no reports are seen, we know something is wrong.
 
-	long timeNow = new Date().time / 1000
+	long millisNow = new Date().time
+
+	presenceTimeoutMinutes = 5
 
 	if (state.presenceUpdated > 0) {
-		if (timeNow - state.presenceUpdated > 240) {
+
+		long millisElapsed = millisNow - state.presenceUpdated
+		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
+		BigDecimal secondsElapsed = millisElapsed / 1000
+
+		if (millisElapsed > presenceTimeoutMillis) {
+
 			sendEvent(name: "presence", value: "not present")
-			logging("${device} : No recent presence reports.", "warn")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 360", "trace")
-			rangeAndRefresh()
+			logging("${device} : Last presence report ${secondsElapsed} seconds ago.", "warn")
+
 		} else {
+
 			sendEvent(name: "presence", value: "present")
-			logging("${device} : Recent presence report received.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 360", "trace")
+			logging("${device} : Last presence report ${secondsElapsed} seconds ago.", "debug")
+
 		}
+
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} < ${presenceTimeoutMillis}", "trace")
+
 	} else {
+
 		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
+
 	}
 
 }
@@ -349,6 +378,7 @@ def processMap(map) {
 				// Supply failed.
 
 				sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
+				sendEvent(name: "powerSource", value: "battery", isStateChange: true)
 				sendEvent(name: "supplyPresent", value: false, isStateChange: true)
 
 				// Whether this is a problem!
@@ -367,7 +397,12 @@ def processMap(map) {
 
 				// Supply present.
 
+				if (state.batteryInstalled) {
+					sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+				}
+
 				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
+				sendEvent(name: "powerSource", value: "mains", isStateChange: true)
 				sendEvent(name: "supplyPresent", value: true, isStateChange: true)
 
 			} else {
@@ -379,6 +414,7 @@ def processMap(map) {
 				}
 
 				sendEvent(name: "stateMismatch", value: false, isStateChange: true)
+				sendEvent(name: "powerSource", value: "mains", isStateChange: true)
 				sendEvent(name: "supplyPresent", value: true, isStateChange: true)
 
 			}
@@ -410,7 +446,7 @@ def processMap(map) {
 
 	} else if (map.clusterId == "00EF") {
 
-		// Power and usage messages.
+		// Power and energy messages.
 
 		// We also use this to update our presence detection given its frequency.
 
@@ -432,29 +468,30 @@ def processMap(map) {
 
 			// Presence Update
 
-			long timeNow = new Date().time / 1000
-			state.presenceUpdated = timeNow
+			long millisNow = new Date().time
+			state.presenceUpdated = millisNow
 
 		} else if (map.command == "82") {
 
-			// Command 82 returns usage summary in watt-hours with an uptime counter.
+			// Command 82 returns energy summary in watt-hours with an uptime counter.
 
-			// Usage
+			// Energy
 
-			def usageValueHex = "undefined"
-			def int usageValue = 0 
+			def energyValueHex = "undefined"
+			def float energyValue = 0
 
-			usageValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : usage byte flipped : ${usageValueHex}", "trace")
-			usageValue = zigbee.convertHexToInt(usageValueHex)
-			logging("${device} : usage counter reports : ${usageValue}", "debug")
+			energyValueHex = receivedData[0..3].reverse().join()
+			logging("${device} : energy byte flipped : ${energyValueHex}", "trace")
+			energyValue = zigbee.convertHexToInt(energyValueHex)
+			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
-			usageValue = usageValue / 3600
+			energyValue = energyValue / 3600 / 1000
+			energyValue = energyValue.round(4)
 
-			logging("${device} : Power Usage : ${usageValue} Wh", "info")
+			logging("${device} : Energy : ${energyValue} kWh", "info")
 
-			sendEvent(name: "usage", value: usageValue, unit: "Wh", isStateChange: false)
-			sendEvent(name: "usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
+			sendEvent(name: "energy", value: energyValue, unit: "kWh", isStateChange: false)
+			sendEvent(name: "energyWithUnit", value: "${energyValue} kWh", isStateChange: false)
 
 			// Uptime
 
@@ -467,7 +504,7 @@ def processMap(map) {
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
 			def newDhmsUptime = []
-			newDhmsUptime = secondsToDhms(uptimeValue)
+			newDhmsUptime = millisToDhms(uptimeValue * 1000)
 			def String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 			logging("${device} : Uptime : ${uptimeReadable}", "info")
 
@@ -476,7 +513,7 @@ def processMap(map) {
 
 		} else {
 
-			// Unknown power usage data.
+			// Unknown power or energy data.
 			reportToDev(map)
 
 		}
@@ -501,9 +538,9 @@ def processMap(map) {
 
 			def BigDecimal batteryPercentage = 0
 			def BigDecimal batteryVoltageMinimum = 3.6
-			def BigDecimal batteryVoltageMaximum = 4.2
+			def BigDecimal batteryVoltageMaximum = 4.1
 
-			if(batteryVoltageMaximum - batteryVoltageMinimum > 0) {
+			if (batteryVoltageMaximum - batteryVoltageMinimum > 0) {
 				batteryPercentage = ((batteryVoltage - batteryVoltageMinimum) / (batteryVoltageMaximum - batteryVoltageMinimum)) * 100.0
 			} else {
 				batteryPercentage = 100
@@ -516,7 +553,12 @@ def processMap(map) {
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-			sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+
+			if (batteryVoltage > batteryVoltageMaximum) {
+				sendEvent(name: "batteryState", value: "charged", isStateChange: true)
+			} else {
+				sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+			}
 
 		} else if (batteryVoltage < 3.3) {
 
@@ -573,29 +615,31 @@ def processMap(map) {
 
 		if (map.command == "FD") {
 
-			def rssiRangingHex = "undefined"
-			def int rssiRanging = 0
-			rssiRangingHex = receivedData[0]
-			rssiRanging = zigbee.convertHexToInt(rssiRangingHex)
-			sendEvent(name: "rssi", value: rssiRanging, isStateChange: false)
-			logging("${device} : rssiRanging : ${rssiRanging}", "debug")
+			def lqiRangingHex = "undefined"
+			def int lqiRanging = 0
+			lqiRangingHex = receivedData[0]
+			lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
+			sendEvent(name: "lqi", value: lqiRanging, isStateChange: false)
+			logging("${device} : lqiRanging : ${lqiRanging}", "debug")
 
-			if (receivedData[1] == "FF") {
-				// This is an arbitrary ranging report, trigger a refresh for good measure.
-				logging("${device} : arbitrary ranging report received, sending status update request : refresh() ", "trace")
-				refresh()
-			} else if (receivedData[1] == "77") {
+			if (receivedData[1] == "77") {
 				// This is ranging mode, which must be temporary. Make sure we come out of it.
 				state.rangingPulses++
 				if (state.rangingPulses > 30) {
 					"${state.operatingMode}Mode"()
 				}
-			}
+			} else if (receivedData[1] == "FF") {
+				// This is the ranging report received every 30 seconds while in quiet mode.
+				logging("${device} : quiet ranging report received", "trace")
+			} else {
+				// Something to do with ranging we don't know about!
+				reportToDev(map)
+			} 
 
 			// Presence Update and Check
 
-			long timeNow = new Date().time / 1000
-			state.presenceUpdated = timeNow
+			long millisNow = new Date().time
+			state.presenceUpdated = millisNow
 			checkPresence()
 
 		} else {
@@ -667,16 +711,18 @@ void sendZigbeeRawCommands(String[] cmd) {
 }
 
 
-private String[] secondsToDhms(int timeToParse) {
+private String[] millisToDhms(int millisToParse) {
+
+	long secondsToParse = millisToParse / 1000
 
 	def dhms = []
-	dhms.add(timeToParse % 60)
-	timeToParse = timeToParse / 60
-	dhms.add(timeToParse % 60)
-	timeToParse = timeToParse / 60
-	dhms.add(timeToParse % 24)
-	timeToParse = timeToParse / 24
-	dhms.add(timeToParse % 365)
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 24)
+	secondsToParse = secondsToParse / 24
+	dhms.add(secondsToParse % 365)
 	return dhms
 
 }
