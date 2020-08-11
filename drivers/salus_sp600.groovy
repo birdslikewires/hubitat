@@ -354,35 +354,26 @@ void processMap(map) {
 }
 
 
-void sendZigbeeCommands(ArrayList<String> cmd) {
+void sendZigbeeCommands(ArrayList<String> cmds) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
+	logging("${device} : sendZigbeeCommands received : $cmds", "trace")
+
 	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-	cmd.each {
-		if (it.startsWith("delay") == true) {
+	cmds.each {
+
+		if (it.startsWith("he raw") == true) {
+			allActions.add(it)
+		} else if (it.startsWith("delay") == true) {
 			allActions.add(new hubitat.device.HubAction(it))
 		} else {
 			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
 		}
+
 	}
 
-	logging("${device} : sendZigbeeCommands : $cmd", "trace")
-	sendHubCommand(allActions)
-
-}
-
-
-void sendZigbeeRawCommands(String[] cmd) {
-
-	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
-
-	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-	cmd.each {
-		allActions.add(it)
-	}
-
-	logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+	logging("${device} : sendZigbeeCommands : $cmds", "trace")
 	sendHubCommand(allActions)
 
 }

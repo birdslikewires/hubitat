@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.17 (9th August 2020)
+ *  AlertMe Smart Plug Driver v1.18 (11th August 2020)
  *	
  */
 
@@ -181,7 +181,7 @@ def normalMode() {
 
 	// This is the standard, quite chatty, running mode of the outlet.
 
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
 	refresh()
 	sendEvent(name: "mode", value: "normal")
@@ -197,7 +197,7 @@ def rangingMode() {
 
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}"])
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging", "info")
 
@@ -215,7 +215,7 @@ def lockedMode() {
 
 	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
 
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}"])
 	refresh()
 	state.operatingMode = "locked"
 	sendEvent(name: "mode", value: "locked")
@@ -228,7 +228,7 @@ def lockedMode() {
 def quietMode() {
 
 	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
 	refresh()
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
@@ -252,7 +252,8 @@ def quietMode() {
 def off() {
 
 	// The off command is custom to AlertMe equipment, so has to be constructed.
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}")
+	//sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}"])
 
 }
 
@@ -260,7 +261,7 @@ def off() {
 def on() {
 
 	// The on command is custom to AlertMe equipment, so has to be constructed.
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}"])
 
 }
 
@@ -269,7 +270,7 @@ void refresh() {
 
 	// The Smart Plug becomes active after joining once it has received this status update request.
 	// It also expects the Hub to check in with this occasionally, otherwise remote control is eventually dropped. 
-	sendZigbeeRawCommands("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}"])
 	logging("${device} : Refresh", "info")
 
 }
@@ -677,35 +678,26 @@ def processMap(map) {
 }
 
 
-void sendZigbeeCommands(ArrayList<String> cmd) {
+void sendZigbeeCommands(ArrayList<String> cmds) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
+	logging("${device} : sendZigbeeCommands received : $cmds", "trace")
+
 	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-	cmd.each {
-		if (it.startsWith("delay") == true) {
+	cmds.each {
+
+		if (it.startsWith("he raw") == true) {
+			allActions.add(it)
+		} else if (it.startsWith("delay") == true) {
 			allActions.add(new hubitat.device.HubAction(it))
 		} else {
 			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
 		}
+
 	}
 
-	logging("${device} : sendZigbeeCommands : $cmd", "trace")
-	sendHubCommand(allActions)
-
-}
-
-
-void sendZigbeeRawCommands(String[] cmd) {
-
-	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
-
-	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-	cmd.each {
-		allActions.add(it)
-	}
-
-	logging("${device} : sendZigbeeRawCommands : $cmd", "trace")
+	logging("${device} : sendZigbeeCommands : $cmds", "trace")
 	sendHubCommand(allActions)
 
 }
