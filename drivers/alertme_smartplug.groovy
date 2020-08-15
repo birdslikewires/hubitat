@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.21 (14th August 2020)
+ *  AlertMe Smart Plug Driver v1.22 (15th August 2020)
  *	
  */
 
@@ -63,15 +63,25 @@ def installed() {
 
 
 def initialize() {
+
 	// Runs on reboot if in capabilities list.
 
 	logging("${device} : Initialising", "info")
+
+	// Reset states a few states.
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
-	sendEvent(name: "rssi", value: null)	// Not found this in the reports from SPG100.
+	sendEvent(name: "rssi", value: 0)	// Not found this in reports from SPG100.
 
-	// Stagger our device refreshing or we run the risk of DDoS attacking ourselves!
-	randomValue = Math.abs(new Random().nextInt() % 20)
+	// Remove any old state variables.
+	state.remove("batteryInstalled")
+	state.remove("uptime")
+	state.remove("uptimeReceived")
+	state.remove("presentAt")
+	state.remove("rssi")
+
+	// Stagger our device refresh or we run the risk of DDoS attacking ourselves!
+	randomValue = Math.abs(new Random().nextInt() % 30)
 	runIn(randomValue,refresh)
 
 }
@@ -81,7 +91,7 @@ def configure() {
 	// Runs after installed() whenever a device is paired or rejoined.
 	logging("${device} : Configuring", "info")
 
-	state.batteryInstalled = false
+	state.batteryOkay = true
 	state.firmwareVersion = "unknown"
 	state.operatingMode = "normal"
 	state.presenceUpdated = 0
@@ -95,12 +105,6 @@ def configure() {
 
 	// Remove any scheduled events.
 	unschedule()
-
-	// Remove any old state variables.
-	state.remove("uptime")
-	state.remove("uptimeReceived")
-	state.remove("presentAt")
-	state.remove("rssi")
 
 	// Bunch of zero or null values.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
@@ -451,7 +455,7 @@ def processMap(map) {
 
 				logging("${device} : Supply : Device returning from shutdown, please check batteries!", "warn")
 
-				if (state.batteryInstalled) {
+				if (state.batteryOkay) {
 					sendEvent(name: "batteryState", value: "charging", isStateChange: true)
 				}
 
@@ -573,39 +577,42 @@ def processMap(map) {
 		if (state.firmwareVersion.startsWith("2010")) {
 			// Early firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
 			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
-			batteryVoltage = batteryVoltage * 1.37			
+			batteryVoltage = batteryVoltage * 1.40
 			logging("${device} : early firmware requires batteryVoltage correction!", "debug")
 		}
 
-		logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
+		batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
+		logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
 		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
 
-		// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
-		if (batteryVoltage >= 3.3 && batteryVoltage <= 4.4) {
+		BigDecimal batteryPercentage = 0
+		BigDecimal batteryVoltageScaleMin = 3.5
+		BigDecimal batteryVoltageScaleMax = 4.1
 
-			state.batteryInstalled = true
+		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {
 
-			BigDecimal batteryPercentage = 0
-			BigDecimal batteryVoltageMinimum = 3.6
-			BigDecimal batteryVoltageMaximum = 4.0
+			// A good three-cell 3.6 V NiMH battery will sit between 4.10 V and 4.25 V.
 
-			if (batteryVoltageMaximum - batteryVoltageMinimum > 0) {
-				batteryPercentage = ((batteryVoltage - batteryVoltageMinimum) / (batteryVoltageMaximum - batteryVoltageMinimum)) * 100.0
-			} else {
-				batteryPercentage = 100
-			}
+			state.batteryOkay = true
 
+			batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
 			batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
-			batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			if (batteryPercentage > 50) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			} else if (batteryPercentage > 30) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
+			} else {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			}
+
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
 
-			if (batteryVoltage > batteryVoltageMaximum) {
+			if (batteryVoltage > batteryVoltageScaleMax) {
 				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charged", isStateChange: true)
 			} else {
 				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging", isStateChange: true)
@@ -613,9 +620,9 @@ def processMap(map) {
 
 		} else if (batteryVoltage < 3.3) {
 
-			// Very low voltages indicate an exhausted battery whcih requires replacement.
+			// Very low voltages indicate an exhausted battery which requires replacement.
 
-			state.batteryInstalled = true
+			state.batteryOkay = true
 
 			batteryPercentage = 0
 
@@ -629,11 +636,12 @@ def processMap(map) {
 
 			// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
 
-			state.batteryInstalled = false
+			state.batteryOkay = false
 
 			batteryPercentage = 0
 
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
 			sendEvent(name: "batteryState", value: "fault", isStateChange: true)
