@@ -1,37 +1,43 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.04 (22nd July 2020)
+ *  AlertMe Power Clamp Driver v1.05 (16th August 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
+	definition (name: "AlertMe Power Clamp V2", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
 
 		capability "Battery"
+		capability "Configuration"
+		capability "EnergyMeter"
 		capability "Initialize"
-		capability "Power Meter"
+		capability "PowerMeter"
+		capability "PowerSource"
+		capability "PresenceSensor"
 		capability "Refresh"
-		capability "Temperature Measurement"
+		capability "SignalStrength"
+		capability "TemperatureMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
+		command "quietMode"
 
+		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
+		attribute "energyWithUnit", "string"
 		attribute "mode", "string"
 		attribute "powerWithUnit", "string"
-		attribute "rssi", "string"
 		attribute "temperatureWithUnit", "string"
 		attribute "uptime", "string"
-		attribute "usage", "string"
-		attribute "usageWithUnit", "string"
+		attribute "uptimeReadable", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "AlertMe Power Clamp"
-		
+
 	}
 
 }
@@ -39,70 +45,101 @@ metadata {
 
 preferences {
 	
-	input name: "batteryVoltageMinimum",type: "decimal",title: "Battery Minimum Voltage",description: "Low battery voltage (default: 2.5)",defaultValue: "2.5",range: "2.1..2.8"
-	input name: "batteryVoltageMaximum",type: "decimal",title: "Battery Maximum Voltage",description: "Full battery voltage (default: 3.0)",defaultValue: "3.0",range: "2.9..3.4"
-	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
-	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
-	input name: "silenceLogging",type: "bool",title: "Force silent mode (overrides log settings)",defaultValue: false
+	input name: "infoLogging",type: "bool", title: "Enable logging", defaultValue: true
+	input name: "debugLogging",type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging",type: "bool", title: "Enable trace logging", defaultValue: false
 	
 }
 
 
 def installed() {
-	// Runs after pairing.
-	logging("${device} : Installing",100)
+	// Runs after first pairing.
+	logging("${device} : Installing", "info")
 }
 
 
 def initialize() {
-	configure()
+
+	// Runs on reboot if in capabilities list.
+
+	logging("${device} : Initialising", "info")
+
+	// Reset states a few states.
+	state.presenceUpdated = 0
+	state.rangingPulses = 0
+	sendEvent(name: "rssi", value: 0)	// Not found this in reports from AlertMe devices.
+
+	// Remove any old state variables.
+	state.remove("batteryInstalled")
+	state.remove("firmwareVersion")	
+	state.remove("uptime")
+	state.remove("uptimeReceived")
+	state.remove("presentAt")
+	state.remove("relayClosed")
+	state.remove("rssi")
+	state.remove("supplyPresent")
+
+	// Remove any old device details.
+	removeDataValue("application")
+
+	// Stagger our device refresh or we run the risk of DDoS attacking ourselves!
+	randomValue = Math.abs(new Random().nextInt() % 30)
+	runIn(randomValue,refresh)
+
 }
 
 
 def configure() {
 	// Runs after installed() whenever a device is paired or rejoined.
+	logging("${device} : Configuring", "info")
 
-	state.batteryInstalled = false
+	state.batteryOkay = true
 	state.operatingMode = "normal"
+	state.presenceUpdated = 0
 	state.rangingPulses = 0
 
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	device.updateSetting("silenceLogging",[value:"false",type:"bool"])
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
 	// Remove any scheduled events.
 	unschedule()
 
 	// Bunch of zero or null values.
-	sendEvent(name:"battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name:"batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name:"batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name:"mode", value: "unknown",isStateChange: false)
-	sendEvent(name:"power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name:"powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"rssi", value: "unknown")
-	sendEvent(name:"temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name:"temperatureWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name:"uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name:"usage", value: 0, unit: "Wh", isStateChange: false)
-	sendEvent(name:"usageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
+	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "lqi", value: 0)
+	sendEvent(name: "mode", value: "unknown",isStateChange: false)
+	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name: "powerSource", value: "unknown", isStateChange: false)
+	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "presence", value: "not present")
+	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
+	sendEvent(name: "switch", value: "unknown")
+	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name: "uptimeReadable", value: "unknown")
 
-	// Schedule our refresh check-in and turn off the logs.
-	randomMinute = Math.abs(new Random().nextInt() % 60)
-	schedule("0 ${randomMinute} 0/1 1/1 * ? *", rangeAndRefresh)
-	runIn(300,debugLogOff)
-	runIn(600,infoLogOff)
+	// Schedule our ranging report.
+	randomValue = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomValue} ${randomValue}/59 * * * ? *", rangeAndRefresh)		// At X seconds past the minute, every 59 minutes, starting at X minutes past the hour.
 
-	// Report our logging status.
-	loggingStatus()
+	// Schedule the presence check.
+	randomValue = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomValue} 0/5 * * * ? *", checkPresence)						// At X seconds past the minute, every 5 minutes.
 
-	// Set the operating mode.
+	// Set the operating mode and turn off advanced logging.
 	rangingMode()
 	runIn(6,normalMode)
 
 	// All done.
-	logging("${device} : Configured",100)
+	logging("${device} : Configured", "info")
 	
 }
 
@@ -110,38 +147,49 @@ def configure() {
 def updated() {
 	// Runs whenever preferences are saved.
 	loggingStatus()
+	runIn(3600,debugLogOff)
+	runIn(1800,traceLogOff)
 	refresh()
 }
 
 
 void loggingStatus() {
-	logging("${device} : Logging : ${infoLogging == true}",200)
-	logging("${device} : Debug Logging : ${debugLogging == true}",200)
-	logging("${device} : Silent Mode : ${silenceLogging == true}",200)
+
+	log.info "${device} : Logging : ${infoLogging == true}"
+	log.debug "${device} : Debug Logging : ${debugLogging == true}"
+	log.trace "${device} : Trace Logging : ${traceLogging == true}"
+
 }
 
 
-void reportToDev(data,map) {
-
-	logging("${device} : Unknown data! Please report this to the developer.",201)
-	logging("${device} : Received clusterId ${map.clusterId} command ${map.command} with ${data.length} values: ${data}",201)
-	logging("${device} : Splurge! ${map}",201)
+void traceLogOff(){
+	
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+	log.trace "${device} : Trace Logging : Automatically Disabled"
 
 }
 
 
 void debugLogOff(){
 	
-	logging("${device} : Debug Logging : false",200)
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
+	log.debug "${device} : Debug Logging : Automatically Disabled"
 
 }
 
 
-void infoLogOff(){
-	
-	logging("${device} : Logging : false",200)
-	device.updateSetting("infoLogging",[value:"false",type:"bool"])
+void reportToDev(map) {
+
+	String[] receivedData = map.data
+
+	def receivedDataCount = ""
+	if (receivedData != null) {
+		receivedDataCount = "${receivedData.length} bits of "
+	}
+
+	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
+	logging("${device} : Received cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Splurge! ${map}", "warn")
 
 }
 
@@ -150,13 +198,11 @@ def normalMode() {
 
 	// This is the standard, quite chatty, running mode of the outlet.
 
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
-	refresh()
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
+	refresh()
 	sendEvent(name: "mode", value: "normal")
-	logging("${device} : Mode : Normal",100)
+	logging("${device} : Mode : Normal", "info")
 
 }
 
@@ -164,15 +210,13 @@ def normalMode() {
 def rangingMode() {
 
 	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator
-	// while reporting RSSI values. It's also a handy means of identifying or pinging a device.
+	// while reporting LQI values. It's also a handy means of identifying or pinging a device.
 
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
-	def someCommand = []
-	someCommand.add("he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(someCommand, hubitat.device.Protocol.ZIGBEE))
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
 	sendEvent(name: "mode", value: "ranging")
-	logging("${device} : Mode : Ranging",100)
+	logging("${device} : Mode : Ranging", "info")
 
 	// Ranging will be disabled after a maximum of 30 pulses.
 	state.rangingPulses = 0
@@ -180,176 +224,407 @@ def rangingMode() {
 }
 
 
+def quietMode() {
+
+	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
+	state.operatingMode = "quiet"
+	refresh()
+	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
+	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
+	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "mode", value: "quiet")
+	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
+	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
+	sendEvent(name: "uptimeReadable", value: "unknown")
+	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+	logging("${device} : Mode : Quiet", "info")
+
+}
+
+
 void refresh() {
 
-	// The Smart Plug becomes active after joining once it has received this status update request.
-	// It also expects the Hub to check in with this occasionally, otherwise remote control is dropped. 
-
-	def stateRequest = []
-	stateRequest.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")
-	sendHubCommand(new hubitat.device.HubMultiAction(stateRequest, hubitat.device.Protocol.ZIGBEE))
-	logging("${device} : Refreshed",100)
+	logging("${device} : Refreshing", "info")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}"])	   // version information request
 
 }
 
 
 def rangeAndRefresh() {
 
-	// This is a ranging report and refresh call.
+	// This toggles ranging mode to update the device's LQI value.
+	// On return to the operating mode, refresh() is called by the whateverMode() method to keep remote control active.
+
 	rangingMode()
-	runIn(3,"${state.operatingMode}Mode")
+	runIn(3, "${state.operatingMode}Mode")
+
+}
+
+
+def updatePresence() {
+
+	long millisNow = new Date().time
+	state.presenceUpdated = millisNow
+
+}
+
+
+def checkPresence() {
+
+	// Check how long ago the last presence report was received.
+
+	// In normal mode the outlets report uptime and power every 10 seconds.
+	// In quiet mode the outlets only send a ranging report every 30 seconds.
+
+	long millisNow = new Date().time
+
+	presenceTimeoutMinutes = 5
+
+	if (state.presenceUpdated > 0) {
+
+		long millisElapsed = millisNow - state.presenceUpdated
+		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
+		BigDecimal secondsElapsed = millisElapsed / 1000
+
+		if (millisElapsed > presenceTimeoutMillis) {
+
+			sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+			sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+			sendEvent(name: "lqi", value: 0)
+			sendEvent(name: "presence", value: "not present")
+			sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+			sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
+
+		} else {
+
+			sendEvent(name: "presence", value: "present")
+			logging("${device} : Present : Last presence report ${secondsElapsed} seconds ago.", "debug")
+
+		}
+
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis})", "trace")
+
+	} else {
+
+		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
+
+	}
 
 }
 
 
 def parse(String description) {
-		
+
+	// Primary parse routine.
+
+	logging("${device} : Parse!", "debug")
+	logging("${device} : Description : $description", "debug")
+
 	def descriptionMap = zigbee.parseDescriptionAsMap(description)
-	
+
 	if (descriptionMap) {
 	
-		logging("${device} : Splurge!: ${descriptionMap}",109)
-		outputValues(descriptionMap)
+		updatePresence()
+		processMap(descriptionMap)
 
 	} else {
 		
-		logging("${device} : PARSE FAILED : $description",101)
+		logging("${device} : Failed to create description map from received data.", "warn")
 
 	}	
 
 }
 
 
-def outputValues(map) {
+def processMap(map) {
 
+	logging("${device} : processMap() : ${map}", "trace")
+
+	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
 	if (map.clusterId == "00EF") {
 
-		// Cluster 00EF deals with power usage information.
+		// Power and energy messages.
 
 		if (map.command == "81") {
 
-			// Command 81 returns immediate power readings.
+			// Power Reading
 
 			def powerValueHex = "undefined"
 			def int powerValue = 0
 
+			// These power readings are so frequent that we only log them in debug or trace.
 			powerValueHex = receivedData[0..1].reverse().join()
-			logging("${device} : power byte flipped : ${powerValueHex}",109)
+			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
 			powerValue = zigbee.convertHexToInt(powerValueHex)
-			logging("${device} : power sensor reports : ${powerValue}",109)
+			logging("${device} : power sensor reports : ${powerValue}", "debug")
 
-			logging("${device} : Power Reading : ${powerValue} W",100)
-
-			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: true)
-			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: true)
+			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
+			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
 
 		} else if (map.command == "82") {
 
-			// Command 82 returns usage summary in watt-hours with an uptime counter.
+			// Command 82 returns energy summary in watt-hours with an uptime counter.
 
-			def usageValueHex = "undefined"
-			def int usageValue = 0 
+			// Energy
 
-			usageValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : usage byte flipped : ${usageValueHex}",109)
-			usageValue = zigbee.convertHexToInt(usageValueHex)
-			logging("${device} : usage counter reports : ${usageValue}",109)
+			def energyValueHex = "undefined"
+			int energyValue = 0
 
-			usageValue = usageValue / 3600
+			energyValueHex = receivedData[0..3].reverse().join()
+			logging("${device} : energy byte flipped : ${energyValueHex}", "trace")
+			energyValue = zigbee.convertHexToInt(energyValueHex)
+			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
-			logging("${device} : Power Usage : ${usageValue} Wh",100)
+			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000)
+			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 
-			sendEvent(name:"usage", value: usageValue, unit: "Wh", isStateChange: false)
-			sendEvent(name:"usageWithUnit", value: "${usageValue} Wh", isStateChange: false)
+			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
+
+			sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh", isStateChange: false)
+			sendEvent(name: "energyWithUnit", value: "${energyValueDecimal} kWh", isStateChange: false)
+
+			// Uptime
 
 			def uptimeValueHex = "undefined"
-			def int uptimeValue = 0
+			int uptimeValue = 0
 
 			uptimeValueHex = receivedData[4..8].reverse().join()
-			logging("${device} : uptime byte flipped : ${uptimeValueHex}",109)
+			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
 			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
-			logging("${device} : uptime counter reports : ${uptimeValue}",109)
+			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
-			logging("${device} : Uptime : ${uptimeValue} s",100)
+			def newDhmsUptime = []
+			newDhmsUptime = millisToDhms(uptimeValue * 1000)
+			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
-			sendEvent(name:"uptime", value: uptimeValue, unit: "s", isStateChange: false)
+			logging("${device} : Uptime : ${uptimeReadable}", "debug")
+
+			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
+			sendEvent(name: "uptimeReadable", value: uptimeReadable, isStateChange: false)
 
 		} else {
 
-			// Unknown power usage data.
-			reportToDev(receivedData,map)
+			// Unknown power or energy data.
+			reportToDev(map)
 
 		}
 
 	} else if (map.clusterId == "00F0") {
 
-		// Cluster 00F0 deals with device status, including battery and temperature data.
+		// Device status, including battery and temperature data.
 
 		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
-		def float batteryVoltage = 0
+		BigDecimal batteryVoltage = 0
+
 		batteryVoltageHex = receivedData[5..6].reverse().join()
-		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}",109)
+		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "trace")
+
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
-		sendEvent(name:"batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
-		sendEvent(name:"batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
-		parseAndSendBatteryPercentage(batteryVoltage)
+		logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
+
+		batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
+
+		logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
+		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
+		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
+
+		BigDecimal batteryPercentage = 0
+		BigDecimal batteryVoltageScaleMin = 2.8
+		BigDecimal batteryVoltageScaleMax = 3.1
+
+		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {
+
+			state.batteryOkay = true
+
+			batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
+			batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
+			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
+
+			if (batteryPercentage > 50) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+			} else if (batteryPercentage > 30) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
+			} else {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			}
+
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
+
+			if (batteryVoltage > batteryVoltageScaleMax) {
+				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charged", isStateChange: true)
+			} else {
+				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging", isStateChange: true)
+			}
+
+		} else if (batteryVoltage < batteryVoltageScaleMin) {
+
+			// Very low voltages indicate an exhausted battery which requires replacement.
+
+			state.batteryOkay = true
+
+			batteryPercentage = 0
+
+			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
+			sendEvent(name: "batteryState", value: "exhausted", isStateChange: true)
+
+		} else {
+
+			// If the charge circuitry is reporting greater than 4.5 V then the battery is either missing or faulty.
+			// THIS NEEDS TESTING ON THE EARLY POWER CLAMP
+
+			state.batteryOkay = false
+
+			batteryPercentage = 0
+
+			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
+			sendEvent(name: "batteryState", value: "fault", isStateChange: true)
+
+		}
 
 		// Report the temperature in celsius.
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
-		logging("${device} : temperatureValue byte flipped : ${temperatureValue}",109)
-		temperatureValue = zigbee.convertHexToInt(temperatureValue) / 16
-		logging("${device} : Temperature : ${temperatureValue} C",100)
-		sendEvent(name:"temperature", value: temperatureValue, unit: "C", isStateChange: false)
-		sendEvent(name:"temperatureWithUnit", value: "${temperatureValue} °C", unit: "C", isStateChange: false)
+		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
+		def BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+
+		// Smart plugs warm up while being used, so here's how we attempt to correct for this.
+		def BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
+		def BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
+		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
+		logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
+		sendEvent(name: "temperature", value: temperatureCelsiusCorrected, unit: "C", isStateChange: false)
+		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsiusCorrected} °C", isStateChange: false)
 
 	} else if (map.clusterId == "00F2") {
 
-		// Tamper status, not normally received from smart plugs.
-		reportToDev(receivedData,map)
+		// Tamper cluster, not normally received from smart plugs.
+		reportToDev(map)
 
 	} else if (map.clusterId == "00F3") {
 
-		// State change, not normally received from smart plugs.
-		reportToDev(receivedData,map)
+		// Keyfob or Button state change cluster, not normally received from smart plugs.
+		reportToDev(map)
 
 	} else if (map.clusterId == "00F6") {
 
+		// Discovery cluster. 
+
 		if (map.command == "FD") {
 
-			def rssiRangingHex = "undefined"
-			def int rssiRanging = 0
-			rssiRangingHex = receivedData[0]
-			rssiRanging = zigbee.convertHexToInt(rssiRangingHex)
-			sendEvent(name:"rssi", value: rssiRanging, isStateChange: false)
-			logging("${device} : rssiRanging : ${rssiRanging}",109)
+			// Ranging is our jam, Hubitat deals with joining on our behalf.
 
-			if (receivedData[1] == "FF") {
-				// This is a general ranging report, trigger a refresh for good measure.
-				refresh()
-			} else if (receivedData[1] == "77") {
+			def lqiRangingHex = "undefined"
+			def int lqiRanging = 0
+			lqiRangingHex = receivedData[0]
+			lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
+			sendEvent(name: "lqi", value: lqiRanging, isStateChange: false)
+			logging("${device} : lqiRanging : ${lqiRanging}", "debug")
+
+			if (receivedData[1] == "77") {
+
 				// This is ranging mode, which must be temporary. Make sure we come out of it.
 				state.rangingPulses++
 				if (state.rangingPulses > 30) {
 					"${state.operatingMode}Mode"()
 				}
+
+			} else if (receivedData[1] == "FF") {
+
+				// This is the ranging report received every 30 seconds while in quiet mode.
+				logging("${device} : quiet ranging report received", "debug")
+
+			} else if (receivedData[1] == "00") {
+
+				// This is the ranging report received when the device reboots.
+				// After rebooting a refresh is required to bring back remote control.
+				logging("${device} : reboot ranging report received", "debug")
+				refresh()
+
+			} else {
+
+				// Something to do with ranging we don't know about!
+				reportToDev(map)
+
+			} 
+
+		} else if (map.command == "FE") {
+
+			// Version information response.
+
+			def versionInfoHex = receivedData[19..receivedData.size() - 1].join()
+
+			StringBuilder str = new StringBuilder()
+			for (int i = 0; i < versionInfoHex.length(); i+=2) {
+				str.append((char) Integer.parseInt(versionInfoHex.substring(i, i + 2), 16))
+			} 
+
+			String versionInfo = str.toString()
+			String[] versionInfoBlocks = versionInfo.split("\\s")
+			int versionInfoBlockCount = versionInfoBlocks.size()
+			String versionInfoDump = versionInfoBlocks[0..versionInfoBlockCount - 1].toString()
+
+			logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
+
+			String deviceManufacturer = versionInfoBlocks[0].minus(".com")
+			String deviceModel = ""
+			String deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
+
+			// Sometimes the model name contains spaces.
+			if (versionInfoBlockCount == 3) {
+				deviceModel = versionInfoBlocks[1]
+			} else {
+				deviceModel = versionInfoBlocks[1..versionInfoBlockCount - 2].join().toString()
 			}
+
+			updateDataValue("manufacturer", deviceManufacturer)
+			updateDataValue("model", deviceModel)
+			updateDataValue("firmware", deviceFirmware)
 
 		} else {
 
-			logging("${device} : Receiving a message on the join cluster. This device probably wants us to ask how it's feeling.",101)
-			logging("${device} : Received clusterId ${map.clusterId} command ${map.command} with ${receivedData.length} values: ${receivedData}",101)
-			refresh()
+			// Not a clue what we've received.
+			reportToDev(map)
 
 		}
+
+	} else if (map.clusterId == "8001" || map.clusterId == "8038") {
+
+		// These clusters are sometimes received from the SPG100 and I have no idea why.
+		//   8001 arrives with 12 bytes of data
+		//   8038 arrives with 27 bytes of data
+		logging("${device} : Skipping data received on cluserId ${map.clusterId}.", "debug")
+
+	} else if (map.clusterId == "8032" ) {
+
+		// These clusters are sometimes received when joining new devices to the mesh.
+		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
+		// We don't do anything with this, the mesh re-jigs itself and is a known thing with AlertMe devices.
+		logging("${device} : New join has triggered a routing table reshuffle.", "debug")
 
 	} else {
 
 		// Not a clue what we've received.
-		reportToDev(receivedData,map)
+		reportToDev(map)
 
 	}
 
@@ -358,77 +633,75 @@ def outputValues(map) {
 }
 
 
-void parseAndSendBatteryPercentage(BigDecimal vCurrent) {
+void sendZigbeeCommands(ArrayList<String> cmds) {
 
-	BigDecimal bat = 0
-	BigDecimal vMin = batteryVoltageMinimum == null ? 2.5 : batteryVoltageMinimum
-	BigDecimal vMax = batteryVoltageMaximum == null ? 3.0 : batteryVoltageMaximum    
+	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-	if(vMax - vMin > 0) {
-		bat = ((vCurrent - vMin) / (vMax - vMin)) * 100.0
-	} else {
-		bat = 100
+	logging("${device} : sendZigbeeCommands received : $cmds", "trace")
+
+	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
+	cmds.each {
+
+		if (it.startsWith("he raw") == true) {
+			allActions.add(it)
+		} else if (it.startsWith("delay") == true) {
+			allActions.add(new hubitat.device.HubAction(it))
+		} else {
+			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
+		}
+
 	}
-	bat = bat.setScale(0, BigDecimal.ROUND_HALF_UP)
-	bat = bat > 100 ? 100 : bat
-	
-	vCurrent = vCurrent.setScale(3, BigDecimal.ROUND_HALF_UP)
 
-	logging("${device} : Battery : $bat% ($vCurrent V)", 100)
-	sendEvent(name:"battery",value:bat,unit: "%", isStateChange: false)
-	sendEvent(name:"batteryWithUnit",value:"${bat} %",isStateChange: false)
+	logging("${device} : sendZigbeeCommands : $cmds", "debug")
+	sendHubCommand(allActions)
 
 }
 
 
-private boolean logging(message, level) {
+private String[] millisToDhms(int millisToParse) {
+
+	long secondsToParse = millisToParse / 1000
+
+	def dhms = []
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 24)
+	secondsToParse = secondsToParse / 24
+	dhms.add(secondsToParse % 365)
+	return dhms
+
+}
+
+
+private boolean logging(String message, String level) {
 
 	boolean didLog = false
 
-	// 100 = Normal logging, suppressed by user preference and silent mode.
-	// 101 = Normal warning, suppressed by user preference and silent mode.
-	// 109 = Normal debug, suppressed by user preference and silent mode.
-	// 200 = Critical logging, ignores user preference but respects silent mode.
-	// 201 = Critical warning, ignores all preferences.
-	// 209 = Critical debug, ignores user preference but respects silent mode.
+	if (level == "error") {
+		log.error "$message"
+		didLog = true
+	}
 
-	// Critical warnings are always allowed.
-	if (level == 201) {
+	if (level == "warn") {
 		log.warn "$message"
 		didLog = true
 	}
 
-	if (!silenceLogging) {
+	if (traceLogging && level == "trace") {
+		log.trace "$message"
+		didLog = true
+	}
 
-		// Standard logging will obey the log preferences, except for warnings, which are allowed.
-		if (level == 101) {
-			log.warn "$message"
-			didLog = true
-		} else if (level == 100 || level == 109) {
-			if (level == 100) {
-				if (infoLogging) {
-					log.info "$message"
-					didLog = true
-				}
-			} else {
-				if (debugLogging) {
-					log.debug "$message"
-					didLog = true
-				}
-			}
-		}
+	if (debugLogging && level == "debug") {
+		log.debug "$message"
+		didLog = true
+	}
 
-		// Critical logging for non-repeating events will be allowed through.
-		if (level == 200 || level == 209) {
-			if (level == 200) {
-				log.info "$message"
-				didLog = true
-			} else {
-				log.debug "$message"
-				didLog = true
-			}
-		}
-
+	if (infoLogging && level == "info") {
+		log.info "$message"
+		didLog = true
 	}
 
 	return didLog

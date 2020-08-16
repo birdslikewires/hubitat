@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.23 (16th August 2020)
+ *  AlertMe Smart Plug Driver v1.24 (16th August 2020)
  *	
  */
 
@@ -71,7 +71,7 @@ def initialize() {
 	// Reset states a few states.
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
-	sendEvent(name: "rssi", value: 0)	// Not found this in reports from SPG100.
+	sendEvent(name: "rssi", value: 0)	// Not found this in reports from AlertMe devices.
 
 	// Remove any old state variables.
 	state.remove("batteryInstalled")
@@ -498,8 +498,6 @@ def processMap(map) {
 
 		// Power and energy messages.
 
-		// We also use this to update our presence detection given its frequency.
-
 		if (map.command == "81") {
 
 			// Power Reading
@@ -622,7 +620,7 @@ def processMap(map) {
 				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging", isStateChange: true)
 			}
 
-		} else if (batteryVoltage < 3.3) {
+		} else if (batteryVoltage < batteryVoltageScaleMin) {
 
 			// Very low voltages indicate an exhausted battery which requires replacement.
 
@@ -630,7 +628,7 @@ def processMap(map) {
 
 			batteryPercentage = 0
 
-			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : Exhausted battery.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
@@ -703,13 +701,13 @@ def processMap(map) {
 			} else if (receivedData[1] == "FF") {
 
 				// This is the ranging report received every 30 seconds while in quiet mode.
-				logging("${device} : quiet ranging report received", "trace")
+				logging("${device} : quiet ranging report received", "debug")
 
 			} else if (receivedData[1] == "00") {
 
 				// This is the ranging report received when the device reboots.
 				// After rebooting a refresh is required to bring back remote control.
-				logging("${device} : reboot ranging report received", "trace")
+				logging("${device} : reboot ranging report received", "debug")
 				refresh()
 
 			} else {
@@ -727,20 +725,30 @@ def processMap(map) {
 
 			StringBuilder str = new StringBuilder()
 			for (int i = 0; i < versionInfoHex.length(); i+=2) {
-            	str.append((char) Integer.parseInt(versionInfoHex.substring(i, i + 2), 16))
-        	} 
+				str.append((char) Integer.parseInt(versionInfoHex.substring(i, i + 2), 16))
+			} 
 
-        	String versionInfo = str.toString()
-        	String[] versionInfoBlocks = versionInfo.split("\\s")
-        	int versionInfoBlockCount = versionInfoBlocks.size()
-        	String versionInfoDump = versionInfoBlocks[0..versionInfoBlockCount - 1].toString()
+			String versionInfo = str.toString()
+			String[] versionInfoBlocks = versionInfo.split("\\s")
+			int versionInfoBlockCount = versionInfoBlocks.size()
+			String versionInfoDump = versionInfoBlocks[0..versionInfoBlockCount - 1].toString()
 
-        	logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
+			logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
 
-        	// So far as we know today we only receive three items.
-        	updateDataValue("manufacturer", versionInfoBlocks[0].minus(".com"))
-        	updateDataValue("model", "${versionInfoBlocks[1]}")
-        	updateDataValue("firmware", "${versionInfoBlocks[2]}")
+			String deviceManufacturer = versionInfoBlocks[0].minus(".com")
+			String deviceModel = ""
+			String deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
+
+			// Sometimes the model name contains spaces.
+			if (versionInfoBlockCount == 3) {
+				deviceModel = versionInfoBlocks[1]
+			} else {
+				deviceModel = versionInfoBlocks[1..versionInfoBlockCount - 2]
+			}
+
+			updateDataValue("manufacturer", deviceManufacturer)
+			updateDataValue("model", deviceModel)
+			updateDataValue("firmware", deviceFirmware)
 
 		} else {
 
