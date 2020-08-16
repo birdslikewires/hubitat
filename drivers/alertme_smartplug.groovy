@@ -75,10 +75,15 @@ def initialize() {
 
 	// Remove any old state variables.
 	state.remove("batteryInstalled")
+	state.remove("firmwareVersion")	
 	state.remove("uptime")
 	state.remove("uptimeReceived")
 	state.remove("presentAt")
 	state.remove("rssi")
+
+	// Remove any old device details.
+	removeDataValue("application")
+	removeDataValue("firmwareVersion")	
 
 	// Stagger our device refresh or we run the risk of DDoS attacking ourselves!
 	randomValue = Math.abs(new Random().nextInt() % 30)
@@ -92,7 +97,6 @@ def configure() {
 	logging("${device} : Configuring", "info")
 
 	state.batteryOkay = true
-	state.firmwareVersion = "unknown"
 	state.operatingMode = "normal"
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
@@ -199,7 +203,7 @@ def normalMode() {
 
 	// This is the standard, quite chatty, running mode of the outlet.
 
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 00 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
 	refresh()
 	sendEvent(name: "mode", value: "normal")
@@ -215,7 +219,7 @@ def rangingMode() {
 
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 01 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
 	sendEvent(name: "mode", value: "ranging")
 	logging("${device} : Mode : Ranging", "info")
 
@@ -233,7 +237,7 @@ def lockedMode() {
 
 	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
 
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 02 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 02 01} {0xC216}"])
 	refresh()
 	state.operatingMode = "locked"
 	sendEvent(name: "mode", value: "locked")
@@ -246,7 +250,7 @@ def lockedMode() {
 def quietMode() {
 
 	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00F0 {11 00 FA 03 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
 	refresh()
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
@@ -270,7 +274,7 @@ def quietMode() {
 def off() {
 
 	// The off command is custom to AlertMe equipment, so has to be constructed.
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 00 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 02 00 01} {0xC216}"])
 
 }
 
@@ -278,7 +282,7 @@ def off() {
 def on() {
 
 	// The on command is custom to AlertMe equipment, so has to be constructed.
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 02 01 01} {0xC216}"])
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 02 01 01} {0xC216}"])
 
 }
 
@@ -291,8 +295,8 @@ void refresh() {
 	logging("${device} : Refreshing", "info")
 
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00EE {11 00 01 01} {0xC216}")    // power control operating mode nudge
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")    // power control operating mode nudge
 	sendZigbeeCommands(cmds)
 
 }
@@ -432,7 +436,7 @@ def processMap(map) {
 
 				} else {
 
-					logging("${device} : Supply : Incoming supply failure with relay closed! CANNOT POWER LOAD!", "warn")
+					logging("${device} : Supply : Incoming supply failure with relay closed. CANNOT POWER LOAD!", "warn")
 					sendEvent(name: "stateMismatch", value: true, isStateChange: true)
 
 				}
@@ -574,7 +578,7 @@ def processMap(map) {
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 		logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
-		if (state.firmwareVersion.startsWith("2010")) {
+		if (getDataValue("firmware").startsWith("2010")) {
 			// Early firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
 			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
 			batteryVoltage = batteryVoltage * 1.40
@@ -731,11 +735,12 @@ def processMap(map) {
         	int versionInfoBlockCount = versionInfoBlocks.size()
         	String versionInfoDump = versionInfoBlocks[0..versionInfoBlockCount - 1].toString()
 
-        	logging("${device} : version info received in ${versionInfoBlockCount} blocks : ${versionInfoDump}", "debug")
+        	logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
 
         	// So far as we know today we only receive three items.
-        	state.firmwareVersion = "${versionInfoBlocks[2]}"
-			logging("${device} : Version : ${versionInfoBlocks[2]}", "info")
+        	updateDataValue("manufacturer", versionInfoBlocks[0].minus(".com"))
+        	updateDataValue("model", "${versionInfoBlocks[1]}")
+        	updateDataValue("firmware", "${versionInfoBlocks[2]}")
 
 		} else {
 
