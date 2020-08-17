@@ -193,15 +193,15 @@ void reportToDev(map) {
 	}
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! ${map}", "warn")
+	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Splurge! ${map}", "trace")
 
 }
 
 
 def normalMode() {
 
-	// This is the standard, quite chatty, running mode of the outlet.
+	// This is the standard running mode.
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
@@ -324,9 +324,6 @@ def updatePresence() {
 def checkPresence() {
 
 	// Check how long ago the last presence report was received.
-
-	// In normal mode the outlets report uptime and power every 10 seconds.
-	// In quiet mode the outlets only send a ranging report every 30 seconds.
 
 	long millisNow = new Date().time
 
@@ -625,7 +622,7 @@ def processMap(map) {
 
 			// Very low voltages indicate an exhausted battery which requires replacement.
 
-			state.batteryOkay = true
+			state.batteryOkay = false
 
 			batteryPercentage = 0
 
@@ -668,12 +665,12 @@ def processMap(map) {
 
 	} else if (map.clusterId == "00F2") {
 
-		// Tamper cluster, not normally received from smart plugs.
+		// Tamper cluster.
 		reportToDev(map)
 
 	} else if (map.clusterId == "00F3") {
 
-		// Keyfob or Button state change cluster, not normally received from smart plugs.
+		// Keyfob or Button state change cluster.
 		reportToDev(map)
 
 	} else if (map.clusterId == "00F6") {

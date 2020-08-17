@@ -1,23 +1,23 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.05 (16th August 2020)
+ *  AlertMe Button Driver v1.01 (17th August 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
+	definition (name: "AlertMe Button", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_triggers.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "EnergyMeter"
 		capability "Initialize"
-		capability "PowerMeter"
-		capability "PowerSource"
 		capability "PresenceSensor"
+		capability "PushableButton"
 		capability "Refresh"
+		capability "ReleasableButton"
 		capability "SignalStrength"
+		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 
 		command "normalMode"
@@ -28,15 +28,11 @@ metadata {
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
-		attribute "energyWithUnit", "string"
 		attribute "mode", "string"
-		attribute "powerWithUnit", "string"
 		attribute "temperatureWithUnit", "string"
-		attribute "uptime", "string"
-		attribute "uptimeReadable", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "AlertMe Power Clamp"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Depice", deviceJoinName: "AlertMe Button"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"
 
 	}
 
@@ -45,8 +41,6 @@ metadata {
 
 preferences {
 	
-	input name: "sensorCorrection", type: "decimal", title: "Sensor Correction Multiplier", defaultValue: 1.00
-
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
@@ -109,24 +103,18 @@ def configure() {
 
 	// Bunch of zero or null values.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
-	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "lqi", value: 0)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
-	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name: "powerSource", value: "unknown", isStateChange: false)
-	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "numberOfButtons", value: 1)
 	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
-	sendEvent(name: "switch", value: "unknown")
+	sendEvent(name: "pushed", value: null)
+	sendEvent(name: "tamper", value: "clear")
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name: "uptimeReadable", value: "unknown")
 
 	// Schedule our ranging report.
 	randomValue = Math.abs(new Random().nextInt() % 60)
@@ -241,8 +229,6 @@ def quietMode() {
 	sendEvent(name: "mode", value: "quiet")
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name: "uptimeReadable", value: "unknown")
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	logging("${device} : Mode : Quiet", "info")
@@ -294,7 +280,7 @@ def checkPresence() {
 		if (millisElapsed > presenceTimeoutMillis) {
 
 			sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+			sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 			sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 			sendEvent(name: "lqi", value: 0)
@@ -352,82 +338,7 @@ def processMap(map) {
 	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
-	if (map.clusterId == "00EF") {
-
-		// Power and energy messages.
-
-		BigDecimal sensorCorrectionMultiplier = sensorCorrection.toBigDecimal()
-
-		if (map.command == "81") {
-
-			// Power Reading
-
-			def powerValueHex = "undefined"
-			BigDecimal powerValue = 0
-
-			// These power readings are so frequent that we only log them in debug or trace.
-			powerValueHex = receivedData[0..1].reverse().join()
-			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
-			powerValue = zigbee.convertHexToInt(powerValueHex)
-			logging("${device} : power sensor reports : ${powerValue}", "debug")
-
-			powerValue = powerValue * sensorCorrectionMultiplier
-			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
-
-			logging("${device} : Power : ${powerValue} W", "info")
-
-			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
-			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
-
-		} else if (map.command == "82") {
-
-			// Command 82 returns energy summary in watt-hours with an uptime counter.
-
-			// Energy
-
-			def energyValueHex = "undefined"
-			int energyValue = 0
-
-			energyValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : energy byte flipped : ${energyValueHex}", "trace")
-			energyValue = zigbee.convertHexToInt(energyValueHex)
-			logging("${device} : energy counter reports : ${energyValue}", "debug")
-
-			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
-			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
-
-			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
-
-			sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh", isStateChange: false)
-			sendEvent(name: "energyWithUnit", value: "${energyValueDecimal} kWh", isStateChange: false)
-
-			// Uptime
-
-			def uptimeValueHex = "undefined"
-			int uptimeValue = 0
-
-			uptimeValueHex = receivedData[4..8].reverse().join()
-			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
-			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
-			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
-
-			def newDhmsUptime = []
-			newDhmsUptime = millisToDhms(uptimeValue * 1000)
-			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
-
-			logging("${device} : Uptime : ${uptimeReadable}", "debug")
-
-			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
-			sendEvent(name: "uptimeReadable", value: uptimeReadable, isStateChange: false)
-
-		} else {
-
-			// Unknown power or energy data.
-			reportToDev(map)
-
-		}
-
-	} else if (map.clusterId == "00F0") {
+	if (map.clusterId == "00F0") {
 
 		// Device status, including battery and temperature data.
 
@@ -469,12 +380,7 @@ def processMap(map) {
 
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-
-			if (batteryVoltage > batteryVoltageScaleMax) {
-				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charged", isStateChange: true)
-			} else {
-				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging", isStateChange: true)
-			}
+			sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
 
 		} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -520,12 +426,77 @@ def processMap(map) {
 	} else if (map.clusterId == "00F2") {
 
 		// Tamper cluster.
-		reportToDev(map)
+
+		if (map.command == "00") {
+
+			if (receivedData[0] == "02") {
+
+				logging("${device} : Tamper : Detected", "info")
+				sendEvent(name: "tamper", value: "detected", isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else if (map.command == "01") {
+
+			if (receivedData[0] == "01") {
+
+				logging("${device} : Tamper : Cleared", "info")
+				sendEvent(name: "tamper", value: "clear", isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else {
+
+			reportToDev(map)
+
+		}
 
 	} else if (map.clusterId == "00F3") {
 
-		// Keyfob or Button state change cluster.
-		reportToDev(map)
+		// Trigger cluster.
+
+		// The push is always sent but the release is sent only when the button is held for a moment.
+		// This means if you are using as an on/off you must expect an 'on' and then an 'off'.
+
+		if (map.command == "00") {
+
+			if (receivedData[1] == "02") {
+
+				logging("${device} : Trigger : Button Released", "info")
+				sendEvent(name: "released", value: 1, isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else if (map.command == "01") {
+
+			if (receivedData[1] == "01") {
+
+				logging("${device} : Trigger : Button Pushed", "info")
+				sendEvent(name: "pushed", value: 1, isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else {
+
+			reportToDev(map)
+
+		}
 
 	} else if (map.clusterId == "00F6") {
 
