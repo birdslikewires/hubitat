@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Button Driver v1.01 (17th August 2020)
+ *  AlertMe Button Driver v1.03 (17th August 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Button", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_triggers.groovy") {
+	definition (name: "AlertMe Button", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_buttonfob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -111,7 +111,8 @@ def configure() {
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
 	sendEvent(name: "numberOfButtons", value: 1)
 	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "pushed", value: null)
+	sendEvent(name: "pushed", value: 0)
+	sendEvent(name: "released", value: 0)
 	sendEvent(name: "tamper", value: "clear")
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
@@ -126,7 +127,7 @@ def configure() {
 
 	// Set the operating mode and turn off advanced logging.
 	rangingMode()
-	runIn(6,normalMode)
+	runIn(18,normalMode)
 
 	// All done.
 	logging("${device} : Configured", "info")
@@ -247,8 +248,7 @@ void refresh() {
 def rangeAndRefresh() {
 
 	// This toggles ranging mode to update the device's LQI value.
-	// On return to the operating mode, refresh() is called by the whateverMode() method to keep remote control active.
-
+	
 	rangingMode()
 	runIn(3, "${state.operatingMode}Mode")
 
@@ -324,7 +324,8 @@ def parse(String description) {
 
 	} else {
 		
-		logging("${device} : Failed to create description map from received data.", "warn")
+		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+		logging("${device} : Splurge! : ${description}", "warn")
 
 	}	
 
@@ -349,6 +350,12 @@ def processMap(Map map) {
 		batteryVoltageHex = receivedData[5..6].reverse().join()
 		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "trace")
 
+		if (batteryVoltageHex == "FFFF") {
+			// Occasionally a weird battery reading can be received. Ignore it.
+			logging("${device} : batteryVoltageHex skipping anomolous reading : ${batteryVoltageHex}", "debug")
+			return
+		}
+
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 		logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
@@ -371,7 +378,7 @@ def processMap(Map map) {
 			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
 
 			if (batteryPercentage > 50) {
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			} else if (batteryPercentage > 30) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			} else {
@@ -420,6 +427,7 @@ def processMap(Map map) {
 		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+		logging("${device} : Temperature : $temperatureCelsius°C", "info")
 		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C", isStateChange: false)
 		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C", isStateChange: false)
 
@@ -431,7 +439,7 @@ def processMap(Map map) {
 
 			if (receivedData[0] == "02") {
 
-				logging("${device} : Tamper : Detected", "info")
+				logging("${device} : Tamper : Detected", "warn")
 				sendEvent(name: "tamper", value: "detected", isStateChange: true)
 
 			} else {
@@ -463,38 +471,26 @@ def processMap(Map map) {
 
 		// Trigger cluster.
 
-		// The push is always sent but the release is sent only when the button is held for a moment.
-		// This means if you are using as an on/off you must expect an 'on' and then an 'off'.
+		// On the Button a push is always sent on press, but the release is sent only when the button is held for a moment.
+		// On the Keyfob both push and release are always sent, regardless of how long the button is held.
+
+		int buttonNumber = 0
+
+		if (receivedData[0] == "00") {
+			buttonNumber = 1
+		} else {
+			buttonNumber = 2
+		}
 
 		if (map.command == "00") {
 
-			if (receivedData[1] == "02") {
-
-				logging("${device} : Trigger : Button Released", "info")
-				sendEvent(name: "released", value: 1, isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else if (map.command == "01") {
-
-			if (receivedData[1] == "01") {
-
-				logging("${device} : Trigger : Button Pushed", "info")
-				sendEvent(name: "pushed", value: 1, isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
+			logging("${device} : Trigger : Button ${buttonNumber} Released", "info")
+			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
 
 		} else {
 
-			reportToDev(map)
+			logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+			sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 		}
 

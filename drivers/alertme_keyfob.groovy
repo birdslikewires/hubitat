@@ -1,27 +1,22 @@
 /*
  * 
- *  AlertMe Motion Detector Driver v1.02 (17th August 2020)
+ *  AlertMe Key Fob Driver v1.03 (17th August 2020)
  *	
  */
 
 
-import hubitat.zigbee.clusters.iaszone.ZoneStatus
-
-
 metadata {
 
-	definition (name: "AlertMe Motion Sensor", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_motion.groovy") {
+	definition (name: "AlertMe Key Fob", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_buttonfob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
 		capability "Initialize"
-		capability "MotionSensor"
 		capability "PresenceSensor"
+		capability "PushableButton"
 		capability "Refresh"
-		capability "Sensor"
+		capability "ReleasableButton"
 		capability "SignalStrength"
-		capability "TamperAlert"
-		capability "TemperatureMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
@@ -32,9 +27,8 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
-		attribute "temperatureWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "PIR Device", deviceJoinName: "AlertMe Motion Sensor"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Key Fob"
 
 	}
 
@@ -111,10 +105,10 @@ def configure() {
 	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
 	sendEvent(name: "lqi", value: 0)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
+	sendEvent(name: "numberOfButtons", value: 2)
 	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "tamper", value: "clear")
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "pushed", value: 0)
+	sendEvent(name: "released", value: 0)
 
 	// Schedule our ranging report.
 	randomValue = Math.abs(new Random().nextInt() % 60)
@@ -122,7 +116,7 @@ def configure() {
 
 	// Schedule the presence check.
 	randomValue = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomValue} 0/5 * * * ? *", checkPresence)						// At X seconds past the minute, every 5 minutes.
+	schedule("${randomValue} 0/1 * * * ? *", checkPresence)						// At X seconds past the minute, every minute (because we are a presence detection keyfob after all).
 
 	// Set the operating mode and turn off advanced logging.
 	rangingMode()
@@ -179,7 +173,7 @@ void reportToDev(map) {
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
 	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! : ${map}", "trace")
+	logging("${device} : Splurge! ${map}", "trace")
 
 }
 
@@ -229,8 +223,6 @@ def quietMode() {
 	sendEvent(name: "mode", value: "quiet")
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	logging("${device} : Mode : Quiet", "info")
 
 }
@@ -247,7 +239,6 @@ void refresh() {
 def rangeAndRefresh() {
 
 	// This toggles ranging mode to update the device's LQI value.
-	// On return to the operating mode, refresh() is called by the whateverMode() method to keep remote control active.
 
 	rangingMode()
 	runIn(3, "${state.operatingMode}Mode")
@@ -267,9 +258,11 @@ def checkPresence() {
 
 	// Check how long ago the last presence report was received.
 
+	// Keyfobs report in with their battery level every 2 minutes. The configure() method should run this check every minute.
+
 	long millisNow = new Date().time
 
-	presenceTimeoutMinutes = 5
+	presenceTimeoutMinutes = 4
 
 	if (state.presenceUpdated > 0) {
 
@@ -285,8 +278,6 @@ def checkPresence() {
 			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 			sendEvent(name: "lqi", value: 0)
 			sendEvent(name: "presence", value: "not present")
-			sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-			sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
 
 		} else {
@@ -316,46 +307,18 @@ def parse(String description) {
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 	updatePresence()
 
-	if (description.startsWith("zone status")) {
+	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
-		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
-		processStatus(zoneStatus)
+	if (descriptionMap) {
 
-	} else {
-
-		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
-
-		if (descriptionMap) {
-
-			processMap(descriptionMap)
-
-		} else {
-			
-			logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-			logging("${device} : Splurge! : ${description}", "warn")
-
-		}
-
-	}
-
-}
-
-
-def processStatus(ZoneStatus status) {
-
-	logging("${device} : processStatus() : ${status}", "trace")
-
-	if (status.isAlarm1Set() || status.isAlarm2Set()) {
-
-		logging("${device} : Motion : Active", "info")
-		sendEvent(name: "motion", value: "active", isStateChange: true)
+		processMap(descriptionMap)
 
 	} else {
+		
+		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+		logging("${device} : Splurge! : ${description}", "warn")
 
-		logging("${device} : Motion : Inactive", "info")
-		sendEvent(name: "motion", value: "inactive", isStateChange: true)
-
-	}
+	}	
 
 }
 
@@ -369,7 +332,7 @@ def processMap(Map map) {
 
 	if (map.clusterId == "00F0") {
 
-		// Device status, including battery and temperature data.
+		// Device status, including battery data.
 
 		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
@@ -448,89 +411,30 @@ def processMap(Map map) {
 
 		}
 
-		// Report the temperature in celsius.
-		def temperatureValue = "undefined"
-		temperatureValue = receivedData[7..8].reverse().join()
-		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
-
-		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-		logging("${device} : Temperature : $temperatureCelsius°C", "info")
-		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C", isStateChange: false)
-		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C", isStateChange: false)
-
-	} else if (map.clusterId == "00F2") {
-
-		// Tamper cluster.
-
-		if (map.command == "00") {
-
-			if (receivedData[0] == "02") {
-
-				logging("${device} : Tamper : Detected", "warn")
-				sendEvent(name: "tamper", value: "detected", isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else if (map.command == "01") {
-
-			if (receivedData[0] == "01") {
-
-				logging("${device} : Tamper : Cleared", "info")
-				sendEvent(name: "tamper", value: "clear", isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else {
-
-			reportToDev(map)
-
-		}
-
 	} else if (map.clusterId == "00F3") {
 
 		// Trigger cluster.
 
-		// The push is always sent but the release is sent only when the button is held for a moment.
-		// This means if you are using as an on/off you must expect an 'on' and then an 'off'.
+		// On the Button a push is always sent on press, but the release is sent only when the button is held for a moment.
+		// On the Keyfob both push and release are always sent, regardless of how long the button is held.
+
+		int buttonNumber = 0
+
+		if (receivedData[0] == "00") {
+			buttonNumber = 1
+		} else {
+			buttonNumber = 2
+		}
 
 		if (map.command == "00") {
 
-			if (receivedData[1] == "02") {
-
-				logging("${device} : Trigger : Button Released", "info")
-				sendEvent(name: "released", value: 1, isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else if (map.command == "01") {
-
-			if (receivedData[1] == "01") {
-
-				logging("${device} : Trigger : Button Pushed", "info")
-				sendEvent(name: "pushed", value: 1, isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
+			logging("${device} : Trigger : Button ${buttonNumber} Released", "info")
+			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
 
 		} else {
 
-			reportToDev(map)
+			logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+			sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 		}
 
