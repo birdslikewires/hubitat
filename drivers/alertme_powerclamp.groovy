@@ -511,7 +511,7 @@ def processMap(Map map) {
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		def BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C", isStateChange: false)
@@ -536,7 +536,7 @@ def processMap(Map map) {
 			// Ranging is our jam, Hubitat deals with joining on our behalf.
 
 			def lqiRangingHex = "undefined"
-			def int lqiRanging = 0
+			int lqiRanging = 0
 			lqiRangingHex = receivedData[0]
 			lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
 			sendEvent(name: "lqi", value: lqiRanging, isStateChange: false)

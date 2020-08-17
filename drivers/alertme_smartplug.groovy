@@ -501,7 +501,7 @@ def processMap(Map map) {
 			// Power Reading
 
 			def powerValueHex = "undefined"
-			def int powerValue = 0
+			int powerValue = 0
 
 			// These power readings are so frequent that we only log them in debug or trace.
 			powerValueHex = receivedData[0..1].reverse().join()
@@ -652,12 +652,12 @@ def processMap(Map map) {
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		def BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 
 		// Smart plugs warm up while being used, so here's how we attempt to correct for this.
-		def BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
-		def BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
+		BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
+		BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
 		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
 		logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
 		sendEvent(name: "temperature", value: temperatureCelsiusCorrected, unit: "C", isStateChange: false)
@@ -682,7 +682,7 @@ def processMap(Map map) {
 			// Ranging is our jam, Hubitat deals with joining on our behalf.
 
 			def lqiRangingHex = "undefined"
-			def int lqiRanging = 0
+			int lqiRanging = 0
 			lqiRangingHex = receivedData[0]
 			lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
 			sendEvent(name: "lqi", value: lqiRanging, isStateChange: false)
