@@ -249,7 +249,7 @@ def lockedMode() {
 
 def quietMode() {
 
-	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
+	// Turns off all reporting except for a ranging message every 2 minutes.
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
 	refresh()
@@ -372,14 +372,15 @@ def parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse!", "debug")
-	logging("${device} : Description : $description", "debug")
+	logging("${device} : Parse : $description", "debug")
+
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+	updatePresence()
 
 	def descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	if (descriptionMap) {
-	
-		updatePresence()
+
 		processMap(descriptionMap)
 
 	} else {

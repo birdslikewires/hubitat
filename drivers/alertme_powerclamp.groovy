@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp V2", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
+	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -22,7 +22,7 @@ metadata {
 
 		command "normalMode"
 		command "rangingMode"
-		command "quietMode"
+		//command "quietMode"
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
@@ -45,9 +45,11 @@ metadata {
 
 preferences {
 	
-	input name: "infoLogging",type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging",type: "bool", title: "Enable debug logging", defaultValue: false
-	input name: "traceLogging",type: "bool", title: "Enable trace logging", defaultValue: false
+	input name: "sensorCorrection", type: "decimal", title: "Sensor Correction Multiplier", defaultValue: 1.00
+
+	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
 }
 
@@ -226,7 +228,7 @@ def rangingMode() {
 
 def quietMode() {
 
-	// Turns off all reporting. Useful to silence these chatty plugs if the hub is overloaded.
+	// Turns off all reporting except for a ranging message every 2 minutes.
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
 	refresh()
@@ -326,14 +328,15 @@ def parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse!", "debug")
-	logging("${device} : Description : $description", "debug")
+	logging("${device} : Parse : $description", "debug")
+
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+	updatePresence()
 
 	def descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	if (descriptionMap) {
-	
-		updatePresence()
+
 		processMap(descriptionMap)
 
 	} else {
@@ -356,18 +359,25 @@ def processMap(map) {
 
 		// Power and energy messages.
 
+		BigDecimal sensorCorrectionMultiplier = sensorCorrection.toBigDecimal()
+
 		if (map.command == "81") {
 
 			// Power Reading
 
 			def powerValueHex = "undefined"
-			def int powerValue = 0
+			BigDecimal powerValue = 0
 
 			// These power readings are so frequent that we only log them in debug or trace.
 			powerValueHex = receivedData[0..1].reverse().join()
 			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}", "debug")
+
+			powerValue = powerValue * sensorCorrectionMultiplier
+			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
+
+			logging("${device} : Power : ${powerValue} W", "info")
 
 			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
 			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
@@ -386,7 +396,7 @@ def processMap(map) {
 			energyValue = zigbee.convertHexToInt(energyValueHex)
 			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
-			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000)
+			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 
 			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
@@ -508,9 +518,9 @@ def processMap(map) {
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 
 		// Smart plugs warm up while being used, so here's how we attempt to correct for this.
-		def BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
-		def BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
-		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
+		def BigDecimal temperatureCorrectionValue = (state.relayClosed) ? 0.6 : 0.75
+		def BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * temperatureCorrectionValue * 100) / 100
+		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${temperatureCorrectionValue}", "trace")
 		logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
 		sendEvent(name: "temperature", value: temperatureCelsiusCorrected, unit: "C", isStateChange: false)
 		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsiusCorrected} °C", isStateChange: false)
