@@ -316,7 +316,7 @@ def parse(String description) {
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 	updatePresence()
 
-	def descriptionMap = zigbee.parseDescriptionAsMap(description)
+	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	if (descriptionMap) {
 
@@ -331,7 +331,7 @@ def parse(String description) {
 }
 
 
-def processMap(map) {
+def processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
