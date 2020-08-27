@@ -1,23 +1,26 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.06 (27th August 2020)
+ *  AlertMe Alarm Detector Driver v1.05 (27th August 2020)
  *	
  */
 
 
+import hubitat.zigbee.clusters.iaszone.ZoneStatus
+
+
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
+	definition (name: "AlertMe Alarm Detector", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "EnergyMeter"
 		capability "Initialize"
-		capability "PowerMeter"
-		capability "PowerSource"
 		capability "PresenceSensor"
 		capability "Refresh"
+		capability "Sensor"
 		capability "SignalStrength"
+		capability "SoundSensor"
+		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 
 		command "normalMode"
@@ -28,15 +31,10 @@ metadata {
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
-		attribute "energyWithUnit", "string"
 		attribute "mode", "string"
-		attribute "powerWithUnit", "string"
 		attribute "temperatureWithUnit", "string"
-		attribute "uptime", "string"
-		attribute "uptimeReadable", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "AlertMe Power Clamp"
+		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "PIR Device", deviceJoinName: "AlertMe Alarm Detector"
 
 	}
 
@@ -45,8 +43,6 @@ metadata {
 
 preferences {
 	
-	input name: "sensorCorrection", type: "decimal", title: "Sensor Correction Multiplier", defaultValue: 1.00
-
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
@@ -66,10 +62,9 @@ def initialize() {
 
 	logging("${device} : Initialising", "info")
 
-	// Reset states a few states.
+	// Reset states.
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
-	sendEvent(name: "rssi", value: 0)	// Not found this in reports from AlertMe devices.
 
 	// Remove any old state variables.
 	state.remove("batteryInstalled")
@@ -109,24 +104,18 @@ def configure() {
 
 	// Bunch of zero or null values.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
-	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "lqi", value: 0)
+	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "lqi", value: 0, isStateChange: false)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
-	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name: "powerSource", value: "unknown", isStateChange: false)
-	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "stateMismatch",value: true, isStateChange: false)
-	sendEvent(name: "switch", value: "unknown")
+	sendEvent(name: "presence", value: "not present", isStateChange: false)
+	sendEvent(name: "rssi", value: 0, isStateChange: false)
+	sendEvent(name: "sound", value: "not detected", isStateChange: false)
+	sendEvent(name: "tamper", value: "clear", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name: "uptimeReadable", value: "unknown")
 
 	// Schedule our ranging report.
 	randomValue = Math.abs(new Random().nextInt() % 60)
@@ -138,7 +127,7 @@ def configure() {
 
 	// Set the operating mode and turn off advanced logging.
 	rangingMode()
-	runIn(6,normalMode)
+	runIn(18,normalMode)
 
 	// All done.
 	logging("${device} : Configured", "info")
@@ -191,7 +180,7 @@ void reportToDev(map) {
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
 	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! ${map}", "trace")
+	logging("${device} : Splurge! : ${map}", "trace")
 
 }
 
@@ -241,8 +230,6 @@ def quietMode() {
 	sendEvent(name: "mode", value: "quiet")
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
-	sendEvent(name: "uptimeReadable", value: "unknown")
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	logging("${device} : Mode : Quiet", "info")
@@ -294,7 +281,7 @@ def checkPresence() {
 		if (millisElapsed > presenceTimeoutMillis) {
 
 			sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryState",value: "unknown", isStateChange: false)
+			sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 			sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 			sendEvent(name: "lqi", value: 0)
@@ -330,17 +317,46 @@ def parse(String description) {
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 	updatePresence()
 
-	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+	if (description.startsWith("zone status")) {
 
-	if (descriptionMap) {
-
-		processMap(descriptionMap)
+		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
+		processStatus(zoneStatus)
 
 	} else {
-		
-		logging("${device} : Failed to create description map from received data.", "warn")
 
-	}	
+		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+
+		if (descriptionMap) {
+
+			processMap(descriptionMap)
+
+		} else {
+			
+			logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+			logging("${device} : Splurge! : ${description}", "warn")
+
+		}
+
+	}
+
+}
+
+
+def processStatus(ZoneStatus status) {
+
+	logging("${device} : processStatus() : ${status}", "trace")
+
+	if (status.isAlarm1Set() || status.isAlarm2Set()) {
+
+		logging("${device} : Sound : Detected", "info")
+		sendEvent(name: "sound", value: "detected", isStateChange: true)
+
+	} else {
+
+		logging("${device} : Sound : Not Detected", "info")
+		sendEvent(name: "sound", value: "not detected", isStateChange: true)
+
+	}
 
 }
 
@@ -352,82 +368,7 @@ def processMap(Map map) {
 	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
-	if (map.clusterId == "00EF") {
-
-		// Power and energy messages.
-
-		BigDecimal sensorCorrectionMultiplier = sensorCorrection.toBigDecimal()
-
-		if (map.command == "81") {
-
-			// Power Reading
-
-			def powerValueHex = "undefined"
-			BigDecimal powerValue = 0
-
-			// These power readings are so frequent that we only log them in debug or trace.
-			powerValueHex = receivedData[0..1].reverse().join()
-			logging("${device} : power byte flipped : ${powerValueHex}", "trace")
-			powerValue = zigbee.convertHexToInt(powerValueHex)
-			logging("${device} : power sensor reports : ${powerValue}", "debug")
-
-			powerValue = powerValue * sensorCorrectionMultiplier
-			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
-
-			logging("${device} : Power : ${powerValue} W", "info")
-
-			sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
-			sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
-
-		} else if (map.command == "82") {
-
-			// Command 82 returns energy summary in watt-hours with an uptime counter.
-
-			// Energy
-
-			def energyValueHex = "undefined"
-			int energyValue = 0
-
-			energyValueHex = receivedData[0..3].reverse().join()
-			logging("${device} : energy byte flipped : ${energyValueHex}", "trace")
-			energyValue = zigbee.convertHexToInt(energyValueHex)
-			logging("${device} : energy counter reports : ${energyValue}", "debug")
-
-			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
-			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
-
-			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
-
-			sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh", isStateChange: false)
-			sendEvent(name: "energyWithUnit", value: "${energyValueDecimal} kWh", isStateChange: false)
-
-			// Uptime
-
-			def uptimeValueHex = "undefined"
-			int uptimeValue = 0
-
-			uptimeValueHex = receivedData[4..8].reverse().join()
-			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
-			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
-			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
-
-			def newDhmsUptime = []
-			newDhmsUptime = millisToDhms(uptimeValue * 1000)
-			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
-
-			logging("${device} : Uptime : ${uptimeReadable}", "debug")
-
-			sendEvent(name: "uptime", value: uptimeValue, unit: "s", isStateChange: false)
-			sendEvent(name: "uptimeReadable", value: uptimeReadable, isStateChange: false)
-
-		} else {
-
-			// Unknown power or energy data.
-			reportToDev(map)
-
-		}
-
-	} else if (map.clusterId == "00F0") {
+	if (map.clusterId == "00F0") {
 
 		// Device status, including battery and temperature data.
 
@@ -437,6 +378,12 @@ def processMap(Map map) {
 
 		batteryVoltageHex = receivedData[5..6].reverse().join()
 		logging("${device} : batteryVoltageHex byte flipped : ${batteryVoltageHex}", "trace")
+
+		if (batteryVoltageHex == "FFFF") {
+			// Occasionally a weird battery reading can be received. Ignore it.
+			logging("${device} : batteryVoltageHex skipping anomolous reading : ${batteryVoltageHex}", "debug")
+			return
+		}
 
 		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 		logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
@@ -460,7 +407,7 @@ def processMap(Map map) {
 			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
 
 			if (batteryPercentage > 50) {
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "debug")
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			} else if (batteryPercentage > 30) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			} else {
@@ -469,12 +416,7 @@ def processMap(Map map) {
 
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-
-			if (batteryVoltage > batteryVoltageScaleMax) {
-				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charged", isStateChange: true)
-			} else {
-				!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging", isStateChange: true)
-			}
+			sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
 
 		} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -514,18 +456,84 @@ def processMap(Map map) {
 		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+		logging("${device} : Temperature : $temperatureCelsius°C", "info")
 		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C", isStateChange: false)
 		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C", isStateChange: false)
 
 	} else if (map.clusterId == "00F2") {
 
 		// Tamper cluster.
-		reportToDev(map)
+
+		if (map.command == "00") {
+
+			if (receivedData[0] == "02") {
+
+				logging("${device} : Tamper : Detected", "warn")
+				sendEvent(name: "tamper", value: "detected", isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else if (map.command == "01") {
+
+			if (receivedData[0] == "01") {
+
+				logging("${device} : Tamper : Cleared", "info")
+				sendEvent(name: "tamper", value: "clear", isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else {
+
+			reportToDev(map)
+
+		}
 
 	} else if (map.clusterId == "00F3") {
 
-		// Keyfob or Button state change cluster.
-		reportToDev(map)
+		// Trigger cluster.
+
+		// The push is always sent but the release is sent only when the button is held for a moment.
+		// This means if you are using as an on/off you must expect an 'on' and then an 'off'.
+
+		if (map.command == "00") {
+
+			if (receivedData[1] == "02") {
+
+				logging("${device} : Trigger : Button Released", "info")
+				sendEvent(name: "released", value: 1, isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else if (map.command == "01") {
+
+			if (receivedData[1] == "01") {
+
+				logging("${device} : Trigger : Button Pushed", "info")
+				sendEvent(name: "pushed", value: 1, isStateChange: true)
+
+			} else {
+
+				reportToDev(map)
+
+			}
+
+		} else {
+
+			reportToDev(map)
+
+		}
 
 	} else if (map.clusterId == "00F6") {
 

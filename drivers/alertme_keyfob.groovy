@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Key Fob Driver v1.03 (17th August 2020)
+ *  AlertMe Key Fob Driver v1.04 (27th August 2020)
  *	
  */
 
@@ -484,7 +484,7 @@ def processMap(Map map) {
 
 			// Version information response.
 
-			def versionInfoHex = receivedData[19..receivedData.size() - 1].join()
+			def versionInfoHex = receivedData[31..receivedData.size() - 1].join()
 
 			StringBuilder str = new StringBuilder()
 			for (int i = 0; i < versionInfoHex.length(); i+=2) {
@@ -498,15 +498,15 @@ def processMap(Map map) {
 
 			logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
 
-			String deviceManufacturer = versionInfoBlocks[0].minus(".com")
+			String deviceManufacturer = "AlertMe"
 			String deviceModel = ""
 			String deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
 
 			// Sometimes the model name contains spaces.
-			if (versionInfoBlockCount == 3) {
-				deviceModel = versionInfoBlocks[1]
+			if (versionInfoBlockCount == 2) {
+				deviceModel = versionInfoBlocks[0]
 			} else {
-				deviceModel = versionInfoBlocks[1..versionInfoBlockCount - 2].join().toString()
+				deviceModel = versionInfoBlocks[0..versionInfoBlockCount - 2].join().toString()
 			}
 
 			updateDataValue("manufacturer", deviceManufacturer)

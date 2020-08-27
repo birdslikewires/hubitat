@@ -10,14 +10,17 @@ metadata {
 	definition (name: "Salus SP600 Smart Plug", namespace: "Salus", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus_sp600.groovy") {
 
 		capability "Actuator"
+		capability "Configuration"
+		capability "EnergyMeter"
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
 		capability "PresenceSensor"
 		capability "Refresh"
+		capability "SignalStrength"
 		capability "Switch"
 
-		attribute "powerWithUnit", "string"
+		attribute "energyWithUnit", "string"
 
 		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus SP600 Smart Plug"
 
@@ -29,41 +32,49 @@ metadata {
 preferences {
 		
 	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
-	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: true
-	input name: "traceLogging",type: "bool",title: "Enable trace logging",defaultValue: true
+	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
+	input name: "traceLogging",type: "bool",title: "Enable trace logging",defaultValue: false
 
 }
 
 
 def installed() {
 	// Runs after pairing.
-	logging("${device} : Installed", "info")
+	logging("${device} : Installing", "info")
 }
 
 
 def initialize() {
+
+	// Resets hub states and requests updates from the device.
+	// Runs on reboot if in capabilities list.
+
 	logging("${device} : Initialising", "info")
-	configure()
-}
 
-
-def configure() {
-	// Runs after installed() whenever a device is paired or rejoined.
-
+	// Reset states.
 	state.presenceUpdated = 0
 
-	device.updateSetting("infoLogging",[value:"true",type:"bool"])
-	device.updateSetting("debugLogging",[value:"true",type:"bool"])
-	device.updateSetting("traceLogging",[value:"true",type:"bool"])
-
-	// Remove any scheduled events.
-	unschedule()
-
-	// Bunch of zero or null values.
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "unknown")
+
+
+
+}
+
+
+def configure() {
+
+	// Runs after installed() whenever a device is paired or rejoined.
+
+	// Default preferences.
+	device.updateSetting("infoLogging",[value:"true",type:"bool"])
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+	// Remove any scheduled events.
+	unschedule()
 
 	// Schedule the presence check.
 	randomValue = Math.abs(new Random().nextInt() % 60)
@@ -74,10 +85,9 @@ def configure() {
 	onOffRefresh()
 	powerMeteringConfig()
 	powerMeteringRefresh()
-	runIn(240,debugLogOff)
-	runIn(120,traceLogOff)
 
 	// All done.
+	initialize()
 	logging("${device} : Configured", "info")
 
 }

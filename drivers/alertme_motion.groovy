@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Detector Driver v1.02 (17th August 2020)
+ *  AlertMe Motion Detector Driver v1.05 (27th August 2020)
  *	
  */
 
@@ -10,7 +10,7 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Motion Sensor", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_motion.groovy") {
+	definition (name: "AlertMe Motion Detector", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_motion.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -34,7 +34,7 @@ metadata {
 		attribute "mode", "string"
 		attribute "temperatureWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "PIR Device", deviceJoinName: "AlertMe Motion Sensor"
+		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "PIR Device", deviceJoinName: "AlertMe Motion Detector"
 
 	}
 
@@ -62,10 +62,9 @@ def initialize() {
 
 	logging("${device} : Initialising", "info")
 
-	// Reset states a few states.
+	// Reset states.
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
-	sendEvent(name: "rssi", value: 0)	// Not found this in reports from AlertMe devices.
 
 	// Remove any old state variables.
 	state.remove("batteryInstalled")
@@ -108,11 +107,13 @@ def configure() {
 	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name: "lqi", value: 0)
+	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "lqi", value: 0, isStateChange: false)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
-	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "tamper", value: "clear")
+	sendEvent(name: "motion", value: "inactive", isStateChange: false)
+	sendEvent(name: "presence", value: "not present", isStateChange: false)
+	sendEvent(name: "rssi", value: 0, isStateChange: false)
+	sendEvent(name: "tamper", value: "clear", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 
@@ -580,7 +581,7 @@ def processMap(Map map) {
 
 			// Version information response.
 
-			def versionInfoHex = receivedData[19..receivedData.size() - 1].join()
+			def versionInfoHex = receivedData[31..receivedData.size() - 1].join()
 
 			StringBuilder str = new StringBuilder()
 			for (int i = 0; i < versionInfoHex.length(); i+=2) {
@@ -594,15 +595,15 @@ def processMap(Map map) {
 
 			logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
 
-			String deviceManufacturer = versionInfoBlocks[0].minus(".com")
+			String deviceManufacturer = "AlertMe"
 			String deviceModel = ""
 			String deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
 
 			// Sometimes the model name contains spaces.
-			if (versionInfoBlockCount == 3) {
-				deviceModel = versionInfoBlocks[1]
+			if (versionInfoBlockCount == 2) {
+				deviceModel = versionInfoBlocks[0]
 			} else {
-				deviceModel = versionInfoBlocks[1..versionInfoBlockCount - 2].join().toString()
+				deviceModel = versionInfoBlocks[0..versionInfoBlockCount - 2].join().toString()
 			}
 
 			updateDataValue("manufacturer", deviceManufacturer)
