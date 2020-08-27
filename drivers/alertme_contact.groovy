@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Detector Driver v1.05 (27th August 2020)
+ *  AlertMe Contact Sensor Driver v1.00 (27th August 2020)
  *	
  */
 
@@ -10,16 +10,16 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Alarm Detector", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_alarm.groovy") {
+	definition (name: "AlertMe Contact Sensor", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
+		capability "ContactSensor"
 		capability "Initialize"
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Sensor"
 		capability "SignalStrength"
-		capability "SoundSensor"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 
@@ -34,7 +34,7 @@ metadata {
 		attribute "mode", "string"
 		attribute "temperatureWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Alarm Detector", deviceJoinName: "AlertMe Alarm Detector"
+		fingerprint profileId: "C216", inClusters: "00F0,00F1,0500,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Contact Sensor Device", deviceJoinName: "AlertMe Contact Sensor"
 
 	}
 
@@ -108,11 +108,11 @@ def configure() {
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "contact", value: "closed", isStateChange: false)
 	sendEvent(name: "lqi", value: 0, isStateChange: false)
 	sendEvent(name: "mode", value: "unknown",isStateChange: false)
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
 	sendEvent(name: "rssi", value: 0, isStateChange: false)
-	sendEvent(name: "sound", value: "not detected", isStateChange: false)
 	sendEvent(name: "tamper", value: "clear", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
@@ -348,13 +348,13 @@ def processStatus(ZoneStatus status) {
 
 	if (status.isAlarm1Set() || status.isAlarm2Set()) {
 
-		logging("${device} : Sound : Detected", "info")
-		sendEvent(name: "sound", value: "detected", isStateChange: true)
+		logging("${device} : Contact : Open", "info")
+		sendEvent(name: "contact", value: "open", isStateChange: true)
 
 	} else {
 
-		logging("${device} : Sound : Not Detected", "info")
-		sendEvent(name: "sound", value: "not detected", isStateChange: true)
+		logging("${device} : Contact : Closed", "info")
+		sendEvent(name: "contact", value: "closed", isStateChange: true)
 
 	}
 
