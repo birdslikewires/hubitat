@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.25 (27th August 2020)
+ *  AlertMe Smart Plug Driver v1.26 (27th August 2020)
  *	
  */
 
@@ -58,7 +58,7 @@ preferences {
 
 def installed() {
 	// Runs after first pairing.
-	logging("${device} : Installing", "info")
+	logging("${device} : Paired!", "info")
 }
 
 
@@ -93,8 +93,8 @@ def initialize() {
 
 
 def configure() {
+
 	// Runs after installed() whenever a device is paired or rejoined.
-	logging("${device} : Configuring", "info")
 
 	state.batteryOkay = true
 	state.operatingMode = "normal"

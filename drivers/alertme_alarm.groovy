@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Detector Driver v1.05 (27th August 2020)
+ *  AlertMe Alarm Sensor Driver v1.08 (28th August 2020)
  *	
  */
 
@@ -10,7 +10,7 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Alarm Detector", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_alarm.groovy") {
+	definition (name: "AlertMe Alarm Sensor", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -34,7 +34,7 @@ metadata {
 		attribute "mode", "string"
 		attribute "temperatureWithUnit", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Alarm Detector", deviceJoinName: "AlertMe Alarm Detector"
+		fingerprint profileId: "C216", inClusters: "00F0,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Alarm Detector", deviceJoinName: "AlertMe Alarm Sensor"
 
 	}
 
@@ -52,21 +52,21 @@ preferences {
 
 def installed() {
 	// Runs after first pairing.
-	logging("${device} : Installing", "info")
+	logging("${device} : Paired!", "info")
 }
 
 
 def initialize() {
 
-	// Runs on reboot if in capabilities list.
+	// Runs on reboot, or can be triggered manually.
 
 	logging("${device} : Initialising", "info")
 
-	// Reset states.
+	// Reset a few states.
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
 
-	// Remove any old state variables.
+	// Remove disused state variables.
 	state.remove("batteryInstalled")
 	state.remove("firmwareVersion")	
 	state.remove("uptime")
@@ -76,19 +76,19 @@ def initialize() {
 	state.remove("rssi")
 	state.remove("supplyPresent")
 
-	// Remove any old device details.
+	// Remove unnecessary device details.
 	removeDataValue("application")
 
-	// Stagger our device refresh or we run the risk of DDoS attacking ourselves!
-	randomValue = Math.abs(new Random().nextInt() % 30)
-	runIn(randomValue,refresh)
+	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	runIn(randomSixty,refresh)
 
 }
 
 
 def configure() {
-	// Runs after installed() whenever a device is paired or rejoined.
-	logging("${device} : Configuring", "info")
+
+	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
 
 	state.batteryOkay = true
 	state.operatingMode = "normal"
@@ -102,32 +102,31 @@ def configure() {
 	// Remove any scheduled events.
 	unschedule()
 
-	// Bunch of zero or null values.
+	// Reset states, but don't arbitrarily reset the state of the device's main functions or tamper status.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
 	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "lqi", value: 0, isStateChange: false)
-	sendEvent(name: "mode", value: "unknown",isStateChange: false)
+	sendEvent(name: "mode", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
-	sendEvent(name: "rssi", value: 0, isStateChange: false)
-	sendEvent(name: "sound", value: "not detected", isStateChange: false)
-	sendEvent(name: "tamper", value: "clear", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 
 	// Schedule our ranging report.
-	randomValue = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomValue} ${randomValue}/59 * * * ? *", rangeAndRefresh)		// At X seconds past the minute, every 59 minutes, starting at X minutes past the hour.
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/6 * * ? *", rangeAndRefresh)		// At X seconds past X minute, every 6 hours, starting at Y hour.
 
 	// Schedule the presence check.
-	randomValue = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomValue} 0/5 * * * ? *", checkPresence)						// At X seconds past the minute, every 5 minutes.
+	int checkEveryMinutes = 6			// We run every 6 minutes for most devices and every 1 minute for key fobs.						
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)						// At X seconds past the minute, every checkEveryMinutes minutes.
 
 	// Set the operating mode and turn off advanced logging.
 	rangingMode()
-	runIn(18,normalMode)
+	runIn(12,normalMode)
 
 	// All done.
 	logging("${device} : Configured", "info")
@@ -136,11 +135,14 @@ def configure() {
 
 
 def updated() {
+
 	// Runs whenever preferences are saved.
+
 	loggingStatus()
 	runIn(3600,debugLogOff)
 	runIn(1800,traceLogOff)
 	refresh()
+
 }
 
 
@@ -218,21 +220,22 @@ def rangingMode() {
 def quietMode() {
 
 	// Turns off all reporting except for a ranging message every 2 minutes.
+
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
-	refresh()
+
+	// We don't receive any of these in quiet mode, so reset them.
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown",isStateChange: false)
-	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
-	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "mode", value: "quiet")
-	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
-	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+
 	logging("${device} : Mode : Quiet", "info")
+
+	refresh()
 
 }
 
@@ -248,10 +251,11 @@ void refresh() {
 def rangeAndRefresh() {
 
 	// This toggles ranging mode to update the device's LQI value.
-	// On return to the operating mode, refresh() is called by the whateverMode() method to keep remote control active.
+
+	int returnToModeSeconds = 6			// We use 3 seconds for outlets, 6 seconds for battery devices, which respond a little more slowly.
 
 	rangingMode()
-	runIn(3, "${state.operatingMode}Mode")
+	runIn(returnToModeSeconds, "${state.operatingMode}Mode")
 
 }
 
@@ -266,11 +270,16 @@ def updatePresence() {
 
 def checkPresence() {
 
-	// Check how long ago the last presence report was received.
+	// Check how long ago the presence state was updated.
+
+	// AlertMe devices check in with some sort of report at least every 2 minutes (every minute for outlets).
+
+	// It would be suspicious if nothing was received after 4 minutes, but this check runs every 6 minutes
+	// by default (every minute for key fobs) so we don't exaggerate a wayward transmission or two.
 
 	long millisNow = new Date().time
 
-	presenceTimeoutMinutes = 5
+	presenceTimeoutMinutes = 4
 
 	if (state.presenceUpdated > 0) {
 
@@ -280,8 +289,8 @@ def checkPresence() {
 
 		if (millisElapsed > presenceTimeoutMillis) {
 
-			sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
+			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
+			sendEvent(name: "batteryState", value: "discharging", isStateChange: false)
 			sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 			sendEvent(name: "lqi", value: 0)
@@ -314,7 +323,7 @@ def parse(String description) {
 
 	logging("${device} : Parse : $description", "debug")
 
-	sendEvent(name: "presence", value: "present", isStateChange: false)
+	sendEvent(name: "presence", value: "present")
 	updatePresence()
 
 	if (description.startsWith("zone status")) {
@@ -370,7 +379,7 @@ def processMap(Map map) {
 
 	if (map.clusterId == "00F0") {
 
-		// Device status, including battery and temperature data.
+		// Device status cluster.
 
 		// Report the battery voltage and calculated percentage.
 		def batteryVoltageHex = "undefined"
@@ -391,8 +400,8 @@ def processMap(Map map) {
 		batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 		logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V", isStateChange: false)
-		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V", isStateChange: false)
+		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
+		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 		BigDecimal batteryPercentage = 0
 		BigDecimal batteryVoltageScaleMin = 2.8
@@ -414,9 +423,9 @@ def processMap(Map map) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			}
 
-			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-			sendEvent(name: "batteryState", value: "discharging", isStateChange: true)
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
+			sendEvent(name: "batteryState", value: "discharging")
 
 		} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -428,9 +437,9 @@ def processMap(Map map) {
 
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-			sendEvent(name: "batteryState", value: "exhausted", isStateChange: true)
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
+			sendEvent(name: "batteryState", value: "exhausted")
 
 		} else {
 
@@ -443,9 +452,9 @@ def processMap(Map map) {
 
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-			sendEvent(name: "battery", value:batteryPercentage, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %", isStateChange: false)
-			sendEvent(name: "batteryState", value: "fault", isStateChange: true)
+			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
+			sendEvent(name: "batteryState", value: "fault")
 
 		}
 
@@ -457,8 +466,8 @@ def processMap(Map map) {
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		logging("${device} : Temperature : $temperatureCelsius°C", "info")
-		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C", isStateChange: false)
-		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C", isStateChange: false)
+		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C")
 
 	} else if (map.clusterId == "00F2") {
 
@@ -469,7 +478,7 @@ def processMap(Map map) {
 			if (receivedData[0] == "02") {
 
 				logging("${device} : Tamper : Detected", "warn")
-				sendEvent(name: "tamper", value: "detected", isStateChange: true)
+				sendEvent(name: "tamper", value: "detected")
 
 			} else {
 
@@ -482,46 +491,7 @@ def processMap(Map map) {
 			if (receivedData[0] == "01") {
 
 				logging("${device} : Tamper : Cleared", "info")
-				sendEvent(name: "tamper", value: "clear", isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else {
-
-			reportToDev(map)
-
-		}
-
-	} else if (map.clusterId == "00F3") {
-
-		// Trigger cluster.
-
-		// The push is always sent but the release is sent only when the button is held for a moment.
-		// This means if you are using as an on/off you must expect an 'on' and then an 'off'.
-
-		if (map.command == "00") {
-
-			if (receivedData[1] == "02") {
-
-				logging("${device} : Trigger : Button Released", "info")
-				sendEvent(name: "released", value: 1, isStateChange: true)
-
-			} else {
-
-				reportToDev(map)
-
-			}
-
-		} else if (map.command == "01") {
-
-			if (receivedData[1] == "01") {
-
-				logging("${device} : Trigger : Button Pushed", "info")
-				sendEvent(name: "pushed", value: 1, isStateChange: true)
+				sendEvent(name: "tamper", value: "clear")
 
 			} else {
 
@@ -547,7 +517,7 @@ def processMap(Map map) {
 			int lqiRanging = 0
 			lqiRangingHex = receivedData[0]
 			lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
-			sendEvent(name: "lqi", value: lqiRanging, isStateChange: false)
+			sendEvent(name: "lqi", value: lqiRanging)
 			logging("${device} : lqiRanging : ${lqiRanging}", "debug")
 
 			if (receivedData[1] == "77") {
@@ -579,7 +549,7 @@ def processMap(Map map) {
 
 		} else if (map.command == "FE") {
 
-			// Version information response.
+			// Device version response.
 
 			def versionInfoHex = receivedData[31..receivedData.size() - 1].join()
 
@@ -593,7 +563,7 @@ def processMap(Map map) {
 			int versionInfoBlockCount = versionInfoBlocks.size()
 			String versionInfoDump = versionInfoBlocks[0..versionInfoBlockCount - 1].toString()
 
-			logging("${device} : Version : ${versionInfoBlockCount} Blocks : ${versionInfoDump}", "info")
+			logging("${device} : device version received in ${versionInfoBlockCount} blocks : ${versionInfoDump}", "debug")
 
 			String deviceManufacturer = "AlertMe"
 			String deviceModel = ""
@@ -603,8 +573,11 @@ def processMap(Map map) {
 			if (versionInfoBlockCount == 2) {
 				deviceModel = versionInfoBlocks[0]
 			} else {
-				deviceModel = versionInfoBlocks[0..versionInfoBlockCount - 2].join().toString()
+				deviceModel = versionInfoBlocks[0..versionInfoBlockCount - 2].join(' ').toString()
 			}
+
+			logging("${device} : Device : ${deviceModel}", "info")
+			logging("${device} : Firmware : ${deviceFirmware}", "info")
 
 			updateDataValue("manufacturer", deviceManufacturer)
 			updateDataValue("model", deviceModel)

@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.01 (7th August 2020)
+ *  Salus SP600 Smart Plug Driver v1.03 (27th August 2020)
  *	
  */
 
@@ -11,7 +11,6 @@ metadata {
 
 		capability "Actuator"
 		capability "Configuration"
-		capability "EnergyMeter"
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
@@ -20,7 +19,7 @@ metadata {
 		capability "SignalStrength"
 		capability "Switch"
 
-		attribute "energyWithUnit", "string"
+		attribute "powerWithUnit", "string"
 
 		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus SP600 Smart Plug"
 
@@ -39,8 +38,8 @@ preferences {
 
 
 def installed() {
-	// Runs after pairing.
-	logging("${device} : Installing", "info")
+	// Runs after first pairing.
+	logging("${device} : Paired!", "info")
 }
 
 
