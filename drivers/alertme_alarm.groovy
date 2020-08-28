@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.08 (28th August 2020)
+ *  AlertMe Alarm Sensor Driver v1.09 (28th August 2020)
  *	
  */
 
@@ -15,6 +15,7 @@ metadata {
 		capability "Battery"
 		capability "Configuration"
 		capability "Initialize"
+		capability "MotionSensor"		// Temporary fudge until Hubitat fully supports the SoundSensor capability.
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Sensor"
@@ -359,11 +360,13 @@ def processStatus(ZoneStatus status) {
 
 		logging("${device} : Sound : Detected", "info")
 		sendEvent(name: "sound", value: "detected", isStateChange: true)
+		sendEvent(name: "motion", value: "active", isStateChange: true)			// Temporary fudge until Hubitat fully supports the SoundSensor capability.
 
 	} else {
 
 		logging("${device} : Sound : Not Detected", "info")
 		sendEvent(name: "sound", value: "not detected", isStateChange: true)
+		sendEvent(name: "motion", value: "inactive", isStateChange: true)		// Temporary fudge until Hubitat fully supports the SoundSensor capability.
 
 	}
 
