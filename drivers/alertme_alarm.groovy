@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.09 (28th August 2020)
+ *  AlertMe Alarm Sensor Driver v1.11 (30th August 2020)
  *	
  */
 
@@ -59,15 +59,30 @@ def installed() {
 
 def initialize() {
 
+	// Set states to starting values and schedule a single refresh.
 	// Runs on reboot, or can be triggered manually.
 
-	logging("${device} : Initialising", "info")
+	// Reset states...
 
-	// Reset a few states.
+	state.batteryOkay = true
+	state.operatingMode = "normal"
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
 
-	// Remove disused state variables.
+	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
+
+	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
+	sendEvent(name: "batteryState", value: "discharging", isStateChange: false)
+	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
+	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "lqi", value: 0, isStateChange: false)
+	sendEvent(name: "mode", value: "unknown", isStateChange: false)
+	sendEvent(name: "presence", value: "not present", isStateChange: false)
+	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
+	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
+
+	// Remove disused state variables from earlier versions.
 	state.remove("batteryInstalled")
 	state.remove("firmwareVersion")	
 	state.remove("uptime")
@@ -84,53 +99,42 @@ def initialize() {
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	runIn(randomSixty,refresh)
 
+	// Initialisation complete.
+	logging("${device} : Initialised", "info")
+
 }
 
 
 def configure() {
 
+	// Set preferences and ongoing scheduled tasks.
 	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
 
-	state.batteryOkay = true
-	state.operatingMode = "normal"
-	state.presenceUpdated = 0
-	state.rangingPulses = 0
+	initialize()
+	unschedule()
 
+	// Default logging preferences.
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
-	// Remove any scheduled events.
-	unschedule()
-
-	// Reset states, but don't arbitrarily reset the state of the device's main functions or tamper status.
-	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
-	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "lqi", value: 0, isStateChange: false)
-	sendEvent(name: "mode", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "not present", isStateChange: false)
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-
 	// Schedule our ranging report.
+	int checkEveryHours = 6																						// Request a ranging report and refresh every 6 hours or every 1 hour for outlets.						
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/6 * * ? *", rangeAndRefresh)		// At X seconds past X minute, every 6 hours, starting at Y hour.
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", rangeAndRefresh)	// At X seconds past X minute, every checkEveryHours hours, starting at Y hour.
 
 	// Schedule the presence check.
-	int checkEveryMinutes = 6			// We run every 6 minutes for most devices and every 1 minute for key fobs.						
+	int checkEveryMinutes = 6																					// Check presence timestamp every 6 minutes or every 1 minute for key fobs.						
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)						// At X seconds past the minute, every checkEveryMinutes minutes.
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)									// At X seconds past the minute, every checkEveryMinutes minutes.
 
-	// Set the operating mode and turn off advanced logging.
+	// Configuration complete.
+	logging("${device} : Configured", "info")
+
+	// Run a ranging report and then switch to normal operating mode.
 	rangingMode()
 	runIn(12,normalMode)
-
-	// All done.
-	logging("${device} : Configured", "info")
 	
 }
 
