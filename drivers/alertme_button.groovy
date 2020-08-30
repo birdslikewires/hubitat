@@ -312,7 +312,7 @@ def checkPresence() {
 
 	} else {
 
-		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
+		logging("${device} : Waiting for first presence report.", "warn")
 
 	}
 

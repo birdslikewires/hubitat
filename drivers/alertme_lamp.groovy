@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.06 (30th August 2020)
+ *  AlertMe Lamp Driver v1.07 (30th August 2020)
  *	
  */
 
@@ -15,7 +15,6 @@ metadata {
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "SignalStrength"
-		capability "TemperatureMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
@@ -34,7 +33,6 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
-		attribute "temperatureWithUnit", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
 
@@ -216,8 +214,6 @@ def initialize() {
 	sendEvent(name: "lqi", value: 0, isStateChange: false)
 	sendEvent(name: "mode", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 
 	// Remove disused state variables from earlier versions.
 	state.remove("batteryInstalled")
@@ -235,6 +231,17 @@ def initialize() {
 	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	runIn(randomSixty,refresh)
+
+	// Lamp test cycles red, green, blue, white and off.
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF 00 00 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 FF 00 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 FF 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF FF FF 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 01 01} {0xC216}")
+	sendZigbeeCommands(cmds)
 
 	// Initialisation complete.
 	logging("${device} : Initialised", "info")
@@ -372,8 +379,6 @@ def quietMode() {
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "mode", value: "quiet")
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 
 	logging("${device} : Mode : Quiet", "info")
 
@@ -437,8 +442,6 @@ def checkPresence() {
 			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 			sendEvent(name: "lqi", value: 0)
 			sendEvent(name: "presence", value: "not present")
-			sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-			sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
 
 		} else {
@@ -452,7 +455,7 @@ def checkPresence() {
 
 	} else {
 
-		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
+		logging("${device} : Waiting for first presence report.", "warn")
 
 	}
 
@@ -556,7 +559,7 @@ def processMap(Map map) {
 
 			batteryPercentage = 0
 
-			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : Exhausted battery.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
 			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
@@ -578,17 +581,6 @@ def processMap(Map map) {
 			sendEvent(name: "batteryState", value: "fault")
 
 		}
-
-		// Report the temperature in celsius.
-		def temperatureValue = "undefined"
-		temperatureValue = receivedData[7..8].reverse().join()
-		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
-
-		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-		logging("${device} : Temperature : $temperatureCelsius°C", "info")
-		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
-		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C")
 
 	} else if (map.clusterId == "00F2") {
 
