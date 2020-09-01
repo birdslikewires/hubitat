@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.08 (1st September 2020)
+ *  AlertMe Lamp Driver v1.09 (1st September 2020)
  *	
  */
 
@@ -9,7 +9,10 @@ metadata {
 
 	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_lamp.groovy") {
 
+		capability "Actuator"
 		capability "Battery"
+		capability "ColorControl"
+		capability "ColorMode"
 		capability "Configuration"
 		capability "Initialize"
 		capability "Light"
@@ -23,11 +26,9 @@ metadata {
 		command "rangingMode"
 		//command "quietMode"
 
-		command "lampGoRed"
-		command "lampGoGreen"
-		command "lampGoBlue"
 		command "lampSeqRGB"
 		command "lampSeqSleepy"
+		command "pause"
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
@@ -79,63 +80,26 @@ preferences {
 //
 //  AA - Unknown preamble, same for all AlertMe devices.
 //  BB - Cluster command; set operating mode (04).
-//  CC - Cluster control; lamp off (00), lamp on (01) or local (02). Off (00) halts sequencing, on (01) enables sequencing, local (02)... not a clue.
+//  CC - Cluster control; halt sequence (00), enable sequence (01) or single state (02).
 //  DD - Unknown postamble, also the same for all AlertMe devices.
 //
 // {11 00 05 FD 01}
 //  AA AA BB CC DD
 //
 //  AA - Unknown preamble, same for all AlertMe devices.
-//  BB - Cluster command; set play mode (04).
+//  BB - Cluster command; set play mode (05).
 //  CC - Cluster control; loop count, values between (00) and (FD) are valid, where (00) is load and hold and (FD) is loop indefinitely.
 //  DD - Unknown postamble, also the same for all AlertMe devices.
 
 
 
 
-
-def lampGoRed() {
-
-	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : Lamp : Red", "info")
-
-}
-
-
-def lampGoGreen() {
-
-	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : Lamp : Green", "info")
-
-}
-
-
-def lampGoBlue() {
-
-	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : Lamp : Blue", "info")
-
-}
-
-
 def lampSeqRGB() {
 
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 01 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 FF 00 00 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 00 FF 00 01 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 00 00 FF 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
 	sendZigbeeCommands(cmds)
 
@@ -173,6 +137,10 @@ def initialize() {
 	// Reset states...
 
 	state.batteryOkay = true
+	state.lastDuration = 0
+	state.lastHue = 0
+	state.lastSaturation = 0
+	state.lastLevel = 0
 	state.operatingMode = "normal"
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
@@ -184,6 +152,7 @@ def initialize() {
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
 	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
+	sendEvent(name: "colorMode", value: "RGB", isStateChange: false)
 	sendEvent(name: "lqi", value: 0, isStateChange: false)
 	sendEvent(name: "mode", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
@@ -362,9 +331,15 @@ def quietMode() {
 
 def off() {
 
+	// Convert seconds to multiple of 0.2s, or use 0.2s if duration is zero.
+	BigInteger dur = state.lastDuration * 5
+	String[] durHex = dur > 0 ? dur.toString(16).toUpperCase().padLeft(4,'0') : [0,0,0,0]
+
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	// clear sequence, set RGB to 00 00 00, dwell indefinitely, transition as configured, add to sequence
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 ${durHex[2..3].join()} ${durHex[0..1].join()} 01 00 00 00 00 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 02 01} {0xC216}")		// single state play mode
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")		// indefintely loop and play
 	sendZigbeeCommands(cmds)
 
 	sendEvent(name: "switch", value: "off")
@@ -375,10 +350,39 @@ def off() {
 
 def on() {
 
+	// The RGB LEDs in these lamps are not calibrated so you will get colour variations and potentially some flickering at certain values.
+
+	def hsl = [state.lastHue,state.lastSaturation,state.lastLevel]
+	def rgb = hubitat.helper.ColorUtils.hsvToRGB(hsl)
+
+	// Limit maximum values for code safety.
+	BigInteger red = rgb[0] <= 255 ? rgb[0] : 255
+	BigInteger grn = rgb[1] <= 255 ? rgb[1] : 255
+	BigInteger blu = rgb[2] <= 255 ? rgb[2] : 255
+
+	// No settings? No problem!
+	if (red + grn + blu == 0) {
+		(red, grn, blu) = [255,255,255]
+	}
+
+	// Convert to RGB to hex values.
+	String redHex = red.toString(16).toUpperCase().padLeft(2,'0')
+	String grnHex = grn.toString(16).toUpperCase().padLeft(2,'0')
+	String bluHex = blu.toString(16).toUpperCase().padLeft(2,'0')
+
+
+	// Convert seconds to multiple of 0.2s, or use 0.2s if duration is zero.
+	BigDecimal dur = state.lastDuration / 0.2
+	String[] durHex = dur > 0 ? dur.toBigInteger().toString(16).toUpperCase().padLeft(4,'0') : [0,0,0,0]
+
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF FF FF 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	// clear sequence, set RGB, dwell indefinitely, transition as configured, add to sequence
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 ${durHex[2..3].join()} ${durHex[0..1].join()} 01 00 ${redHex} ${grnHex} ${bluHex} 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 02 01} {0xC216}")		// single state play mode
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")		// indefintely loop and play
 	sendZigbeeCommands(cmds)
+
+	logging("${device} : on : Stored HSL values convert to RGB as ${rgb} (${redHex}, ${grnHex}, ${bluHex})", "debug")
 
 	sendEvent(name: "switch", value: "on")
 	logging("${device} : Lamp : On", "info")
@@ -386,35 +390,61 @@ def on() {
 }
 
 
-def setLevel(BigDecimal level, BigDecimal duration) {
-
-	// Here we convert the input from the standard SwitchLevel capability into something the lamp can understand.
-	// The RGB LEDs in these lamps are not colour calibrated so you will get colour variations and potentially some flickering at certain values.
-
-	// NOTE: Task for the reader: create colour calibration offsets in preferences to correct for wonky LEDs. Not a big job.
-
-	// Capability takes 1-100 as input, we're working with 8-bit values.
-	level = level < 100 ? level : 100
-	BigInteger levelTranslated = level * 2.55
-	//BigDecimal levelTranslated = level < 10 ? level : level * 2.55
-
-	String levelHex = levelTranslated.toString(16).toUpperCase().padLeft(2,'0')
-
-	// Capability takes seconds as input, we're working with 0.2 second divisions.
-	duration = duration < 13107 ? duration : 13106
-	BigInteger durationTranslated = duration * 5
-
-	String[] durationHex = durationTranslated.toString(16).toUpperCase().padLeft(4,'0')
+def pause() {
 
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 ${durationHex[2..3].join()} ${durationHex[0..1].join()} 01 00 ${levelHex} ${levelHex} ${levelHex} 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 00 01} {0xC216}")		// disable sequencing
 	sendZigbeeCommands(cmds)
 
-	logging("${device} : Set Level : ${level}% over ${duration} seconds.", "info")
+	logging("${device} : Lamp : Paused", "info")
 
-	logging("${device} : levelTranslated : ${levelTranslated} (${levelHex})", "debug")
-	logging("${device} : durationTranslated : ${durationTranslated} (${durationHex[2..3].join()}${durationHex[0..1].join()})", "debug")
+}
+
+
+def setColor(Map colormap) {
+
+	if (colormap.containsValue("NaN")) {
+
+		logging("${device} : Set Colour : Invalid value, it's probably that you've not moved the hue slider.", "info")
+
+
+	} else {
+
+		state.lastHue = colormap.hue
+		state.lastSaturation = colormap.saturation
+		state.lastLevel = colormap.level
+
+		logging("${device} : Set Colour : Saved hue (${colormap.hue}), saturation (${colormap.saturation}) and level (${colormap.level}).", "info")
+
+	}
+
+}
+
+
+def setHue(BigDecimal hue) {
+
+	state.lastHue = hue <= 100 ? hue : 100
+
+	logging("${device} : Set Hue : Saved hue (${hueSafe}).", "info")
+
+}
+
+def setSaturation(BigDecimal sat) {
+
+	state.lastSaturation = sat <= 100 ? sat : 100
+
+	logging("${device} : Set Saturation : Saved saturation (${satSafe}).", "info")
+
+}
+
+
+def setLevel(BigDecimal level, BigDecimal duration) {
+
+	state.lastLevel = level <= 100 ? level : 100
+	state.lastDuration = duration < 13107 ? duration : 13106
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Saved level (${state.lastLevel}%) reached over ${state.lastDuration} second${pluralisor}.", "info")
 
 }
 
