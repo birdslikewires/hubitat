@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.08 (30th August 2020)
+ *  AlertMe Button Driver v1.09 (2nd September 2020)
  *	
  */
 
@@ -11,6 +11,7 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
+		capability "HoldableButton"
 		capability "Initialize"
 		capability "PresenceSensor"
 		capability "PushableButton"
@@ -499,6 +500,7 @@ def processMap(Map map) {
 		if (map.command == "00") {
 
 			logging("${device} : Trigger : Button ${buttonNumber} Released", "info")
+			sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
 
 		} else if (map.command == "01") {
