@@ -573,7 +573,8 @@ def processMap(Map map) {
 			return
 		}
 
-		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
+		// All firmware I've seen on the Lamp fudges the voltage to ~3 V, so multiply it up closer to reality.
+		batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000 * 1.40
 		logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
 		batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
