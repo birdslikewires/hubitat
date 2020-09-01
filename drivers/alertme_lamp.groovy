@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.07 (30th August 2020)
+ *  AlertMe Lamp Driver v1.08 (1st September 2020)
  *	
  */
 
@@ -12,16 +12,17 @@ metadata {
 		capability "Battery"
 		capability "Configuration"
 		capability "Initialize"
+		capability "Light"
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "SignalStrength"
+		capability "Switch"
+		capability "SwitchLevel"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
-		command "lampOn"
-		command "lampOff"
 		command "lampGoRed"
 		command "lampGoGreen"
 		command "lampGoBlue"
@@ -90,36 +91,12 @@ preferences {
 //  DD - Unknown postamble, also the same for all AlertMe devices.
 
 
-def lampOn() {
 
-	def cmds = new ArrayList<String>()
-
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF FF FF 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : Lamp : On", "info")
-
-}
-
-
-def lampOff() {
-
-	def cmds = new ArrayList<String>()
-
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 00 01} {0xC216}")
-	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : Lamp : Off", "info")
-
-}
 
 
 def lampGoRed() {
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
 	sendZigbeeCommands(cmds)
@@ -132,7 +109,6 @@ def lampGoRed() {
 def lampGoGreen() {
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
 	sendZigbeeCommands(cmds)
@@ -145,7 +121,6 @@ def lampGoGreen() {
 def lampGoBlue() {
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
 	sendZigbeeCommands(cmds)
@@ -158,7 +133,6 @@ def lampGoBlue() {
 def lampSeqRGB() {
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 FF 00 00 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 FF 00 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 04 00 04 00 00 00 FF 01 01} {0xC216}")
@@ -173,7 +147,6 @@ def lampSeqRGB() {
 def lampSeqSleepy() {
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 14 00 06 00 06 0A 0A 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 0F 00 01 00 58 7F 7F 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
@@ -383,6 +356,65 @@ def quietMode() {
 	logging("${device} : Mode : Quiet", "info")
 
 	refresh()
+
+}
+
+
+def off() {
+
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendZigbeeCommands(cmds)
+
+	sendEvent(name: "switch", value: "off")
+	logging("${device} : Lamp : Off", "info")
+
+}
+
+
+def on() {
+
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 FF FF FF 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendZigbeeCommands(cmds)
+
+	sendEvent(name: "switch", value: "on")
+	logging("${device} : Lamp : On", "info")
+
+}
+
+
+def setLevel(BigDecimal level, BigDecimal duration) {
+
+	// Here we convert the input from the standard SwitchLevel capability into something the lamp can understand.
+	// The RGB LEDs in these lamps are not colour calibrated so you will get colour variations and potentially some flickering at certain values.
+
+	// NOTE: Task for the reader: create colour calibration offsets in preferences to correct for wonky LEDs. Not a big job.
+
+	// Capability takes 1-100 as input, we're working with 8-bit values.
+	level = level < 100 ? level : 100
+	BigInteger levelTranslated = level * 2.55
+	//BigDecimal levelTranslated = level < 10 ? level : level * 2.55
+
+	String levelHex = levelTranslated.toString(16).toUpperCase().padLeft(2,'0')
+
+	// Capability takes seconds as input, we're working with 0.2 second divisions.
+	duration = duration < 13107 ? duration : 13106
+	BigInteger durationTranslated = duration * 5
+
+	String[] durationHex = durationTranslated.toString(16).toUpperCase().padLeft(4,'0')
+
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 ${durationHex[2..3].join()} ${durationHex[0..1].join()} 01 00 ${levelHex} ${levelHex} ${levelHex} 00 01} {0xC216}")
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")
+	sendZigbeeCommands(cmds)
+
+	logging("${device} : Set Level : ${level}% over ${duration} seconds.", "info")
+
+	logging("${device} : levelTranslated : ${levelTranslated} (${levelHex})", "debug")
+	logging("${device} : durationTranslated : ${durationTranslated} (${durationHex[2..3].join()}${durationHex[0..1].join()})", "debug")
 
 }
 
