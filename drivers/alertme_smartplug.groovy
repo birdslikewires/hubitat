@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.27 (30th August 2020)
+ *  AlertMe Smart Plug Driver v1.28 (8th September 2020)
  *	
  */
 
@@ -21,6 +21,7 @@ metadata {
 		capability "Refresh"
 		capability "SignalStrength"
 		capability "Switch"
+		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 
 		//command "lockedMode"
@@ -443,6 +444,7 @@ def processMap(Map map) {
 
 				sendEvent(name: "batteryState", value: "discharging")
 				sendEvent(name: "powerSource", value: "battery")
+				sendEvent(name: "tamper", value: "detected")
 				state.supplyPresent = false
 
 				// Whether this is a problem!
@@ -468,8 +470,8 @@ def processMap(Map map) {
 
 				sendEvent(name: "stateMismatch", value: false)
 				sendEvent(name: "powerSource", value: "mains")
+				sendEvent(name: "tamper", value: "clear")
 				state.supplyPresent = true
-
 
 			} else {
 
@@ -483,6 +485,7 @@ def processMap(Map map) {
 
 				sendEvent(name: "stateMismatch", value: false)
 				sendEvent(name: "powerSource", value: "mains")
+				sendEvent(name: "tamper", value: "clear")
 				state.supplyPresent = true
 
 			}
@@ -557,7 +560,7 @@ def processMap(Map map) {
 			// Uptime
 
 			def uptimeValueHex = "undefined"
-			int uptimeValue = 0
+			BigInteger uptimeValue = 0
 
 			uptimeValueHex = receivedData[4..8].reverse().join()
 			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
@@ -826,9 +829,9 @@ void sendZigbeeCommands(ArrayList<String> cmds) {
 }
 
 
-private String[] millisToDhms(int millisToParse) {
+private String[] millisToDhms(BigInteger millisToParse) {
 
-	long secondsToParse = millisToParse / 1000
+	BigInteger secondsToParse = millisToParse / 1000
 
 	def dhms = []
 	dhms.add(secondsToParse % 60)
