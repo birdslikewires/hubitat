@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.28 (8th September 2020)
+ *  AlertMe Smart Plug Driver v1.29 (8th September 2020)
  *	
  */
 
@@ -685,13 +685,17 @@ def processMap(Map map) {
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 
-		// Smart plugs warm up while being used, so here's how we attempt to correct for this.
-		BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
-		BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
-		logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
-		logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
-		sendEvent(name: "temperature", value: temperatureCelsiusCorrected, unit: "C")
-		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsiusCorrected} °C")
+		// I've commented out the correction code below as there's really no point in trying to fudge these values to get a room temperature.
+		// Other devices do room temperature properly and these values may be useful as plug overheat warnings, so let's not mess.
+
+		// // Smart plugs warm up while being used, so here's how we attempt to correct for this.
+		// BigDecimal correctionValue = (state.relayClosed) ? 0.6 : 0.75
+		// BigDecimal temperatureCelsiusCorrected = Math.round(temperatureCelsius * correctionValue * 100) / 100
+		// logging("${device} : temperatureCelsiusCorrected : ${temperatureCelsiusCorrected} = ${temperatureCelsius} x ${correctionValue}", "trace")
+		// logging("${device} : Corrected Temperature : ${temperatureCelsiusCorrected} C", "debug")
+
+		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		sendEvent(name: "temperatureWithUnit", value: "${temperatureCelsius} °C")
 
 	} else if (map.clusterId == "00F6") {
 
