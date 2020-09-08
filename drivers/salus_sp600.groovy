@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.03 (27th August 2020)
+ *  Salus SP600 Smart Plug Driver v1.04 (8th September 2020)
  *	
  */
 
@@ -29,11 +29,11 @@ metadata {
 
 
 preferences {
-		
-	input name: "infoLogging",type: "bool",title: "Enable logging",defaultValue: true
-	input name: "debugLogging",type: "bool",title: "Enable debug logging",defaultValue: false
-	input name: "traceLogging",type: "bool",title: "Enable trace logging",defaultValue: false
-
+	
+	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
+	
 }
 
 
@@ -45,50 +45,67 @@ def installed() {
 
 def initialize() {
 
-	// Resets hub states and requests updates from the device.
-	// Runs on reboot if in capabilities list.
+	// Set states to starting values and schedule a single refresh.
+	// Runs on reboot, or can be triggered manually.
 
-	logging("${device} : Initialising", "info")
+	// Reset states...
 
-	// Reset states.
 	state.presenceUpdated = 0
+
+	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
 
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "unknown")
 
+	// Remove disused state variables from earlier versions.
+	state.remove("rssi")
 
+	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	runIn(randomSixty,refresh)
+
+	// Initialisation complete.
+	logging("${device} : Initialised", "info")
 
 }
 
 
 def configure() {
 
-	// Runs after installed() whenever a device is paired or rejoined.
+	// Set preferences and ongoing scheduled tasks.
+	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
 
-	// Default preferences.
+	initialize()
+	unschedule()
+
+	// Default logging preferences.
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
-	// Remove any scheduled events.
-	unschedule()
+	// Schedule our refresh.
+	int checkEveryHours = 1						
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", refresh)
 
 	// Schedule the presence check.
-	randomValue = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomValue} 0/3 * * * ? *", checkPresence)						// At X seconds past the minute, every 3 minutes.
+	int checkEveryMinutes = 6
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
-	// Set the operating and reporting modes and turn off advanced logging.
-	onOffConfig()
-	onOffRefresh()
+	// Set the operating and reporting modes.
+	sendZigbeeCommands(zigbee.onOffConfig())
 	powerMeteringConfig()
-	powerMeteringRefresh()
 
-	// All done.
-	initialize()
+	// Configuration complete.
 	logging("${device} : Configured", "info")
 
+	// Request a refresh.
+	refresh()
+	
 }
 
 
@@ -97,9 +114,12 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
+	runIn(3600,debugLogOff)
+	runIn(1800,traceLogOff)
 	refresh()
 
 }
+
 
 void loggingStatus() {
 
@@ -136,34 +156,16 @@ void reportToDev(map) {
 	}
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! ${map}", "warn")
-
-}
-
-
-def onOffRefresh() {
-
-	sendZigbeeCommands(zigbee.onOffRefresh())
-
-}
-
-
-def onOffConfig() {
-
-	sendZigbeeCommands(zigbee.onOffConfig())
-
-}
-
-
-def powerMeteringRefresh() {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))
+	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Splurge! : ${map}", "trace")
 
 }
 
 
 def powerMeteringConfig() {
+
+	// Some other drivers have this configurable, but these work very well from my experience and matches the AlertMe outlets I'm used to.
+	// Feel free to tinker with the report times and reportable change if other values better fit your requirements.
 
 	minReportTime=10
 	maxReportTime=20
@@ -191,31 +193,54 @@ def on() {
 def refresh() {
 	
 	logging("${device} : Refreshing", "info")
-	powerMeteringRefresh()
-	onOffRefresh()
+	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))
+	sendZigbeeCommands(zigbee.onOffRefresh())
+
+}
+
+
+def updatePresence() {
+
+	long millisNow = new Date().time
+	state.presenceUpdated = millisNow
 
 }
 
 
 def checkPresence() {
 
-	// Check how long ago the last presence report was received.
-	// These devices report power every 10 seconds. If no reports are seen, we know something is wrong.
+	// Check how long ago the presence state was updated.
 
-	long timeNow = new Date().time / 1000
+	// It would be suspicious if nothing was received after 4 minutes, but this check runs every 6 minutes so we don't exaggerate a wayward transmission or two.
+
+	long millisNow = new Date().time
+
+	presenceTimeoutMinutes = 4
 
 	if (state.presenceUpdated > 0) {
-		if (timeNow - state.presenceUpdated > 240) {
+
+		long millisElapsed = millisNow - state.presenceUpdated
+		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
+		BigDecimal secondsElapsed = millisElapsed / 1000
+
+		if (millisElapsed > presenceTimeoutMillis) {
+
 			sendEvent(name: "presence", value: "not present")
-			logging("${device} : No recent presence reports.", "warn")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} > 360", "trace")
+			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
+
 		} else {
+
 			sendEvent(name: "presence", value: "present")
-			logging("${device} : Recent presence report received.", "debug")
-			logging("${device} : checkPresence() : ${timeNow} - ${state.presenceUpdated} < 360", "trace")
+			logging("${device} : Present : Last presence report ${secondsElapsed} seconds ago.", "debug")
+
 		}
+
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis})", "trace")
+
 	} else {
-		logging("${device} : checkPresence() : Waiting for first presence report.", "debug")
+
+		logging("${device} : Waiting for first presence report.", "warn")
+
 	}
 
 }
@@ -225,20 +250,23 @@ def parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse!", "debug")
-	logging("${device} : Description : $description", "debug")
+	logging("${device} : Parse : $description", "debug")
 
-	def descriptionMap = zigbee.parseDescriptionAsMap(description)
+	sendEvent(name: "presence", value: "present")
+	updatePresence()
+
+	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	if (descriptionMap) {
-	
+
 		processMap(descriptionMap)
 
 	} else {
 		
-		reportToDev(descriptionMap)
+		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+		logging("${device} : Splurge! : ${description}", "warn")
 
-	}	
+	}
 
 }
 
@@ -338,12 +366,6 @@ void processMap(map) {
 				sendEvent(name: "switch", value: "on", isStateChange: false)		// Just in case.
 			}
 
-			// Presence Update
-
-			long timeNow = new Date().time / 1000
-			state.presenceUpdated = timeNow
-			checkPresence()
-
 		} else {
 
 			reportToDev(map)
@@ -353,6 +375,10 @@ void processMap(map) {
 	} else if (map.cluster == "8021" || map.clusterId == "8021") {
 
 		logging("${device} : skipping discovery message : ${map}", "trace")
+
+	} else if (map.cluster == "8038" || map.clusterId == "8038") {
+
+		logging("${device} : skipping management network update notify message : ${map}", "trace")
 
 	} else {
 
@@ -382,28 +408,32 @@ void sendZigbeeCommands(ArrayList<String> cmds) {
 
 	}
 
-	logging("${device} : sendZigbeeCommands : $cmds", "trace")
+	logging("${device} : sendZigbeeCommands : $cmds", "debug")
 	sendHubCommand(allActions)
 
 }
 
 
-private String[] secondsToDhms(int timeToParse) {
+private String[] millisToDhms(BigInteger millisToParse) {
+
+	BigInteger secondsToParse = millisToParse / 1000
 
 	def dhms = []
-	dhms.add(timeToParse % 60)
-	timeToParse = timeToParse / 60
-	dhms.add(timeToParse % 60)
-	timeToParse = timeToParse / 60
-	dhms.add(timeToParse % 24)
-	timeToParse = timeToParse / 24
-	dhms.add(timeToParse % 365)
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 24)
+	secondsToParse = secondsToParse / 24
+	dhms.add(secondsToParse % 365)
 	return dhms
 
 }
 
 
 private boolean logging(String message, String level) {
+
+	boolean didLog = false
 
 	if (level == "error") {
 		log.error "$message"
@@ -429,5 +459,7 @@ private boolean logging(String message, String level) {
 		log.info "$message"
 		didLog = true
 	}
+
+	return didLog
 
 }
