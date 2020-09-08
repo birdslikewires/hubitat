@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.30 (8th September 2020)
+ *  AlertMe Smart Plug Driver v1.29 (8th September 2020)
  *	
  */
 
@@ -75,7 +75,7 @@ def initialize() {
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
 
-	// ...but don't arbitrarily reset the state of the device's relay.
+	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
 
 	sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
 	sendEvent(name: "batteryState", value: "unknown", isStateChange: false)
@@ -92,7 +92,6 @@ def initialize() {
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "stateMismatch", value: true, isStateChange: false)
 	sendEvent(name: "switch", value: "unknown")
-	sendEvent(name: "tamper", value: "clear", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
