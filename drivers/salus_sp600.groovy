@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.04 (8th September 2020)
+ *  Salus SP600 Smart Plug Driver v1.05 (8th September 2020)
  *	
  */
 
@@ -16,7 +16,6 @@ metadata {
 		capability "PowerMeter"
 		capability "PresenceSensor"
 		capability "Refresh"
-		capability "SignalStrength"
 		capability "Switch"
 
 		attribute "powerWithUnit", "string"
