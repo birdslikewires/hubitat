@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.05 (8th September 2020)
+ *  Salus SP600 Smart Plug Driver v1.06 (9th September 2020)
  *	
  */
 
@@ -278,11 +278,7 @@ void processMap(map) {
 
 		// Relay configuration and response handling.
 
-		if (map.command == "00") {
-
-			logging("${device} : hmm. don't know what this is right now. : ${map}", "trace")
-
-		} else if (map.command == "01" || map.command == "0A") {
+		if (map.command == "01" || map.command == "0A") {
 
 			// Relay States
 
@@ -324,6 +320,10 @@ void processMap(map) {
 				sendEvent(name: "switch", value: "off")
 
 			}
+
+		} else if (map.command == "00") {
+
+			logging("${device} : skipping state counter message : ${map}", "trace")
 
 		} else {
 
