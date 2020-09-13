@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.07 (30th August 2020)
+ *  AlertMe Power Clamp Driver v1.08 (14th September 2020)
  *	
  */
 
@@ -402,12 +402,11 @@ def processMap(Map map) {
 
 			// Energy
 
-			def energyValueHex = "undefined"
-			int energyValue = 0
-
+			String energyValueHex = "undefined"
 			energyValueHex = receivedData[0..3].reverse().join()
 			logging("${device} : energy byte flipped : ${energyValueHex}", "trace")
-			energyValue = zigbee.convertHexToInt(energyValueHex)
+
+			BigInteger energyValue = new BigInteger(energyValueHex, 16)
 			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
 			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
@@ -420,12 +419,11 @@ def processMap(Map map) {
 
 			// Uptime
 
-			def uptimeValueHex = "undefined"
-			int uptimeValue = 0
-
+			String uptimeValueHex = "undefined"
 			uptimeValueHex = receivedData[4..8].reverse().join()
 			logging("${device} : uptime byte flipped : ${uptimeValueHex}", "trace")
-			uptimeValue = zigbee.convertHexToInt(uptimeValueHex)
+
+			BigInteger uptimeValue = new BigInteger(uptimeValueHex, 16)
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
 			def newDhmsUptime = []
@@ -708,9 +706,9 @@ void sendZigbeeCommands(ArrayList<String> cmds) {
 }
 
 
-private String[] millisToDhms(int millisToParse) {
+private String[] millisToDhms(BigInteger millisToParse) {
 
-	long secondsToParse = millisToParse / 1000
+	BigInteger secondsToParse = millisToParse / 1000
 
 	def dhms = []
 	dhms.add(secondsToParse % 60)
