@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.30 (14th September 2020)
+ *  AlertMe Smart Plug Driver v1.31 (14th September 2020)
  *	
  */
 
@@ -615,10 +615,10 @@ def processMap(Map map) {
 		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 		BigDecimal batteryPercentage = 0
-		BigDecimal batteryVoltageScaleMin = 3.5
-		BigDecimal batteryVoltageScaleMax = 4.1
+		BigDecimal batteryVoltageScaleMin = 4.10
+		BigDecimal batteryVoltageScaleMax = 4.15
 
-		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {
+		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.40) {
 
 			// A good three-cell 3.6 V NiMH battery will sit between 4.10 V and 4.25 V.
 
