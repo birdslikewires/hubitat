@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.08 (14th September 2020)
+ *  AlertMe Power Clamp Driver v1.09 (16th September 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_powerclamp.groovy") {
+	definition (name: "AlertMe Power Clamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_powerclamp.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

@@ -1,13 +1,13 @@
 /*
  * 
- *  Splurge Driver v1.00 (4th August 2020)
+ *  Splurge Driver v1.01 (16th September 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Splurge Driver", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/splurge.groovy") {
+	definition (name: "Splurge Driver", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/splurge.groovy") {
 
 		capability "Battery"
 		capability "Initialize"

@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Key Fob Driver v1.06 (30th August 2020)
+ *  AlertMe Key Fob Driver v1.07 (16th September 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Key Fob", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme_keyfob.groovy") {
+	definition (name: "AlertMe Key Fob", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_keyfob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
