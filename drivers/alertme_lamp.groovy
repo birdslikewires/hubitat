@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.10 (16th September 2020)
+ *  AlertMe Lamp Driver v1.11 (17th September 2020)
  *	
  */
 
@@ -36,6 +36,7 @@ metadata {
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
 
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Beacon", deviceJoinName: "AlertMe Lamp"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
 
 	}
