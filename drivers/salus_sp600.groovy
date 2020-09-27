@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.08 (16th September 2020)
+ *  Salus SP600 Smart Plug Driver v1.09 (27th September 2020)
  *	
  */
 
@@ -359,10 +359,6 @@ void processMap(map) {
 			if (map.command == "01") {
 				// If this has been requested by the user, return the value in the log.
 				logging("${device} : Power : ${powerValue} W", "info")
-			}
-
-			if (powerValue > 0) {
-				sendEvent(name: "switch", value: "on", isStateChange: false)		// Just in case.
 			}
 
 		} else {
