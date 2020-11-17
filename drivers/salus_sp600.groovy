@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.09 (27th September 2020)
+ *  Salus SP600 Smart Plug Driver v1.10 (17th November 2020)
  *	
  */
 
@@ -399,8 +399,6 @@ void sendZigbeeCommands(ArrayList<String> cmds) {
 
 		if (it.startsWith("he raw") == true) {
 			allActions.add(it)
-		} else if (it.startsWith("delay") == true) {
-			allActions.add(new hubitat.device.HubAction(it))
 		} else {
 			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
 		}
