@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.12 (16th September 2020)
+ *  AlertMe Alarm Sensor Driver v1.13 (26th November 2020)
  *	
  */
 
@@ -623,27 +623,12 @@ def processMap(Map map) {
 }
 
 
-void sendZigbeeCommands(ArrayList<String> cmds) {
+void sendZigbeeCommands(List<String> cmds) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-	logging("${device} : sendZigbeeCommands received : $cmds", "trace")
-
-	hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction()
-	cmds.each {
-
-		if (it.startsWith("he raw") == true) {
-			allActions.add(it)
-		} else if (it.startsWith("delay") == true) {
-			allActions.add(new hubitat.device.HubAction(it))
-		} else {
-			allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE))
-		}
-
-	}
-
-	logging("${device} : sendZigbeeCommands : $cmds", "debug")
-	sendHubCommand(allActions)
+    logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
+    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
 
 }
 
