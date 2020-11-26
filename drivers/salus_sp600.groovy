@@ -1,6 +1,6 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.11 (19th November 2020)
+ *  Salus SP600 Smart Plug Driver v1.12 (26th November 2020)
  *	
  */
 
@@ -366,6 +366,10 @@ void processMap(map) {
 			reportToDev(map)
 
 		}
+
+	} else if (map.cluster == "8001" || map.clusterId == "8001") {
+
+		logging("${device} : skipping network address response message : ${map}", "trace")
 
 	} else if (map.cluster == "8021" || map.clusterId == "8021") {
 
