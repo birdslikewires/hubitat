@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Contact Sensor Driver v1.02 (16th September 2020)
+ *  AlertMe Contact Sensor Driver v1.03 (26th November 2020)
  *	
  */
 

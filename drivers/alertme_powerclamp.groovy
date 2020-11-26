@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.09 (16th September 2020)
+ *  AlertMe Power Clamp Driver v1.10 (26th November 2020)
  *	
  */
 

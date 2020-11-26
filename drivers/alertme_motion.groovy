@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Sensor Driver v1.07 (16th September 2020)
+ *  AlertMe Motion Sensor Driver v1.08 (26th November 2020)
  *	
  */
 

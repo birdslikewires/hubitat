@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.11 (17th September 2020)
+ *  AlertMe Lamp Driver v1.12 (26th November 2020)
  *	
  */
 
