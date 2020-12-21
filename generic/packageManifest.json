@@ -1,0 +1,18 @@
+{
+  "packageName": "Generic",
+  "author": "BirdsLikeWires",
+  "minimumHEVersion": "2.1.9",
+  "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+  "documentationLink": "https://github.com/birdslikewires/hubitat",
+  "dateReleased": "2020-12-21",
+  "drivers": [
+    {
+      "id": "27b466da-e169-4270-9e1a-29a5173f9883",
+      "name": "Splurge Driver",
+      "namespace": "AlertMe",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/splurge.groovy",
+      "required": false,
+      "version": "1.01"
+    }
+  ]
+}
