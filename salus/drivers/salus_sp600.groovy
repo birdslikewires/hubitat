@@ -1,13 +1,13 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.12 (26th November 2020)
+ *  Salus SP600 Smart Plug Driver v1.13 (23rd December 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Salus SP600 Smart Plug", namespace: "Salus", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/salus_sp600.groovy") {
+	definition (name: "Salus SP600 Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/salus_sp600.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

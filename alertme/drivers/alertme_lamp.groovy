@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.12 (26th November 2020)
+ *  AlertMe Lamp Driver v1.14 (23rd December 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Lamp", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_lamp.groovy") {
+	definition (name: "AlertMe Lamp", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_lamp.groovy") {
 
 		capability "Actuator"
 		capability "Battery"

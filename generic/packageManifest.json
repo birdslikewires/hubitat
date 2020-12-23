@@ -12,7 +12,7 @@
       "namespace": "AlertMe",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/splurge.groovy",
       "required": false,
-      "version": "1.01"
+      "version": "1.02"
     }
   ]
 }

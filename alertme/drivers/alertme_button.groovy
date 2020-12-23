@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Button Driver v1.11 (26th November 2020)
+ *  AlertMe Button Driver v1.12 (23rd December 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Button", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_button.groovy") {
+	definition (name: "AlertMe Button", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_button.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

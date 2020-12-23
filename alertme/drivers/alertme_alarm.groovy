@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.13 (26th November 2020)
+ *  AlertMe Alarm Sensor Driver v1.14 (23rd December 2020)
  *	
  */
 
@@ -10,7 +10,7 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Alarm Sensor", namespace: "AlertMe", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_alarm.groovy") {
+	definition (name: "AlertMe Alarm Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
