@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Sensor Driver v1.09 (23rd December 2020)
+ *  AlertMe Motion Sensor Driver v1.10 (23rd December 2020)
  *	
  */
 
@@ -10,7 +10,7 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Motion Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_motion.groovy") {
+	definition (name: "AlertMe Motion Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_motion.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

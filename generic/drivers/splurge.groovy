@@ -1,13 +1,13 @@
 /*
  * 
- *  Splurge Driver v1.02 (23rd December 2020)
+ *  Splurge Driver v1.03 (23rd December 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Splurge Driver", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/splurge.groovy") {
+	definition (name: "Splurge Driver", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/splurge.groovy") {
 
 		capability "Battery"
 		capability "Initialize"

@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.34 (23rd December 2020)
+ *  AlertMe Smart Plug Driver v1.35 (23rd December 2020)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_smartplug.groovy") {
+	definition (name: "AlertMe Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy") {
 
 		capability "Actuator"
 		capability "Battery"

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Contact Sensor Driver v1.05 (23rd December 2020)
+ *  AlertMe Contact Sensor Driver v1.06 (23rd December 2020)
  *	
  */
 
@@ -10,7 +10,7 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 metadata {
 
-	definition (name: "AlertMe Contact Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/drivers/alertme_alarm.groovy") {
+	definition (name: "AlertMe Contact Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
