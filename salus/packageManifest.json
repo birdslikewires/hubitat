@@ -9,7 +9,7 @@
     {
       "id": "3df1563d-0820-4f56-8ffd-23b7ee123ee2",
       "name": "Salus SP600 Smart Plug",
-      "namespace": "Salus",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_sp600.groovy",
       "required": false,
       "version": "1.14"

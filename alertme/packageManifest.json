@@ -9,7 +9,7 @@
     {
       "id": "021cfe1d-18cd-4473-8aef-203db488fe70",
       "name": "AlertMe Alarm Sensor",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_alarm.groovy",
       "required": false,
       "version": "1.15"
@@ -17,7 +17,7 @@
     {
       "id": "a4d3a7b5-50e4-4544-baa4-93119db89f29",
       "name": "AlertMe Button",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_button.groovy",
       "required": false,
       "version": "1.13"
@@ -25,7 +25,7 @@
     {
       "id": "d495b545-9a9f-49a5-9323-28dcb21269c4",
       "name": "AlertMe Contact Sensor",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_contact.groovy",
       "required": false,
       "version": "1.06"
@@ -33,7 +33,7 @@
     {
       "id": "aa1ab2a1-8df9-4f37-924c-ecd88b79e43e",
       "name": "AlertMe Key Fob",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_keyfob.groovy",
       "required": false,
       "version": "1.10"
@@ -41,7 +41,7 @@
     {
       "id": "1447f569-33a8-4bb9-a554-6ea22f3de617",
       "name": "AlertMe Lamp",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_lamp.groovy",
       "required": false,
       "version": "1.15"
@@ -49,7 +49,7 @@
     {
       "id": "c90b1fcb-e829-4b4e-bcbb-293b12bba796",
       "name": "AlertMe Motion Sensor",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_motion.groovy",
       "required": false,
       "version": "1.10"
@@ -57,7 +57,7 @@
     {
       "id": "81be6755-09ad-45af-91a8-52308e3fc319",
       "name": "AlertMe Power Clamp",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_powerclamp.groovy",
       "required": false,
       "version": "1.12"
@@ -65,7 +65,7 @@
     {
       "id": "5a73c17f-176a-46a6-9d81-db2e4823f32a",
       "name": "AlertMe Smart Plug",
-      "namespace": "AlertMe",
+      "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy",
       "required": false,
       "version": "1.35"
