@@ -23,6 +23,13 @@
       "category": "Control",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/packageManifest.json",
       "description": "Drivers for Salus devices."
+    },
+    {
+      "id": "6abb75c5-fbaf-42b6-a065-a92c25455a21",
+      "name": "Tuya",
+      "category": "Control",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/packageManifest.json",
+      "description": "Drivers for devices based on the Tuya platform."
     }
   ]
 }
