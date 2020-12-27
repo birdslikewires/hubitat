@@ -1,5 +1,5 @@
 {
-  "author": "BirdsLikeWires",
+  "author": "Andrew Davison",
   "gitHubUrl": "https://github.com/birdslikewires/hubitat",
   "payPalUrl": "https://www.paypal.me/andydavison",
   "packages": [
@@ -15,7 +15,7 @@
       "name": "Generic",
       "category": "Utility",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/packageManifest.json",
-      "description": "Generic utilitydrivers for platform exploration."
+      "description": "Generic utility drivers for platform exploration."
     },
     {
       "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",

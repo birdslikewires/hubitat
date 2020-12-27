@@ -1,18 +1,18 @@
 {
-  "packageName": "Salus",
+  "packageName": "Tuya",
   "author": "Andrew Davison",
   "minimumHEVersion": "2.1.9",
   "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
   "documentationLink": "https://github.com/birdslikewires/hubitat",
-  "dateReleased": "2020-12-21",
+  "dateReleased": "2020-12-27",
   "drivers": [
     {
-      "id": "3df1563d-0820-4f56-8ffd-23b7ee123ee2",
-      "name": "Salus SP600 Smart Plug",
+      "id": "5e36541f-2596-4f07-9207-5599eaa29637",
+      "name": "Tuya TY-HG06337 Smart Plug",
       "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_sp600.groovy",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_ty-hg06337.groovy",
       "required": false,
-      "version": "1.14"
+      "version": "1.00"
     }
   ]
 }
