@@ -1,6 +1,6 @@
 /*
  * 
- *  Tuya TY-HG06338 Smart USB Extension v1.00 (30th December 2020)
+ *  Tuya TY-HG06338 Smart USB Extension v1.01 (30th December 2020)
  *	
  */
 
@@ -463,6 +463,10 @@ void processMap(map) {
 	} else if (map.cluster == "8032" || map.clusterId == "8032") {
 
 		logging("${device} : skipping management routing response message : ${map}", "trace")
+
+	} else if (map.cluster == "8034" || map.clusterId == "8034") {
+
+		logging("${device} : skipping management leave response message : ${map}", "trace")
 
 	} else if (map.cluster == "8038" || map.clusterId == "8038") {
 
