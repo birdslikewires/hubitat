@@ -1,6 +1,6 @@
 /*
  * 
- *  Tuya TY-HG06338 Smart USB Extension v1.01 (30th December 2020)
+ *  Tuya TY-HG06338 Smart USB Extension v1.02 (30th December 2020)
  *	
  */
 
@@ -380,30 +380,15 @@ void processMap(map) {
 
 				def cd = fetchChild("Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"on"]])
-
 				refresh()
-
-				//fetchChild("Switch", "${map.endpoint}").parse([[name:"switch", value:"on"]])
-				//sendEvent(name: "switch", value: "on")
-				logging("${device} : Switcheroo ${map.endpoint} : On", "info")
+				logging("${device} : Local Switch ${map.endpoint} : On", "info")
 
 			} else {
 
 				def cd = fetchChild("Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"off"]])
-
 				refresh()
-
-
-				// def currentChildStates = fetchChildStates("switch","${cd.id}")
-				// logging("${device} : currentChildStates : ${currentChildStates}", "debug")
-
-				// if (currentChildStates.every{it == "off"}) {
-				// 	logging("${device} : All Devices Off", "info")
-				// 	sendEvent(name: "switch", value: "off")
-				// }
-
-				logging("${device} : Switcheroo ${map.endpoint} : Off", "info")
+				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
 
 			}			
 
