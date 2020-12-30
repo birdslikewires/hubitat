@@ -1,6 +1,6 @@
 /*
  * 
- *  Tuya TY-HG06338 Smart USB Extension v1.02 (30th December 2020)
+ *  Tuya TY-HG06338 Smart USB Extension v1.03 (30th December 2020)
  *	
  */
 
@@ -171,6 +171,7 @@ def fetchChild(String type, String endpoint) {
 				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
 				cd.parse([[name: "switch", value: 'off']])
 			}
+			cd.updateSetting("txtEnable", false)
 		}
 
 		logging("${device} : Retrieving child device $device.id-$endpoint", "debug")
