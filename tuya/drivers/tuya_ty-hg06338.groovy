@@ -83,7 +83,7 @@ def configure() {
 	fetchChild("Switch","03")
 
 	// Prepare for scheduling.
-    int checkEveryMinutes 
+	int checkEveryMinutes 
 
 	// Schedule our refresh.
 	checkEveryMinutes = 5
@@ -215,21 +215,21 @@ def fetchChildStates(String state, String requestor) {
 
 void componentRefresh(com.hubitat.app.DeviceWrapper cd) {
 
-    logging("componentRefresh() from $cd.deviceNetworkId", "debug")
+	logging("componentRefresh() from $cd.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
 
 }
 
 void componentOn(com.hubitat.app.DeviceWrapper cd) {
 
-    logging("componentOn() from $cd.deviceNetworkId", "debug")
+	logging("componentOn() from $cd.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
 
 }
 
 void componentOff(com.hubitat.app.DeviceWrapper cd) {
 
-    logging("componentOff() from $cd.deviceNetworkId", "debug")
+	logging("componentOff() from $cd.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
 
 }
@@ -472,8 +472,8 @@ void sendZigbeeCommands(List<String> cmds) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
-    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
+	sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
 
 }
 

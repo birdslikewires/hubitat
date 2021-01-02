@@ -83,7 +83,7 @@ def configure() {
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
 	// Prepare for scheduling.
-    int checkEveryMinutes 
+	int checkEveryMinutes 
 
 	// Schedule our refresh.
 	checkEveryMinutes = 5
@@ -351,8 +351,8 @@ void sendZigbeeCommands(List<String> cmds) {
 
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
-    logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
-    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+	logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
+	sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
 
 }
 
