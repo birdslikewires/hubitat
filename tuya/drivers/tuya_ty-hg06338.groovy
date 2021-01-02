@@ -1,6 +1,6 @@
 /*
  * 
- *  Tuya TY-HG06338 Smart USB Extension v1.03 (30th December 2020)
+ *  Tuya TY-HG06338 Smart USB Extension v1.04 (2nd January 2021)
  *	
  */
 
@@ -83,10 +83,9 @@ def configure() {
 	fetchChild("Switch","03")
 
 	// Schedule our refresh.
-	int checkEveryHours = 1						
+	int checkEveryMinutes = 5
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", refresh)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
 
 	// Schedule the presence check.
 	int checkEveryMinutes = 6
@@ -273,7 +272,7 @@ def checkPresence() {
 
 	long millisNow = new Date().time
 
-	presenceTimeoutMinutes = 10
+	presenceTimeoutMinutes = 6
 
 	if (state.presenceUpdated > 0) {
 
@@ -312,7 +311,6 @@ def parse(String description) {
 
 	sendEvent(name: "presence", value: "present")
 	updatePresence()
-	checkPresence()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
