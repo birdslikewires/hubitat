@@ -82,13 +82,16 @@ def configure() {
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
+	// Prepare for scheduling.
+    int checkEveryMinutes 
+
 	// Schedule our refresh.
-	int checkEveryMinutes = 5
+	checkEveryMinutes = 5
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
 
 	// Schedule the presence check.
-	int checkEveryMinutes = 6
+	checkEveryMinutes = 6
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
