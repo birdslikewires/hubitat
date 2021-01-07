@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.12 (23rd December 2020)
+ *  AlertMe Power Clamp Driver v1.13 (7th January 2021)
  *	
  */
 
@@ -524,10 +524,10 @@ def processMap(Map map) {
 		}
 
 		// Report the temperature in celsius.
-		def temperatureValue = "undefined"
+		String temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		logging("${device} : Temperature : $temperatureCelsius°C", "info")
@@ -705,6 +705,12 @@ private String[] millisToDhms(BigInteger millisToParse) {
 	dhms.add(secondsToParse % 365)
 	return dhms
 
+}
+
+
+private BigDecimal hexToBigDecimal(String hex) {
+    int d = Integer.parseInt(hex, 16) << 21 >> 21
+    return BigDecimal.valueOf(d)
 }
 
 

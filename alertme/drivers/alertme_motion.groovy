@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Sensor Driver v1.10 (23rd December 2020)
+ *  AlertMe Motion Sensor Driver v1.11 (7th January 2021)
  *	
  */
 
@@ -408,8 +408,8 @@ def processMap(Map map) {
 		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 		BigDecimal batteryPercentage = 0
-		BigDecimal batteryVoltageScaleMin = 2.8
-		BigDecimal batteryVoltageScaleMax = 3.1
+		BigDecimal batteryVoltageScaleMin = 2.74
+		BigDecimal batteryVoltageScaleMax = 3.10
 
 		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {
 
@@ -466,7 +466,7 @@ def processMap(Map map) {
 		def temperatureValue = "undefined"
 		temperatureValue = receivedData[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
-		BigDecimal temperatureCelsius = zigbee.convertHexToInt(temperatureValue) / 16
+		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		logging("${device} : Temperature : $temperatureCelsius°C", "info")
@@ -644,6 +644,12 @@ private String[] millisToDhms(int millisToParse) {
 	dhms.add(secondsToParse % 365)
 	return dhms
 
+}
+
+
+private BigDecimal hexToBigDecimal(String hex) {
+    int d = Integer.parseInt(hex, 16) << 21 >> 21
+    return BigDecimal.valueOf(d)
 }
 
 
