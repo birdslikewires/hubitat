@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.13 (7th January 2021)
+ *  AlertMe Power Clamp Driver v1.14 (9th January 2021)
  *	
  */
 
@@ -82,7 +82,7 @@ def initialize() {
 	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
 	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "lqi", value: 0, isStateChange: false)
-	sendEvent(name: "mode", value: "unknown", isStateChange: false)
+	sendEvent(name: "operation", value: "unknown", isStateChange: false)
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
@@ -208,7 +208,7 @@ def normalMode() {
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
 	refresh()
-	sendEvent(name: "mode", value: "normal")
+	sendEvent(name: "operation", value: "normal")
 	logging("${device} : Mode : Normal", "info")
 
 }
@@ -222,7 +222,7 @@ def rangingMode() {
 	// Don't set state.operatingMode here! Ranging is a temporary state only.
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
-	sendEvent(name: "mode", value: "ranging")
+	sendEvent(name: "operation", value: "ranging")
 	logging("${device} : Mode : Ranging", "info")
 
 	// Ranging will be disabled after a maximum of 30 pulses.
@@ -245,7 +245,7 @@ def quietMode() {
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "energy", value: 0, unit: "kWh", isStateChange: false)
 	sendEvent(name: "energyWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "mode", value: "quiet")
+	sendEvent(name: "operation", value: "quiet")
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
