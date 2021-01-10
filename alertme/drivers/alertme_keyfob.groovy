@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Key Fob Driver v1.11 (9th January 2021)
+ *  AlertMe Key Fob Driver v1.12 (10th January 2021)
  *	
  */
 
@@ -58,6 +58,10 @@ def initialize() {
 	// Reset states...
 
 	state.batteryOkay = true
+	state.lastAwayPress = 0
+	state.lastAwayRelease = 0
+	state.lastHomePress = 0
+	state.lastHomeRelease = 0
 	state.operatingMode = "normal"
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
@@ -77,7 +81,9 @@ def initialize() {
 
 	// Remove disused state variables from earlier versions.
 	state.remove("batteryInstalled")
-	state.remove("firmwareVersion")	
+	state.remove("firmwareVersion")
+	state.remove("lastPress")
+	state.remove("lastRelease")
 	state.remove("uptime")
 	state.remove("uptimeReceived")
 	state.remove("presentAt")
@@ -193,7 +199,7 @@ def normalMode() {
 	state.operatingMode = "normal"
 	refresh()
 	sendEvent(name: "operation", value: "normal")
-	logging("${device} : Mode : Normal", "info")
+	logging("${device} : Operation : Normal", "info")
 
 }
 
@@ -207,7 +213,7 @@ def rangingMode() {
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
 	sendEvent(name: "operation", value: "ranging")
-	logging("${device} : Mode : Ranging", "info")
+	logging("${device} : Operation : Ranging", "info")
 
 	// Ranging will be disabled after a maximum of 30 pulses.
 	state.rangingPulses = 0
@@ -229,7 +235,7 @@ def quietMode() {
 	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "operation", value: "quiet")
 
-	logging("${device} : Mode : Quiet", "info")
+	logging("${device} : Operation : Quiet", "info")
 
 	refresh()
 
@@ -428,28 +434,99 @@ def processMap(Map map) {
 
 		// Trigger cluster.
 
-		// On the Button a push is always sent on press, but the release is sent only when the button is held for a moment.
-		// On the Keyfob both push and release are always sent, regardless of how long the button is held.
+		// On the Button a press is always sent when pushed, but the release is sent only when the button is held for a moment.
+		// On the Keyfob both press and release are always sent, regardless of how long the button is held.
+		// For some reason, key fobs are very 'bouncy' and often send more than one press or release per actuation, sometimes with a long delay.
 
 		// IMPORTANT! Always force 'isStateChange: true' on sendEvent, otherwise pressing the same button more than once won't trigger anything!
 
-		int buttonNumber = 0
+		long buttonDebounceTimeoutMillis = 8000
 
+		int buttonNumber
+		String buttonName
 		if (receivedData[0] == "00") {
 			buttonNumber = 1
+			buttonName = "Home"
 		} else {
 			buttonNumber = 2
+			buttonName = "Away"
 		}
 
-		if (map.command == "00") {
+		long millisNow = new Date().time
+		long millisElapsedAwayPress = millisNow - state.lastAwayPress
+		long millisElapsedAwayRelease = millisNow - state.lastAwayRelease
+		long millisElapsedHomePress = millisNow - state.lastHomePress
+		long millisElapsedHomeRelease = millisNow - state.lastHomeRelease
 
-			logging("${device} : Trigger : Button ${buttonNumber} Released", "info")
-			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
+		if (map.command == "00") {
+			// Release
+			
+			if (buttonNumber == 1) {
+				// Home Button
+
+				if (millisElapsedHomeRelease > buttonDebounceTimeoutMillis) {
+
+					state.lastHomeRelease = millisNow
+					logging("${device} : Trigger : Button ${buttonNumber} (${buttonName}) Released", "info")
+					sendEvent(name: "released", value: buttonNumber, isStateChange: true)
+
+				} else {
+
+					logging("${device} : Debounced : Button ${buttonNumber} (${buttonName}) Release", "debug")
+
+				}
+
+			} else {
+				// Away Button
+
+				if (millisElapsedAwayRelease > buttonDebounceTimeoutMillis) {
+
+					state.lastAwayRelease = millisNow
+					logging("${device} : Trigger : Button ${buttonNumber} (${buttonName}) Released", "info")
+					sendEvent(name: "released", value: buttonNumber, isStateChange: true)
+
+				} else {
+
+					logging("${device} : Debounced : Button ${buttonNumber} (${buttonName}) Release", "debug")
+
+				}
+
+			}
 
 		} else if (map.command == "01") {
+			// Press
 
-			logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
-			sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+			if (buttonNumber == 1) {
+				// Home Button
+
+				if (millisElapsedHomePress > buttonDebounceTimeoutMillis) {
+
+					state.lastHomePress = millisNow
+					logging("${device} : Trigger : Button ${buttonNumber} (${buttonName}) Pressed", "info")
+					sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+
+				} else {
+
+					logging("${device} : Debounced : Button ${buttonNumber} (${buttonName}) Press", "debug")
+
+				}
+
+			} else {
+				// Away Button
+
+				if (millisElapsedAwayPress > buttonDebounceTimeoutMillis) {
+
+					state.lastAwayPress = millisNow
+					logging("${device} : Trigger : Button ${buttonNumber} (${buttonName}) Pressed", "info")
+					sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+
+				} else {
+
+					logging("${device} : Debounced : Button ${buttonNumber} (${buttonName}) Press", "debug")
+
+				}
+
+			}
 
 		} else {
 

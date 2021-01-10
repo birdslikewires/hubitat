@@ -36,7 +36,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_keyfob.groovy",
       "required": false,
-      "version": "1.11"
+      "version": "1.12"
     },
     {
       "id": "1447f569-33a8-4bb9-a554-6ea22f3de617",
