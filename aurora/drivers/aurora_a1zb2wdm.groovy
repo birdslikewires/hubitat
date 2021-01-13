@@ -1,13 +1,11 @@
 /*
  * 
- *  Aurora AU-A1ZB2WDM Dimmer v1.00 (12th January 2021)
+ *  Aurora AU-A1ZB2WDM Dimmer v1.01 (13th January 2021)
  *	
  */
 
 // THINGS STILL TO FIX
-// - REFRESHING OF STATUS FOR PRESENCE
-// - DOUBLE CHECK WORK ON LEVEL SETTING AND CONFIRMATION
-// - CHECK REFRESH INTERVAL OF SMART PLUGS AND MATCH
+// - LEVEL SETTING REQUESTS IN % NEED CONVERTING TO HEX AND VICE VERSA
 
 
 metadata {
@@ -51,16 +49,11 @@ def initialize() {
 	// Runs on reboot, or can be triggered manually.
 
 	// Reset states...
-
 	state.presenceUpdated = 0
 
 	// ...but don't arbitrarily reset the state of the device's main functions.
-
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "unknown")
-
-	// Remove disused state variables from earlier versions.
-	state.remove("rssi")
 
 	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
 	randomSixty = Math.abs(new Random().nextInt() % 60)
@@ -85,14 +78,15 @@ def configure() {
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 
-	// Schedule our refresh.
-	int checkEveryHours = 1						
+	int checkEveryMinutes
+
+	// Schedule our refresh, frequently on these silent devices.
+	checkEveryMinutes = 4
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", refresh)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
 
 	// Schedule the presence check.
-	int checkEveryMinutes = 6
+	checkEveryMinutes = 6
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
@@ -161,7 +155,6 @@ void reportToDev(map) {
 def off() {
 
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}"])
-	//sendZigbeeCommands(zigbee.off())
 
 }
 
@@ -188,11 +181,21 @@ def setLevel(BigDecimal level, BigDecimal duration) {
 	String hexDuration = Integer.toHexString(safeDuration*10)
 
 	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level (${safeLevel}% [${hexLevel}]) over ${duration} second${pluralisor} [${hexDuration}].", "debug")
+	logging("${device} : setLevel : Got level request of ${safeLevel}% [${hexLevel}] over ${duration} second${pluralisor} [${hexDuration}].", "debug")
 
 	// The command data is made up of three hex values, the first byte is the level, second is duration, third is always '00'.
 	sendZigbeeCommands(["he cmd 0x8E63 0x01 0x0008 0x04 {${hexLevel} ${hexDuration} 00}"])
 	sendEvent(name: "level", value: "${safeLevel}")
+
+}
+
+
+def checkLevel() {
+
+	logging("${device} : Checking Level", "info")
+	sendZigbeeCommands([
+		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0x0000 {}"
+	])
 
 }
 
@@ -219,7 +222,7 @@ def checkPresence() {
 
 	// Check how long ago the presence state was updated.
 
-	// It would be suspicious if nothing was received after 4 minutes, but this check runs every 6 minutes so we don't exaggerate a wayward transmission or two.
+	// These devices are silent on the network unless prompted to do something, so up in configure() there should be a refresh every 4 minutes or so.
 
 	long millisNow = new Date().time
 
@@ -295,13 +298,15 @@ void processMap(map) {
 
 				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switch : On", "info")
-				sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0 {}"])
+				checkLevel()
+				runIn(12, checkLevel)
 
 			} else {
 
 				sendEvent(name: "switch", value: "off")
 				logging("${device} : Switch : Off", "info")
-				sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0 {}"])
+				checkLevel()
+				runIn(12, checkLevel)
 
 			}
 
