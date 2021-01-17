@@ -6,7 +6,7 @@ All of these drivers feature presence detection for troubleshooting and system c
 
 ## Driver Import
 
-### Hubitat Package Manager
+### Hubitat Package Manager
 
 These drivers are available through HPM, just search for "AlertMe".
 
