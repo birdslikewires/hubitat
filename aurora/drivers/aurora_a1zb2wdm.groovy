@@ -1,11 +1,8 @@
 /*
  * 
- *  Aurora AU-A1ZB2WDM Dimmer v1.01 (13th January 2021)
+ *  Aurora AU-A1ZB2WDM Dimmer v1.01 (16th January 2021)
  *	
  */
-
-// THINGS STILL TO FIX
-// - LEVEL SETTING REQUESTS IN % NEED CONVERTING TO HEX AND VICE VERSA
 
 
 metadata {
@@ -69,7 +66,6 @@ def configure() {
 
 	// Set preferences and ongoing scheduled tasks.
 	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
-
 	initialize()
 	unschedule()
 
@@ -102,10 +98,9 @@ def configure() {
 def updated() {
 
 	// Runs whenever preferences are saved.
-
 	loggingStatus()
-	//runIn(3600,debugLogOff)
-	//runIn(1800,traceLogOff)
+	runIn(3600,debugLogOff)
+	runIn(1800,traceLogOff)
 	refresh()
 
 }
@@ -168,23 +163,23 @@ def on() {
 
 
 def setLevel(BigDecimal level) {
-	setLevel(level,2)
+	setLevel(level,1)
 }
 
 
 def setLevel(BigDecimal level, BigDecimal duration) {
 
-	BigInteger safeLevel = level <= 100 ? level : 100
-	BigInteger safeDuration = duration <= 10 ? duration : 10
+	BigDecimal safeLevel = level <= 100 ? level : 100
+	String hexLevel = percentageToHex(safeLevel.intValue())
 
-	String hexLevel = Integer.toHexString(safeLevel)
-	String hexDuration = Integer.toHexString(safeDuration*10)
+	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+	String hexDuration = Integer.toHexString(safeDuration.intValue())
 
 	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of ${safeLevel}% [${hexLevel}] over ${duration} second${pluralisor} [${hexDuration}].", "debug")
+	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] over '${duration}' (${safeDuration} decisecond${pluralisor}) [${hexDuration}].", "debug")
 
-	// The command data is made up of three hex values, the first byte is the level, second is duration, third is always '00'.
-	sendZigbeeCommands(["he cmd 0x8E63 0x01 0x0008 0x04 {${hexLevel} ${hexDuration} 00}"])
+	// The command data is made up of three hex values, the first byte is the level, second is duration, third always seems to be '00'.
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0008 0x04 {${hexLevel} ${hexDuration} 00}"])
 	sendEvent(name: "level", value: "${safeLevel}")
 
 }
@@ -261,7 +256,7 @@ def parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse : $description", "debug")
+	logging("${device} : Parse : $description", "trace")
 
 	sendEvent(name: "presence", value: "present")
 	updatePresence()
@@ -344,11 +339,15 @@ void processMap(map) {
 
 		}
 
-	} else if (map.cluster == "0008" ) {
+	} else if (map.cluster == "0008") {
 		
-		int currentLevel = zigbee.convertHexToInt("${map.value}")
+		int currentLevel = hexToPercentage("${map.value}")
 		sendEvent(name: "level", value: "${currentLevel}")
 		logging("${device} : Level : ${currentLevel}", "info")
+
+	} else if (map.clusterId == "0008") {
+
+		logging("${device} : skipping unknown data on the level cluster : ${map}", "trace")
 
 	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
@@ -402,6 +401,24 @@ private String[] millisToDhms(BigInteger millisToParse) {
 	secondsToParse = secondsToParse / 24
 	dhms.add(secondsToParse % 365)
 	return dhms
+
+}
+
+
+private String percentageToHex(Integer pc) {
+
+	BigDecimal safePc = pc > 0 ? (pc*2.55) : 0
+	safePc = safePc > 255 ? 255 : safePc
+	return Integer.toHexString(safePc.intValue())
+
+}
+
+
+private Integer hexToPercentage(String hex) {
+
+	String safeHex = hex.take(2)
+    Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
+	return pc / 2.55
 
 }
 

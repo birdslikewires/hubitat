@@ -19,6 +19,10 @@ I find that when adding support for a specific device the library commands are n
 ### zigbee.onOffRefresh()
 
 	he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0006 0x0000 {}
+
+
+
+	
 	he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0008 0x0000 {}
 
 
