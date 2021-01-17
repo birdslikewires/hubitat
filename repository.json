@@ -11,6 +11,13 @@
       "description": "Drivers for devices based upon the original AlertMe platform."
     },
     {
+      "id": "8fc85585-cb27-446f-ab26-e8e288df1711",
+      "name": "Aurora Drivers from BirdsLikeWires",
+      "category": "Control",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/packageManifest.json",
+      "description": "Drivers for Aurora devices."
+    },
+    {
       "id": "071ec430-411e-4321-886a-5785d0b29e4c",
       "name": "Generic Drivers from BirdsLikeWires",
       "category": "Utility",
