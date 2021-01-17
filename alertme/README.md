@@ -42,7 +42,7 @@ Relay on and off, power usage in Watts, power summary in Kilowatt-hours, battery
 
 If your smart plugs power down when unplugged from the supply, their internal rechargeable batteries have expired. Here's how to replace them, after which they'll run for ages with mains power off.
 
-https://www.youtube.com/watch?v=t5y5-Hrukxc
+[![Pointing at a battery inside a dismantled AlertMe smart plug.](https://img.youtube.com/vi/t5y5-Hrukxc/0.jpg)](https://www.youtube.com/watch?v=t5y5-Hrukxc)
 
 ## The Future
 
