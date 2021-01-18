@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.15 (9th January 2021)
+ *  AlertMe Button Driver v1.16 (18th January 2021)
  *	
  */
 
@@ -280,36 +280,38 @@ def checkPresence() {
 	// It would be suspicious if nothing was received after 4 minutes, but this check runs every 6 minutes
 	// by default (every minute for key fobs) so we don't exaggerate a wayward transmission or two.
 
-	long millisNow = new Date().time
-
 	presenceTimeoutMinutes = 4
+	uptimeAllowanceMinutes = 5
 
 	if (state.presenceUpdated > 0) {
 
+		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
 		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
-		BigDecimal secondsElapsed = millisElapsed / 1000
+		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
+		BigInteger hubUptime = location.hub.uptime
 
 		if (millisElapsed > presenceTimeoutMillis) {
 
-			sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
-			sendEvent(name: "batteryState", value: "discharging", isStateChange: false)
-			sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
-			sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-			sendEvent(name: "lqi", value: 0)
-			sendEvent(name: "presence", value: "not present")
-			sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-			sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
+			if (hubUptime > uptimeAllowanceMinutes * 60) {
+
+				sendEvent(name: "presence", value: "not present")
+				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
+
+			} else {
+
+				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "info")
+
+			}
 
 		} else {
 
 			sendEvent(name: "presence", value: "present")
-			logging("${device} : Present : Last presence report ${secondsElapsed} seconds ago.", "debug")
+			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
 
 		}
 
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis})", "trace")
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
 
 	} else {
 
