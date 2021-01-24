@@ -336,25 +336,16 @@ def parse(String description) {
 	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
-	if (description.startsWith("zone status")) {
+	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
-		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
-		processStatus(zoneStatus)
+	if (descriptionMap) {
+
+		processMap(descriptionMap)
 
 	} else {
-
-		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
-
-		if (descriptionMap) {
-
-			processMap(descriptionMap)
-
-		} else {
-			
-			logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-			logging("${device} : Splurge! : ${description}", "warn")
-
-		}
+		
+		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+		logging("${device} : Splurge! : ${description}", "warn")
 
 	}
 
