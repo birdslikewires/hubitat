@@ -69,7 +69,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy",
       "required": false,
-      "version": "1.38"
+      "version": "1.39"
     }
   ]
 }
