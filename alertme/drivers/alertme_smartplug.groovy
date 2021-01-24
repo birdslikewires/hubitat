@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.38 (18th January 2021)
+ *  AlertMe Smart Plug Driver v1.39 (24th January 2021)
  *	
  */
 
@@ -380,7 +380,7 @@ def checkPresence() {
 
 	} else {
 
-		logging("${device} : Waiting for first presence report.", "warn")
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
 

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Sensor Driver v1.13 (18th January 2021)
+ *  AlertMe Motion Sensor Driver v1.14 (24th January 2021)
  *	
  */
 
@@ -23,6 +23,7 @@ metadata {
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 
+		command "checkPresence"
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
@@ -284,7 +285,7 @@ def checkPresence() {
 	presenceTimeoutMinutes = 4
 	uptimeAllowanceMinutes = 5
 
-	if (state.presenceUpdated > 0) {
+	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
@@ -314,9 +315,14 @@ def checkPresence() {
 
 		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
 
+	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
+
+		sendEvent(name: "presence", value: "not present")
+		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
+
 	} else {
 
-		logging("${device} : Waiting for first presence report.", "warn")
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
 
@@ -329,7 +335,7 @@ def parse(String description) {
 
 	logging("${device} : Parse : $description", "debug")
 
-	sendEvent(name: "presence", value: "present")
+	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
 	if (description.startsWith("zone status")) {
@@ -410,7 +416,7 @@ def processMap(Map map) {
 		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 		BigDecimal batteryPercentage = 0
-		BigDecimal batteryVoltageScaleMin = 2.74
+		BigDecimal batteryVoltageScaleMin = 2.72
 		BigDecimal batteryVoltageScaleMax = 3.10
 
 		if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.18 (18th January 2021)
+ *  AlertMe Alarm Sensor Driver v1.19 (24th January 2021)
  *	
  */
 
@@ -285,7 +285,7 @@ def checkPresence() {
 	presenceTimeoutMinutes = 4
 	uptimeAllowanceMinutes = 5
 
-	if (state.presenceUpdated > 0) {
+	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
@@ -315,9 +315,14 @@ def checkPresence() {
 
 		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
 
+	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
+
+		sendEvent(name: "presence", value: "not present")
+		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
+
 	} else {
 
-		logging("${device} : Waiting for first presence report.", "warn")
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
 
@@ -330,7 +335,7 @@ def parse(String description) {
 
 	logging("${device} : Parse : $description", "debug")
 
-	sendEvent(name: "presence", value: "present")
+	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
 	if (description.startsWith("zone status")) {

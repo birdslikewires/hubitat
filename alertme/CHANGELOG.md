@@ -1,5 +1,9 @@
 # AlertMe Changelog
 
+## 24th January 2021
+
+- Report as 'not present' once batteryOkay is false on battery-only devices.
+
 ## 18th January 2021
 
 - Added hub uptime check to checkPresence() which prevents notification panic upon reboots.

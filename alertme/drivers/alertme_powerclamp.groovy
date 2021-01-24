@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.15 (18th January 2021)
+ *  AlertMe Power Clamp Driver v1.16 (24th January 2021)
  *	
  */
 
@@ -300,7 +300,7 @@ def checkPresence() {
 	presenceTimeoutMinutes = 4
 	uptimeAllowanceMinutes = 5
 
-	if (state.presenceUpdated > 0) {
+	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
@@ -330,9 +330,14 @@ def checkPresence() {
 
 		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
 
+	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
+
+		sendEvent(name: "presence", value: "not present")
+		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
+
 	} else {
 
-		logging("${device} : Waiting for first presence report.", "warn")
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
 
@@ -345,19 +350,28 @@ def parse(String description) {
 
 	logging("${device} : Parse : $description", "debug")
 
-	sendEvent(name: "presence", value: "present")
+	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
-	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+	if (description.startsWith("zone status")) {
 
-	if (descriptionMap) {
-
-		processMap(descriptionMap)
+		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
+		processStatus(zoneStatus)
 
 	} else {
-		
-		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-		logging("${device} : Splurge! : ${description}", "warn")
+
+		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+
+		if (descriptionMap) {
+
+			processMap(descriptionMap)
+
+		} else {
+			
+			logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
+			logging("${device} : Splurge! : ${description}", "warn")
+
+		}
 
 	}
 
