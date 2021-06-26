@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.19 (24th January 2021)
+ *  AlertMe Alarm Sensor Driver v1.22 (26th June 2021)
  *	
  */
 
@@ -63,14 +63,13 @@ def initialize() {
 	// Runs on reboot, or can be triggered manually.
 
 	// Reset states...
-
+	state.clear()
 	state.batteryOkay = true
 	state.operatingMode = "normal"
 	state.presenceUpdated = 0
 	state.rangingPulses = 0
 
 	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
-
 	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
 	sendEvent(name: "batteryState", value: "discharging", isStateChange: false)
 	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
@@ -81,16 +80,6 @@ def initialize() {
 	sendEvent(name: "presence", value: "not present", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-
-	// Remove disused state variables from earlier versions.
-	state.remove("batteryInstalled")
-	state.remove("firmwareVersion")	
-	state.remove("uptime")
-	state.remove("uptimeReceived")
-	state.remove("presentAt")
-	state.remove("relayClosed")
-	state.remove("rssi")
-	state.remove("supplyPresent")
 
 	// Remove unnecessary device details.
 	removeDataValue("application")
@@ -144,8 +133,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	runIn(3600,debugLogOff)
-	runIn(1800,traceLogOff)
+	runIn(1800,infoLogOff)
+	runIn(1200,debugLogOff)
+	runIn(600,traceLogOff)
 	refresh()
 
 }
@@ -162,16 +152,23 @@ void loggingStatus() {
 
 void traceLogOff(){
 	
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 	log.trace "${device} : Trace Logging : Automatically Disabled"
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+}
+
+void debugLogOff(){
+	
+	log.debug "${device} : Debug Logging : Automatically Disabled"
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 
 }
 
 
-void debugLogOff(){
+void infoLogOff(){
 	
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	log.debug "${device} : Debug Logging : Automatically Disabled"
+	log.info "${device} : Info Logging : Automatically Disabled"
+	device.updateSetting("infoLogging",[value:"false",type:"bool"])
 
 }
 
@@ -343,6 +340,11 @@ def parse(String description) {
 		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
 		processStatus(zoneStatus)
 
+	} else if (description?.startsWith('enroll request')) {
+				
+			logging("${device} : Parse : Enrol request received, sending response.", "debug")
+			sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x0500 {11 80 00 00 05} {0xC216}"])
+
 	} else {
 
 		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
@@ -371,13 +373,13 @@ def processStatus(ZoneStatus status) {
 
 		logging("${device} : Sound : Detected", "info")
 		sendEvent(name: "sound", value: "detected", isStateChange: true)
-		sendEvent(name: "motion", value: "active", isStateChange: true)			// Temporary fudge until Hubitat fully supports the SoundSensor capability.
+		sendEvent(name: "motion", value: "active", isStateChange: true)			// This was a temporary fudge until Hubitat supported the SoundSensor capability.
 
 	} else {
 
 		logging("${device} : Sound : Not Detected", "info")
 		sendEvent(name: "sound", value: "not detected", isStateChange: true)
-		sendEvent(name: "motion", value: "inactive", isStateChange: true)		// Temporary fudge until Hubitat fully supports the SoundSensor capability.
+		sendEvent(name: "motion", value: "inactive", isStateChange: true)		// This was a temporary fudge until Hubitat supported the SoundSensor capability.
 
 	}
 

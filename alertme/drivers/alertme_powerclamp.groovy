@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.16 (24th January 2021)
+ *  AlertMe Power Clamp Driver v1.18 (26th June 2021)
  *	
  */
 
@@ -153,8 +153,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	runIn(3600,debugLogOff)
-	runIn(1800,traceLogOff)
+	runIn(1800,infoLogOff)
+	runIn(1200,debugLogOff)
+	runIn(600,traceLogOff)
 	refresh()
 
 }
@@ -171,16 +172,23 @@ void loggingStatus() {
 
 void traceLogOff(){
 	
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 	log.trace "${device} : Trace Logging : Automatically Disabled"
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+}
+
+void debugLogOff(){
+	
+	log.debug "${device} : Debug Logging : Automatically Disabled"
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 
 }
 
 
-void debugLogOff(){
+void infoLogOff(){
 	
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	log.debug "${device} : Debug Logging : Automatically Disabled"
+	log.info "${device} : Info Logging : Automatically Disabled"
+	device.updateSetting("infoLogging",[value:"false",type:"bool"])
 
 }
 
@@ -376,7 +384,13 @@ def processMap(Map map) {
 	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
-	if (map.clusterId == "00EF") {
+	if (map.clusterId == "0006") {
+
+		// Match Descriptor Request
+		logging("${device} : Sending Match Descriptor Response", "debug")
+		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
+
+	} else if (map.clusterId == "00EF") {
 
 		// Power and energy messages.
 

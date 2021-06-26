@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Contact Sensor Driver v1.10 (24th January 2021)
+ *  AlertMe Contact Sensor Driver v1.12 (26th June 2021)
  *	
  */
 
@@ -143,8 +143,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	runIn(3600,debugLogOff)
-	runIn(1800,traceLogOff)
+	runIn(1800,infoLogOff)
+	runIn(1200,debugLogOff)
+	runIn(600,traceLogOff)
 	refresh()
 
 }
@@ -161,16 +162,23 @@ void loggingStatus() {
 
 void traceLogOff(){
 	
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
 	log.trace "${device} : Trace Logging : Automatically Disabled"
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+}
+
+void debugLogOff(){
+	
+	log.debug "${device} : Debug Logging : Automatically Disabled"
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 
 }
 
 
-void debugLogOff(){
+void infoLogOff(){
 	
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	log.debug "${device} : Debug Logging : Automatically Disabled"
+	log.info "${device} : Info Logging : Automatically Disabled"
+	device.updateSetting("infoLogging",[value:"false",type:"bool"])
 
 }
 
@@ -341,6 +349,11 @@ def parse(String description) {
 
 		ZoneStatus zoneStatus = zigbee.parseZoneStatus(description)
 		processStatus(zoneStatus)
+
+	} else if (description?.startsWith('enroll request')) {
+				
+			logging("${device} : Parse : Enrol request received, sending response.", "debug")
+			sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x0500 {11 80 00 00 05} {0xC216}"])
 
 	} else {
 

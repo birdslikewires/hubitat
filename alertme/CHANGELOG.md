@@ -1,5 +1,10 @@
 # AlertMe Changelog
 
+## 26th June 2021
+
+- Automatic re-enrolment of devices after power loss now appears to work.
+- Responses are sent to IAS enrol and match descriptor (cluster 0006) requests from devices. 
+
 ## 24th January 2021
 
 - Report as 'not present' once batteryOkay is false on battery-only devices.
