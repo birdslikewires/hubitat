@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.20 (27th June 2021)
+ *  AlertMe Button Driver v1.21 (28th June 2021)
  *	
  */
 
@@ -411,9 +411,7 @@ def processMap(Map map) {
 			batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 			batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
 
-			if (batteryPercentage > 50) {
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
-			} else if (batteryPercentage > 30) {
+			if (batteryPercentage > 20) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			} else {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
