@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.19 (26th June 2021)
+ *  AlertMe Button Driver v1.20 (27th June 2021)
  *	
  */
 
@@ -142,9 +142,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	//runIn(1800,infoLogOff)
-	//runIn(1200,debugLogOff)
-	//runIn(600,traceLogOff)
+	runIn(1800,infoLogOff)
+	runIn(1200,debugLogOff)
+	runIn(600,traceLogOff)
 	refresh()
 
 }

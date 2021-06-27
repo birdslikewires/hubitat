@@ -21,7 +21,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_button.groovy",
       "required": false,
-      "version": "1.19"
+      "version": "1.20"
     },
     {
       "id": "d495b545-9a9f-49a5-9323-28dcb21269c4",

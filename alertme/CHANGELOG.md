@@ -1,5 +1,10 @@
 # AlertMe Changelog
 
+## 27th June 2021
+
+- Forgot to mention that "info", "debug" and "trace" logging now auto-disable after 30, 20, and 10 minutes respectively. This is due to the "chattiness" of the AlertMe devices causing strain on Hubitat's logging system.
+- Logging oopsie corrected on the Button driver.
+
 ## 26th June 2021
 
 - Automatic re-enrolment of devices after power loss now appears to work.
