@@ -4,6 +4,7 @@
 
 - Forgot to mention that "info", "debug" and "trace" logging now auto-disable after 30, 20, and 10 minutes respectively. This is due to the "chattiness" of the AlertMe devices causing strain on Hubitat's logging system.
 - Logging oopsie corrected on the Button driver.
+- Battery warnings now start below 20% remaining.
 
 ## 26th June 2021
 
