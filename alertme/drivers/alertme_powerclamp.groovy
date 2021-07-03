@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.19 (27th June 2021)
+ *  AlertMe Power Clamp Driver v1.20 (3rd July 2021)
  *	
  */
 
@@ -85,7 +85,7 @@ def initialize() {
 	sendEvent(name: "operation", value: "unknown", isStateChange: false)
 	sendEvent(name: "power", value: 0, unit: "W", isStateChange: false)
 	sendEvent(name: "powerWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "not present", isStateChange: false)
+	sendEvent(name: "presence", value: "present", isStateChange: false)
 	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
 	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "uptime", value: 0, unit: "s", isStateChange: false)
@@ -153,9 +153,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	runIn(1800,infoLogOff)
-	runIn(1200,debugLogOff)
-	runIn(600,traceLogOff)
+	runIn(3600,infoLogOff)
+	runIn(2400,debugLogOff)
+	runIn(1200,traceLogOff)
 	refresh()
 
 }
@@ -325,7 +325,7 @@ def checkPresence() {
 
 			} else {
 
-				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "info")
+				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
 
 			}
 
