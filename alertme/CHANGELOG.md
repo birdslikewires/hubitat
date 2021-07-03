@@ -1,5 +1,10 @@
 # AlertMe Changelog
 
+## 3rd July 2021
+
+- Tweaks to logging timeouts and presence reporting.
+- On reboot we _should_ default to "present" with no state change, allowing a state change back to "not present" (triggering a notification if configured) when the device doesn't report in.
+
 ## 27th June 2021
 
 - Forgot to mention that "info", "debug" and "trace" logging now auto-disable after 30, 20, and 10 minutes respectively. This is due to the "chattiness" of the AlertMe devices causing strain on Hubitat's logging system.
