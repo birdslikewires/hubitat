@@ -7,6 +7,18 @@
       "id": "a6589963-c0f9-47b7-98ee-8312f4f1bbaf",
       "name": "AlertMe Drivers from BirdsLikeWires",
       "category": "Control",
+      "tags": [
+        "Buttons",
+        "Doors & Windows",
+        "Energy Monitoring",
+        "Lights & Switches",
+        "Monitoring",
+        "Presence & Location",
+        "Repeaters & Extenders",
+        "Safety & Security",
+        "Temperature & Humidity",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/packageManifest.json",
       "description": "Drivers for devices based upon the original AlertMe platform."
     },
@@ -14,6 +26,12 @@
       "id": "8fc85585-cb27-446f-ab26-e8e288df1711",
       "name": "Aurora Drivers from BirdsLikeWires",
       "category": "Control",
+      "tags": [
+        "Buttons",
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/packageManifest.json",
       "description": "Drivers for Aurora devices."
     },
@@ -21,6 +39,10 @@
       "id": "071ec430-411e-4321-886a-5785d0b29e4c",
       "name": "Generic Drivers from BirdsLikeWires",
       "category": "Utility",
+      "tags": [
+        "Tools & Utilities",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/packageManifest.json",
       "description": "Generic utility drivers for platform exploration."
     },
@@ -28,6 +50,10 @@
       "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
       "name": "IKEA Trådfri Drivers from BirdsLikeWires",
       "category": "Control",
+      "tags": [
+        "Buttons",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/packageManifest.json",
       "description": "Drivers for IKEA Trådfri devices."
     },
@@ -35,6 +61,12 @@
       "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",
       "name": "Salus Drivers from BirdsLikeWires",
       "category": "Control",
+      "tags": [
+        "Energy Monitoring",
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/packageManifest.json",
       "description": "Drivers for Salus devices."
     },
@@ -42,6 +74,11 @@
       "id": "6abb75c5-fbaf-42b6-a065-a92c25455a21",
       "name": "Tuya Drivers from BirdsLikeWires",
       "category": "Control",
+      "tags": [
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/packageManifest.json",
       "description": "Drivers for devices based on the Tuya platform."
     }
