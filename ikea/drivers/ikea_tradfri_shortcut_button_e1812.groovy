@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.00 (29th July 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.01 (30th July 2021)
  *	
  */
 
@@ -18,15 +18,11 @@ metadata {
 		capability "PushableButton"
 		capability "Refresh"
 		capability "ReleasableButton"
-		//capability "TemperatureMeasurement"
-
-		command "checkPresence"
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
-		//attribute "temperatureWithUnit", "string"
 
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "Trådfri Shortcut Button", application: "21"
 
@@ -55,24 +51,10 @@ def initialize() {
 	// Set states to starting values and schedule a single refresh.
 	// Runs on reboot, or can be triggered manually.
 
-	// Reset states...
+	// Reset states.
 	state.clear()
 	state.presenceUpdated = 0
-
-	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
-
-	sendEvent(name: "battery", value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryState", value: "discharging", isStateChange: false)
-	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
-	//sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	//sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-
-	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	runIn(randomSixty,refresh)
 
 	// Initialisation complete.
 	logging("${device} : Initialised", "info")
@@ -114,9 +96,9 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	loggingStatus()
-	//runIn(3600,infoLogOff)
-	//runIn(2400,debugLogOff)
-	//runIn(1200,traceLogOff)
+	runIn(3600,infoLogOff)
+	runIn(2400,debugLogOff)
+	runIn(1200,traceLogOff)
 	refresh()
 
 }
@@ -170,11 +152,34 @@ void reportToDev(map) {
 }
 
 
+void push(buttonId) {
+	
+	sendEvent(name:"pushed", value: buttonId, isStateChange:true)
+	
+}
+
+
+void hold(buttonId) {
+	
+	sendEvent(name:"held", value: buttonId, isStateChange:true)
+	
+}
+
+
+void release(buttonId) {
+	
+	sendEvent(name:"released", value: buttonId, isStateChange:true)
+	
+}
+
+
 void refresh() {
+
+	// On the E1812 a battery status can be requested if the command is sent within about 3 seconds of an actuation.
+	// I considered removing this, but it can be useful for forcing a battery read when the device is to hand.
 
 	logging("${device} : Refreshing", "info")
 	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020))
-	sendZigbeeCommands(zigbee.onOffRefresh())
 
 }
 
@@ -191,8 +196,8 @@ def checkPresence() {
 
 	// Check how long ago the presence state was updated.
 
-	presenceTimeoutMinutes = 90
-	uptimeAllowanceMinutes = 5
+	presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
+	uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
 	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
 
@@ -244,7 +249,6 @@ def parse(String description) {
 
 	logging("${device} : Parse : $description", "debug")
 
-	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
@@ -267,7 +271,6 @@ def processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
-	// AlertMe values are always sent in a data element.
 	String[] receivedData = map.data
 
 	if (map.cluster == "0001") { 
@@ -290,14 +293,14 @@ def processMap(Map map) {
 			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 10
 			logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
-			batteryVoltage = batteryVoltage.setScale(1, BigDecimal.ROUND_HALF_UP)
+			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP)
 
 			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 			sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
 			sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 			BigDecimal batteryPercentage = 0
-			BigDecimal batteryVoltageScaleMin = 2.4
+			BigDecimal batteryVoltageScaleMin = 2.1
 			BigDecimal batteryVoltageScaleMax = 3.0
 
 			if (batteryVoltage >= batteryVoltageScaleMin) {
@@ -358,11 +361,7 @@ def processMap(Map map) {
 
 	} else if (map.clusterId == "0008") {
 
-		if (map.command == "05") {
-
-			parsePress(map)
-
-		} else if (map.command == "07") {
+		if (map.command == "05" || map.command == "07") {
 
 			parsePress(map)
 
@@ -464,8 +463,10 @@ private String[] millisToDhms(int millisToParse) {
 
 
 private BigDecimal hexToBigDecimal(String hex) {
+
     int d = Integer.parseInt(hex, 16) << 21 >> 21
     return BigDecimal.valueOf(d)
+
 }
 
 

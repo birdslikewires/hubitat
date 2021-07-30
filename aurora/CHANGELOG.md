@@ -1,5 +1,5 @@
-# Aurora Changelog
+# Aurora AOne Drivers for Hubitat -  Changelog
 
 ## 13th January 2021
 
-Initial version.
+- Initial version which appears to work.

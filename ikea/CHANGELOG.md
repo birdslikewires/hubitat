@@ -1,4 +1,10 @@
-# IKEA Changelog
+# IKEA Trådfri Drivers for Hubitat - Changelog
+
+## 30th July 2021
+
+- General cleanup and nonsense removal.
+- Simulated push / hold / release events are now supported.
+- Remarkably, everything held up overnight and appears to work!
 
 ## 29th July 2021
 
