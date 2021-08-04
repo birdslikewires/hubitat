@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.00 (4th August 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.01 (5th August 2021)
  *	
  */
 
@@ -20,6 +20,7 @@ metadata {
 		capability "PushableButton"
 		capability "Refresh"
 		capability "ReleasableButton"
+		capability "Switch"
 		capability "SwitchLevel"
 
 		attribute "batteryState", "string"
@@ -152,6 +153,22 @@ void reportToDev(map) {
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
 	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
 	logging("${device} : Splurge! : ${map}", "trace")
+
+}
+
+
+void off() {
+
+	sendEvent(name: "switch", value: "off")
+	logging("${device} : Switch : Off", "info")
+
+}
+
+
+void on() {
+
+	sendEvent(name: "switch", value: "on")
+	logging("${device} : Switch : On", "info")
 
 }
 
@@ -316,6 +333,7 @@ def processMap(Map map) {
 			// But the readings are all over the shop. Might be worth pairing to the Tradfri hub and checking for firmware updates?
 
 			// Hey, in the meantime, let's just fudge it!
+			state.batteryOkay = true
 
 			// Report the battery... percentage.
 			def batteryHex = "undefined"
@@ -405,6 +423,8 @@ def parsePress(Map map) {
 
 		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+		
+		device.currentState("switch").value == "off" ? on() : off()
 
 	} else if (map.clusterId == "0008") {
 
@@ -423,6 +443,7 @@ def parsePress(Map map) {
 				sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 				sendEvent(name: "direction", value: "clockwise")
 				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
+				sendEvent(name: "switch", value: "on", isStateChange: false)
 
 			} else if (receivedData[0] == "01") {
 
@@ -432,6 +453,7 @@ def parsePress(Map map) {
 				sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 				sendEvent(name: "direction", value: "anticlockwise")
 				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
+				sendEvent(name: "switch", value: "on", isStateChange: false)
 
 			} else {
 

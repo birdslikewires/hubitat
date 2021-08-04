@@ -1,5 +1,18 @@
 # IKEA Trådfri Drivers for Hubitat - Changelog
 
+## 5th August 2021
+
+- Added switch on/off for compatibility with Mirror app (E1744).
+- Remote can now be used as a lighting dimmer controller (E1744).
+
+## 4th August 2021
+
+- Added the Symfonisk Remote (E1744) driver.
+- Presents as a three button device for press, clockwise and anticlockwise rotation.
+- Pushed, held and released are recognised for button presses and rotations.
+- Official method for double tap supported, triple tap shown as a release event.
+- Battery data from the device seems to be nonsense, so we're fudging it.
+
 ## 30th July 2021
 
 - General cleanup and nonsense removal.
