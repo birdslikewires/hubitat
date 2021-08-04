@@ -1,5 +1,5 @@
 {
-  "packageName": "IKEA Trådfri Drivers from BirdsLikeWires",
+  "packageName": "IKEA Symfonisk and Trådfri Drivers from BirdsLikeWires",
   "author": "Andrew Davison",
   "minimumHEVersion": "2.1.9",
   "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
@@ -7,6 +7,14 @@
   "documentationLink": "https://github.com/birdslikewires/hubitat",
   "dateReleased": "2021-07-30",
   "drivers": [
+    {
+      "id": "cdceaf16-657a-4827-b57a-5eace80bec18",
+      "name": "IKEA Symfonisk Sound Controller E1744",
+      "namespace": "BirdsLikeWires",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller_e1744.groovy",
+      "required": false,
+      "version": "1.00"
+    },
     {
       "id": "683107b8-d0b2-4984-9edc-0ecd1d90ac10",
       "name": "IKEA Trådfri Shortcut Button E1812",
