@@ -56,8 +56,6 @@ def initialize() {
 	// Runs on reboot, or can be triggered manually.
 
 	// Reset states.
-	device.deleteCurrentState("batteryVoltage")
-	device.deleteCurrentState("batteryVoltageWithUnit")
 	state.clear()
 	state.presenceUpdated = 0
 	sendEvent(name: "presence", value: "present", isStateChange: false)
