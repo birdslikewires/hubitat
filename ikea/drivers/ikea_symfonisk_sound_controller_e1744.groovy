@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.01 (5th August 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.02 (10th August 2021)
  *	
  */
 
@@ -160,6 +160,7 @@ void reportToDev(map) {
 void off() {
 
 	sendEvent(name: "switch", value: "off")
+	sendEvent(name: "pushed", value: 1, isStateChange: true)
 	logging("${device} : Switch : Off", "info")
 
 }
@@ -168,6 +169,7 @@ void off() {
 void on() {
 
 	sendEvent(name: "switch", value: "on")
+	sendEvent(name: "pushed", value: 1, isStateChange: true)
 	logging("${device} : Switch : On", "info")
 
 }
