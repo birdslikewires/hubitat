@@ -1,5 +1,9 @@
 # IKEA Trådfri Drivers for Hubitat - Changelog
 
+## 10th August 2021
+
+- Mimic the physical button push when triggered on/off in software, otherwise automations won't run.
+
 ## 5th August 2021
 
 - Added switch on/off for compatibility with Mirror app (E1744).
