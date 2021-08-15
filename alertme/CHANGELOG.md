@@ -1,5 +1,10 @@
 # AlertMe Drivers for Hubitat - Changelog
 
+## 11th August 2021
+
+- Added warning to Button driver regarding 2008 firmware. This firmware was found on two never-used Button devices. On rare occasions during pairing attempts they would respond to the hub with their device details, but would then immediately re-enter pairing mode before eventually timing out.
+- The hope was to add support, but as the pairing is performed by the hub there's little that can be done by the time the driver is brought into the process.
+
 ## 3rd July 2021
 
 - Tweaks to logging timeouts and presence reporting.
