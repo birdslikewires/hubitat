@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.22 (3rd July 2021)
+ *  AlertMe Button Driver v1.23 (11th August 2021)
  *	
  */
 
@@ -34,6 +34,7 @@ metadata {
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Depice", deviceJoinName: "AlertMe Button"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"
 
 	}
 
@@ -51,7 +52,7 @@ preferences {
 
 def installed() {
 	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
+	logging("${device} : Installed", "info")
 }
 
 
@@ -373,6 +374,11 @@ def processMap(Map map) {
 		logging("${device} : Sending Match Descriptor Response", "debug")
 		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
 
+	} else if (map.clusterId == "0013") {
+
+		// Device Announce Message
+		logging("${device} : Device announcement received, not doing anything.", "debug")
+
 	} else if (map.clusterId == "00F0") {
 
 		// Device status cluster.
@@ -610,6 +616,11 @@ def processMap(Map map) {
 			updateDataValue("manufacturer", deviceManufacturer)
 			updateDataValue("model", deviceModel)
 			updateDataValue("firmware", deviceFirmware)
+
+			if (getDataValue("firmware").startsWith("2008")) {
+				logging("${device} : ARGH! EARLY FIRMWARE DETECTED!", "warn")
+				logging("${device} : This button has firmware from 2008 which does not usually respond to the Hubitat join requests. All later firmware works correctly. You may be out of luck with this Button.", "warn")
+			}
 
 		} else {
 
