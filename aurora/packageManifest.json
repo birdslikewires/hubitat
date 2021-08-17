@@ -8,11 +8,11 @@
   "drivers": [
     {
       "id": "64c05eae-8967-4708-adef-49cc8ffbb9ab",
-      "name": "Aurora AU-A1ZB2WDM Dimmer",
+      "name": "Aurora Dimmer AU-A1ZB2WDM",
       "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_a1zb2wdm.groovy",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
       "required": false,
-      "version": "1.01"
+      "version": "1.02"
     }
   ]
 }

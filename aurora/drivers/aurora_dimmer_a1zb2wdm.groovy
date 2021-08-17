@@ -1,13 +1,13 @@
 /*
  * 
- *  Aurora AU-A1ZB2WDM Dimmer v1.01 (16th January 2021)
+ *  Aurora Dimmer AU-A1ZB2WDM Driver v1.02 (18th August 2021)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Aurora AU-A1ZB2WDM Dimmer", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_a1zb2wdm.groovy") {
+	definition (name: "Aurora Dimmer AU-A1ZB2WDM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -18,7 +18,7 @@ metadata {
 		capability "Switch"
 		capability "SwitchLevel"
 
-		fingerprint profileId: "8E63", inClusters: "0000, 0003, 0004, 0005, 0006, 0008", outClusters: "0019", manufacturer: "Aurora", model: "WallDimmerMaster", deviceJoinName: "Aurora AU-A1ZB2WDM Dimmer"
+		fingerprint profileId: "8E63", inClusters: "0000, 0003, 0004, 0005, 0006, 0008", outClusters: "0019", manufacturer: "Aurora", model: "WallDimmerMaster", deviceJoinName: "Aurora Dimmer AU-A1ZB2WDM"
 
 	}
 
