@@ -1,13 +1,13 @@
 /*
  * 
- *  Salus SP600 Smart Plug Driver v1.14 (23rd December 2020)
+ *  Salus Smart Plug SP600 Driver v1.15 (18th August 2021)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Salus SP600 Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_sp600.groovy") {
+	definition (name: "Salus Smart Plug SP600", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_smart_plug_sp600.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -20,7 +20,7 @@ metadata {
 
 		attribute "powerWithUnit", "string"
 
-		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus SP600 Smart Plug"
+		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus Smart Plug SP600"
 
 	}
 
@@ -38,7 +38,7 @@ preferences {
 
 def installed() {
 	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
+	logging("${device} : Installed", "info")
 }
 
 
