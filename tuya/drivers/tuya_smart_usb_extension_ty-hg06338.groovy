@@ -1,13 +1,13 @@
 /*
  * 
- *  Tuya TY-HG06337 Smart Plug Driver v1.01 (2nd January 2021)
+ *  Tuya Smart USB Extension TY-HG06338 Driver v1.05 (18th August 2021)
  *	
  */
 
 
 metadata {
 
-	definition (name: "Tuya TY-HG06337 Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_ty-hg06337.groovy") {
+	definition (name: "Tuya Smart USB Extension TY-HG06338", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_usb_extension_ty-hg06338.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -17,9 +17,7 @@ metadata {
 		capability "Refresh"
 		capability "Switch"
 
-		attribute "powerWithUnit", "string"
-
-		fingerprint profileId: "976B", inClusters: "0000, 0003, 0004, 0005, 0006", outClusters: "0021", manufacturer: "_TZ3000_00mk2xzy", model: "TS011F", deviceJoinName: "Tuya TY-HG06337 Smart Plug"
+		fingerprint profileId: "1251", inClusters: "0000, 0003, 0004, 0005, 0006", outClusters: "0021", manufacturer: "_TZ3000_vmpbygs5", model: "TS011F", deviceJoinName: "Tuya Smart USB Extension TY-HG06338"
 
 	}
 
@@ -37,7 +35,7 @@ preferences {
 
 def installed() {
 	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
+	logging("${device} : Installed", "info")
 }
 
 
@@ -47,11 +45,9 @@ def initialize() {
 	// Runs on reboot, or can be triggered manually.
 
 	// Reset states...
-
 	state.presenceUpdated = 0
 
 	// ...but don't arbitrarily reset the state of the device's main function.
-
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "unknown")
 
@@ -73,7 +69,6 @@ def configure() {
 
 	// Set preferences and ongoing scheduled tasks.
 	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
-
 	initialize()
 	unschedule()
 
@@ -81,6 +76,11 @@ def configure() {
 	device.updateSetting("infoLogging",[value:"true",type:"bool"])
 	device.updateSetting("debugLogging",[value:"false",type:"bool"])
 	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+	// Create child devices.
+	fetchChild("Switch","01")
+	fetchChild("Switch","02")
+	fetchChild("Switch","03")
 
 	// Prepare for scheduling.
 	int checkEveryMinutes 
@@ -110,7 +110,6 @@ def configure() {
 def updated() {
 
 	// Runs whenever preferences are saved.
-
 	loggingStatus()
 	runIn(3600,debugLogOff)
 	runIn(1800,traceLogOff)
@@ -160,16 +159,92 @@ void reportToDev(map) {
 }
 
 
+def fetchChild(String type, String endpoint) {
+
+	// Creates and retrieves child devices matched to endpoints.
+	def cd = getChildDevice("${device.id}-${endpoint}")
+
+	if (endpoint != "null") {
+
+		if (!cd) {
+			logging("${device} : Creating child device $device.id-$endpoint", "debug")
+			cd = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+			if (type == "Switch") {
+				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
+				cd.parse([[name: "switch", value: 'off']])
+			}
+			cd.updateSetting("txtEnable", false)
+		}
+
+		logging("${device} : Retrieving child device $device.id-$endpoint", "debug")
+
+	} else {
+
+		logging("${device} : Received null endpoint for device $device.id", "error")
+
+	}
+
+	return cd
+
+}
+
+
+def fetchChildStates(String state, String requestor) {
+
+	// Retrieves requested states of child devices.
+	def childStates = []
+	def children = getChildDevices()
+
+	children.each { child -> 
+	
+		// Grabs the requested state from the child device.
+		String childState = child.currentValue("${state}")
+
+		// Don't include the requestor's state in the results, as we're likely in the process of updating it.
+		if ("${requestor}" != "${child.id}" ) {
+			childStates.add("${childState}")
+			logging("${device} : fetchChildStates() found $child.id is '$childState'", "debug")
+		}
+
+	}
+
+	return childStates
+
+}
+
+
+void componentRefresh(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentRefresh() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+void componentOn(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentOn() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
+
+}
+
+void componentOff(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentOff() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+
 def off() {
 
-	sendZigbeeCommands(zigbee.off())
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
 
 }
 
 
 def on() {
 
-	sendZigbeeCommands(zigbee.on())
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x01 {}"])
 
 }
 
@@ -177,8 +252,7 @@ def on() {
 def refresh() {
 	
 	logging("${device} : Refreshing", "info")
-	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))
-	sendZigbeeCommands(zigbee.onOffRefresh())
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
 
 }
 
@@ -236,7 +310,7 @@ def parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse : $description", "debug")
+	logging("${device} : parse() : $description", "trace")
 
 	sendEvent(name: "presence", value: "present")
 	updatePresence()
@@ -265,22 +339,32 @@ void processMap(map) {
 
 		// Relay configuration and response handling.
 
-		if (map.command == "01" || map.command == "0A") {
+		if (map.command == "01") {
 
-			// Relay States
-
-			// 01 - Prompted Refresh
-			// 0A - Automated Refresh
+			// Relay States (Refresh)
 
 			if (map.value == "01") {
 
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+
 				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch : On", "info")
+				logging("${device} : Switch ${map.endpoint} : On", "info")
 
 			} else {
 
-				sendEvent(name: "switch", value: "off")
-				logging("${device} : Switch : Off", "info")
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+
+				def currentChildStates = fetchChildStates("switch","${cd.id}")
+				logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+
+				if (currentChildStates.every{it == "off"}) {
+					logging("${device} : All Devices Off", "info")
+					sendEvent(name: "switch", value: "off")
+				}
+
+				logging("${device} : Switch ${map.endpoint} : Off", "info")
 
 			}
 
@@ -290,21 +374,54 @@ void processMap(map) {
 
 			logging("${device} : Relay Configuration : Successful", "info")
 
+		} else if (map.command == "0A") {
 
-		} else if (map.command == "0B") {
+			// Relay States (Local Actuation)
 
-			// Relay State Confirmations?
+			if (map.value == "01") {
 
-			String[] receivedData = map.data
-			def String powerStateHex = receivedData[0]
-
-			if (powerStateHex == "01") {
-
-				sendEvent(name: "switch", value: "on")
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+				refresh()
+				logging("${device} : Local Switch ${map.endpoint} : On", "info")
 
 			} else {
 
-				sendEvent(name: "switch", value: "off")
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+				refresh()
+				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
+
+			}			
+
+		} else if (map.command == "0B") {
+
+			// Relay States (Remote Actuation)
+
+			String[] receivedData = map.data
+			String powerStateHex = receivedData[0]
+
+			if (powerStateHex == "01") {
+
+				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+				sendEvent(name: "switch", value: "on")
+				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
+
+			} else {
+
+				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+
+				def currentChildStates = fetchChildStates("switch","${cd.id}")
+				logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+
+				if (currentChildStates.every{it == "off"}) {
+					logging("${device} : All Devices Off", "info")
+					sendEvent(name: "switch", value: "off")
+				}
+
+				logging("${device} : Switched ${map.sourceEndpoint} : Off", "info")
 
 			}
 
@@ -333,6 +450,10 @@ void processMap(map) {
 	} else if (map.cluster == "8032" || map.clusterId == "8032") {
 
 		logging("${device} : skipping management routing response message : ${map}", "trace")
+
+	} else if (map.cluster == "8034" || map.clusterId == "8034") {
+
+		logging("${device} : skipping management leave response message : ${map}", "trace")
 
 	} else if (map.cluster == "8038" || map.clusterId == "8038") {
 
