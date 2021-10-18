@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.01 (30th July 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.02 (18th October 2021)
  *	
  */
 
@@ -30,6 +30,8 @@ metadata {
 
 }
 
+int reportIntervalSeconds = 7200		// How often should the device report in.
+int presenceTimeoutMinutes = 280		// Allow one missed report with some leeway.
 
 preferences {
 	
@@ -77,13 +79,13 @@ def configure() {
 
 	// Important Bit
 	sendZigbeeCommands(zigbee.onOffConfig())
-	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020, DataType.UINT8, 3600, 3600, 0x00))   // One report every hour, regardless of change.
+	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
 	sendZigbeeCommands(zigbee.enrollResponse())
 
 	// Schedule the presence check.
-	int checkEveryMinutes = 10																					// Check presence timestamp every 10 minutes.						
+	int checkEveryMinutes = 10																// Check presence timestamp every 10 minutes.						
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)									// At X seconds past the minute, every checkEveryMinutes minutes.
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)				// At X seconds past the minute, every checkEveryMinutes minutes.
 
 	// Configuration complete.
 	logging("${device} : Configured", "info")
@@ -196,8 +198,7 @@ def checkPresence() {
 
 	// Check how long ago the presence state was updated.
 
-	presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
-	uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
 	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
 
