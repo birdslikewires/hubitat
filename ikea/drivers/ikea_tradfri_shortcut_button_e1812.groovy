@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.03 (24th October 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.04 (24th October 2021)
  *	
  */
 
@@ -366,6 +366,10 @@ def processMap(Map map) {
 			reportToDev(map)
 
 		}
+
+	} else if (map.clusterId == "0013") {
+
+		logging("${device} : Skipped : Device Announce Broadcast", "debug")
 
 	} else if (map.clusterId == "0500") {
 
