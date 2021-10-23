@@ -1,5 +1,13 @@
 # IKEA Trådfri Drivers for Hubitat - Changelog
 
+## 24th October 2021
+
+- Uncoupled battery state from presence detection.
+
+## 18th October 2021
+
+- Increase reporting interval from every hour to every two hours.
+
 ## 10th August 2021
 
 - Mimic the physical button push when triggered on/off in software, otherwise automations won't run.
