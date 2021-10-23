@@ -3,6 +3,7 @@
 ## 24th October 2021
 
 - Uncoupled battery state from presence detection.
+- Skip device announcement broadcast messages.
 
 ## 18th October 2021
 
