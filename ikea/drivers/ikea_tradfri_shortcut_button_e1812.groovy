@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.02 (18th October 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.03 (24th October 2021)
  *	
  */
 
@@ -200,7 +200,7 @@ def checkPresence() {
 
 	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
-	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
+	if (state.presenceUpdated > 0) {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
@@ -229,11 +229,6 @@ def checkPresence() {
 		}
 
 		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
-
-	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
-
-		sendEvent(name: "presence", value: "not present")
-		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
 
 	} else {
 

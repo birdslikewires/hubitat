@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.02 (10th August 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.03 (24th October 2021)
  *	
  */
 
@@ -35,6 +35,8 @@ metadata {
 
 }
 
+int reportIntervalSeconds = 3600		// How often should the device report in.
+int presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
 
 preferences {
 	
@@ -82,7 +84,7 @@ def configure() {
 
 	// Important Bit
 	sendZigbeeCommands(zigbee.onOffConfig())
-	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, DataType.UINT8, 3600, 3600, 0x00))   // One report every hour, regardless of change.
+	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
 	sendZigbeeCommands(zigbee.enrollResponse())
 
 	// Schedule the presence check.
@@ -247,7 +249,6 @@ def checkPresence() {
 
 	// Check how long ago the presence state was updated.
 
-	presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
 	uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
 	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
