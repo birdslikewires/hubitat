@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.03 (24th October 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.04 (24th October 2021)
  *	
  */
 
@@ -251,7 +251,7 @@ def checkPresence() {
 
 	uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
-	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
+	if (state.presenceUpdated > 0) {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
@@ -280,11 +280,6 @@ def checkPresence() {
 		}
 
 		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
-
-	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
-
-		sendEvent(name: "presence", value: "not present")
-		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
 
 	} else {
 
@@ -385,6 +380,10 @@ def processMap(Map map) {
 	} else if (map.clusterId == "0008") {
 
 		parsePress(map)
+
+	} else if (map.clusterId == "0013") {
+
+		logging("${device} : Skipped : Device Announce Broadcast", "debug")
 
 	} else if (map.clusterId == "0500") {
 
