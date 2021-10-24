@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.04 (24th October 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.05 (24th October 2021)
  *	
  */
 
@@ -29,14 +29,16 @@ metadata {
 		attribute "direction", "string"
 		attribute "levelChange", "integer"
 
+		//command "checkPresence"
+
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "Symfonisk Sound Controller", application: "21"
 
 	}
 
 }
 
-int reportIntervalSeconds = 3600		// How often should the device report in.
-int presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
+@Field int reportIntervalSeconds = 3600		// How often should the device report in.
+@Field int presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
 
 preferences {
 	

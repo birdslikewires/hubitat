@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.04 (24th October 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.05 (24th October 2021)
  *	
  */
 
@@ -24,14 +24,18 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 
+		//command "checkPresence"
+
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "Trådfri Shortcut Button", application: "21"
 
 	}
 
 }
 
-int reportIntervalSeconds = 7200		// How often should the device report in.
-int presenceTimeoutMinutes = 280		// Allow one missed report with some leeway.
+
+@Field int reportIntervalSeconds = 7200		// How often should the device report in.
+@Field int presenceTimeoutMinutes = 280		// Allow one missed report with some leeway.
+
 
 preferences {
 	
