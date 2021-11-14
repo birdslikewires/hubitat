@@ -14,6 +14,14 @@
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/splurge.groovy",
       "required": false,
       "version": "1.03"
+    },
+    {
+      "id": "bb0231d6-9f1c-41dd-99e4-403bdcf37a39",
+      "name": "Virtual Switchable Presence",
+      "namespace": "BirdsLikeWires",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/virtual_switchable_presence.groovy",
+      "required": false,
+      "version": "1.00"
     }
   ]
 }

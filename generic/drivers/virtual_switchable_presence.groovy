@@ -1,6 +1,6 @@
 /*
  * 
- *  Virtual Switchable Presence (14th November 2021)
+ *  Virtual Switchable Presence v1.00 (14th November 2021)
  *	
  */
 
