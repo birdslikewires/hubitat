@@ -1,6 +1,6 @@
 /*
  * 
- *  Virtual Switchable Presence v1.00 (14th November 2021)
+ *  Virtual Switchable Presence v1.01 (22nd November 2021)
  *	
  */
 
@@ -12,6 +12,9 @@ metadata {
 		capability "PresenceSensor"
 		capability "Switch"
 		
+		attribute "statusChanged", "integer"
+		attribute "timeStatusChanged", "string"
+
 	}
 
 }
@@ -117,6 +120,7 @@ def off() {
 
 	sendEvent(name: "presence", value: "not present")
 	sendEvent(name: "switch", value: "off")
+	statusChanged()
 
 }
 
@@ -125,6 +129,17 @@ def on() {
 
 	sendEvent(name: "presence", value: "present")
 	sendEvent(name: "switch", value: "on")
+	statusChanged()
+
+}
+
+
+def statusChanged() {
+
+	long millisNow = new Date().time
+	def dateNow = new Date(millisNow).format('yyyy-MM-dd\'T\'HH:mm:ss').toString()
+	sendEvent(name: "statusChanged", value: millisNow)
+	sendEvent(name: "timeStatusChanged", value: dateNow)
 
 }
 
@@ -136,6 +151,24 @@ def parse(String description) {
 	logging("${device} : Parse : $description", "debug")
 
 }
+
+
+private String[] millisToDhms(BigInteger millisToParse) {
+
+	BigInteger secondsToParse = millisToParse / 1000
+
+	def dhms = []
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 60)
+	secondsToParse = secondsToParse / 60
+	dhms.add(secondsToParse % 24)
+	secondsToParse = secondsToParse / 24
+	dhms.add(secondsToParse % 365)
+	return dhms
+
+}
+
 
 private boolean logging(String message, String level) {
 
