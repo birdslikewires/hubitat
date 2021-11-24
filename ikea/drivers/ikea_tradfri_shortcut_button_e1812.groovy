@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.05 (24th October 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.06 (24th November 2021)
  *	
  */
 
@@ -33,7 +33,7 @@ metadata {
 }
 
 
-@Field int reportIntervalSeconds = 7200		// How often should the device report in.
+@Field int reportIntervalMinutes = 120		// How often should the device report in.
 @Field int presenceTimeoutMinutes = 280		// Allow one missed report with some leeway.
 
 
@@ -83,6 +83,7 @@ def configure() {
 
 	// Important Bit
 	sendZigbeeCommands(zigbee.onOffConfig())
+	int reportIntervalSeconds = reportIntervalMinutes * 60
 	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
 	sendZigbeeCommands(zigbee.enrollResponse())
 
@@ -290,10 +291,10 @@ def processMap(Map map) {
 				return
 			}
 
-			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 10
+			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
 			logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
-			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP)
+			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 10
 
 			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 			sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")

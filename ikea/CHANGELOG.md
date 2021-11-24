@@ -1,4 +1,9 @@
-# IKEA Trådfri Drivers for Hubitat - Changelog
+# IKEA Symfonisk and Trådfri Drivers for Hubitat - Changelog
+
+## 24th November 2021
+
+- Corrected silly error with the battery voltage report, though I don't know if it will ultimately help with the readings.
+- Reporting intervals and presence detection intervals are now specified in minutes.
 
 ## 24th October 2021
 
