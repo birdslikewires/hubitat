@@ -1,10 +1,16 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.06 (24th November 2021)
+ *  IKEA Trådfri Shortcut Button E1812 Driver v1.07 (20th December 2021)
  *	
  */
 
+
 import groovy.transform.Field
+
+@Field boolean debugMode = true
+
+@Field int reportIntervalMinutes = 120		// How often should the device report in.
+
 
 metadata {
 
@@ -24,17 +30,15 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 
-		//command "checkPresence"
+		if (debugMode) {
+			command "checkPresence"
+		}
 
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "Trådfri Shortcut Button", application: "21"
 
 	}
 
 }
-
-
-@Field int reportIntervalMinutes = 120		// How often should the device report in.
-@Field int presenceTimeoutMinutes = 280		// Allow one missed report with some leeway.
 
 
 preferences {
@@ -47,33 +51,15 @@ preferences {
 
 
 def installed() {
-	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
-}
-
-
-def initialize() {
-
-	// Set states to starting values and schedule a single refresh.
-	// Runs on reboot, or can be triggered manually.
-
-	// Reset states.
-	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Initialisation complete.
-	logging("${device} : Initialised", "info")
-
+	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
+	initialize()
 }
 
 
 def configure() {
 
-	// Set preferences and ongoing scheduled tasks.
-	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
-
-	initialize()
 	unschedule()
 
 	// Default logging preferences.
@@ -98,14 +84,31 @@ def configure() {
 }
 
 
-def updated() {
+def initialize() {
 
+	state.clear()
+	state.presenceUpdated = 0
+
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	updated()
+
+	// Initialisation complete.
+	logging("${device} : Initialised", "info")
+
+}
+
+
+def updated() {
 	// Runs whenever preferences are saved.
 
+	if (!debugMode) {
+		runIn(3600,infoLogOff)
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
+	}
+
 	loggingStatus()
-	runIn(3600,infoLogOff)
-	runIn(2400,debugLogOff)
-	runIn(1200,traceLogOff)
 	refresh()
 
 }
@@ -209,7 +212,8 @@ def checkPresence() {
 
 		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
+		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long reportIntervalMillis = reportIntervalMinutes * 60000
 		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
 		BigInteger hubUptime = location.hub.uptime
 
@@ -233,7 +237,8 @@ def checkPresence() {
 
 		}
 
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed}", "trace")
+		logging("${device} : checkPresence() : Report interval is ${reportIntervalMillis} ms, timeout is ${presenceTimeoutMillis} ms.", "trace")
 
 	} else {
 
