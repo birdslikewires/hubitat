@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM Driver v1.00 (20th December 2021)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG07LM Driver v1.00 (21st December 2021)
  *	
  */
 
@@ -13,11 +13,12 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Mini Switch WXKG11LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg11lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Remote Switch WXKG07LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg07lm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
 		capability "DoubleTapableButton"
+		capability "HoldableButton"
 		capability "Initialize"
 		capability "PresenceSensor"
 		capability "PushableButton"
@@ -31,7 +32,7 @@ metadata {
 			command "checkPresence"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LM", application: "03"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0019,FFFF,0012", outClusters: "0000,0004,0003,0005,0019,FFFF,0012", manufacturer: "LUMI", model: "lumi.remote.b286acn02", deviceJoinName: "WXKG07LM", application: "03"
 
 	}
 
@@ -270,32 +271,10 @@ def processMap(Map map) {
 
 	if (map.cluster == "0000") { 
 
-		if (map.attrId == "0005" || map.attrId == "FF01") {
+		if (map.attrId == "FF01") {
 
-			def batteryData = ""
-
-			if (map.attrId == "0005") {
-
-				// Grab battery data triggered by short press of the reset button.
-				batteryData = map.value.split('FF42')[1]
-
-				// Scrounge more value! It's another button, so as these can quad-click we'll call this button five.
-				logging("${device} : Trigger : Button 5 Pressed", "info")
-				sendEvent(name: "pushed", value: 5, isStateChange: true)
-
-			} else {
-
-				// We get data with an attrId of FF01 when pressed more than twice, but only the check-in reports contain battery info.
-				def dataSize = map.value.size()
-
-				if (dataSize > 20) {
-					batteryData = map.value
-				} else {
-					logging("${device} : batteryData : No battery information in this report.", "debug")
-					return
-				}
-				
-			}
+			// No manual trigger for battery reporting here; when we get an FF01 it's only through the check-in reports.
+			def batteryData = map.value		
 
 			// Report the battery voltage and calculated percentage.
 			def batteryVoltageHex = "undefined"
@@ -351,6 +330,18 @@ def processMap(Map map) {
 
 			}
 
+		} else if (map.attrId == "FFF0") {
+
+			// Curious. This one is received about 3 seconds AFTER the "held" message when a button is still being pressed.
+			// The value appears to contain a incrementing counter of some kind; I see values like this:
+			//    09AA100541874B011001
+			//    09AA100541874D011001
+			//    09AA100541874F011001
+			//    09AA1005418751011001
+			//    09AA1005418753011001
+			// Answers on a postcard, please! ;)
+			logging("${device} : processMap : Skipping unknown report with value ${map.value}", "debug")
+
 		} else {
 
 			// Not a clue what we've received.
@@ -358,20 +349,28 @@ def processMap(Map map) {
 
 		}
 
-	} else if (map.cluster == "0006") { 
+	} else if (map.cluster == "0012") { 
 
 		// Here we handle the button presses.
 
-		int buttonNumber = map.value[-1..-1].toInteger()
-		buttonNumber = buttonNumber == 0 ? 1 : buttonNumber
+		int buttonNumber = map.endpoint[-1..-1].toInteger()
 
-		if (buttonNumber == 2) {
-			logging("${device} : Trigger : Button 1 Double Tapped", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+		if (map.value == "0100") {
+
+			logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+			sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+
+		} else if (map.value == "0200") {
+
+			logging("${device} : Trigger : Button ${buttonNumber} Double Tapped", "info")
+			sendEvent(name: "doubleTapped", value: buttonNumber, isStateChange: true)
+
+		} else if (map.value == "0000") {
+
+			logging("${device} : Trigger : Button ${buttonNumber} Held", "info")
+			sendEvent(name: "held", value: buttonNumber, isStateChange: true)
+
 		}
-
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
-		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 	} else {
 
