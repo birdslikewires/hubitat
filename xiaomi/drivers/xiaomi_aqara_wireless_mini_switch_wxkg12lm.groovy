@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM Driver v1.00 (20th December 2021)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG12LM Driver v1.00 (21st December 2021)
  *	
  */
 
@@ -13,26 +13,31 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Mini Switch WXKG11LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg11lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Mini Switch WXKG12LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg12lm.groovy") {
 
+		capability "AccelerationSensor"
 		capability "Battery"
 		capability "Configuration"
 		capability "DoubleTapableButton"
+		capability "HoldableButton"
 		capability "Initialize"
 		capability "PresenceSensor"
 		capability "PushableButton"
+		capability "ReleasableButton"
+		capability "SwitchLevel"
 		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
+		attribute "temperatureWithUnit", "string"
 
 		if (debugMode) {
 			command "checkPresence"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LM", application: "03"
+		fingerprint profileId: "0104", inClusters: "0000,0012,0006,0001", outClusters: "0000", manufacturer: "LUMI", model: "lumi.sensor_swit", deviceJoinName: "WXKG12LM", application: "05"
 
 	}
 
@@ -83,6 +88,8 @@ def initialize() {
 	state.clear()
 	state.presenceUpdated = 0
 
+	sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
+	sendEvent(name: "level", value: 0, isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
 	updated()
@@ -166,6 +173,48 @@ void doubleTap(buttonId) {
 	
 	sendEvent(name:"doubleTapped", value: buttonId, isStateChange:true)
 	
+}
+
+
+void hold(buttonId) {
+	
+	sendEvent(name:"held", value: buttonId, isStateChange:true)
+	
+}
+
+
+void release(buttonId) {
+	
+	sendEvent(name:"released", value: buttonId, isStateChange:true)
+	
+}
+
+
+void setLevel(BigDecimal level) {
+	setLevel(level,1)
+}
+
+
+void setLevel(BigDecimal level, BigDecimal duration) {
+
+	BigDecimal safeLevel = level <= 100 ? level : 100
+	safeLevel = safeLevel < 0 ? 0 : safeLevel
+
+	String hexLevel = percentageToHex(safeLevel.intValue())
+
+	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+	String hexDuration = Integer.toHexString(safeDuration.intValue())
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+
+	sendEvent(name: "level", value: "${safeLevel}")
+
+}
+
+
+void accelerationInactive() {
+	sendEvent(name: "acceleration", value: "inactive", isStateChange: true)
 }
 
 
@@ -370,20 +419,60 @@ def processMap(Map map) {
 
 		}
 
-	} else if (map.cluster == "0006") { 
+} else if (map.cluster == "0012") { 
 
-		// Here we handle the button presses.
+		// Here we handle button presses and holds.
 
-		int buttonNumber = map.value[-1..-1].toInteger()
-		buttonNumber = buttonNumber == 0 ? 1 : buttonNumber
+		if (map.value == "0100") {
 
-		if (buttonNumber == 2) {
-			logging("${device} : Trigger : Button 1 Double Tapped", "info")
+			logging("${device} : Trigger : Button Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+
+		} else if (map.value == "0200") {
+
+			logging("${device} : Trigger : Button Double Tapped", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
-		}
+			sendEvent(name: "pushed", value: 2, isStateChange: true)
 
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
-		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
+		} else if (map.value == "1000") {
+
+			state.changeLevelStart = now()
+			logging("${device} : Trigger : Button Held", "info")
+			sendEvent(name: "held", value: 1, isStateChange: true)
+			sendEvent(name: "pushed", value: 3, isStateChange: true)
+
+		} else if (map.value == "1100") {
+
+			logging("${device} : Trigger : Button Released", "info")
+			sendEvent(name: "released", value: 1, isStateChange: true)
+			sendEvent(name: "pushed", value: 4, isStateChange: true)
+
+			// Now work out the level we should report based upon the hold duration.
+
+			long millisHeld = now() - state.changeLevelStart
+			if (millisHeld > 6000) {
+				millisHeld = 0				// In case we don't receive a 'released' message.
+			}
+
+			BigInteger levelChange = 0
+			levelChange = millisHeld / 6000 * 140
+			// That multiplier above is arbitrary - it was 100, but has been increased to account for the delay in detecting hold mode.
+
+			BigDecimal secondsHeld = millisHeld / 1000
+			secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
+
+			logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
+
+			setLevel(levelChange)
+
+		} else if (map.value == "1200") {
+
+			logging("${device} : Trigger : Button Shaken", "info")
+			sendEvent(name: "acceleration", value: "active", isStateChange: true)
+			sendEvent(name: "pushed", value: 6, isStateChange: true)
+			runIn(4,accelerationInactive)
+
+		}
 
 	} else {
 
@@ -420,6 +509,24 @@ private String[] millisToDhms(int millisToParse) {
 	secondsToParse = secondsToParse / 24
 	dhms.add(secondsToParse % 365)
 	return dhms
+
+}
+
+
+private String percentageToHex(Integer pc) {
+
+	BigDecimal safePc = pc > 0 ? (pc*2.55) : 0
+	safePc = safePc > 255 ? 255 : safePc
+	return Integer.toHexString(safePc.intValue())
+
+}
+
+
+private Integer hexToPercentage(String hex) {
+
+	String safeHex = hex.take(2)
+    Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
+	return pc / 2.55
 
 }
 

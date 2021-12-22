@@ -7,7 +7,7 @@
 
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 
 @Field int reportIntervalMinutes = 50		// How often the device should be reporting in.
 
@@ -32,7 +32,7 @@ metadata {
 			command "checkPresence"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0019,FFFF,0012", outClusters: "0000,0004,0003,0005,0019,FFFF,0012", manufacturer: "LUMI", model: "lumi.remote.b286acn02", deviceJoinName: "WXKG07LM", application: "03"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0019,FFFF,0012", outClusters: "0000,0004,0003,0005,0019,FFFF,0012", manufacturer: "LUMI", model: "lumi.remote.b286acn02", deviceJoinName: "WXKG07LM", application: "09"
 
 	}
 
@@ -97,7 +97,7 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	if (!debugMode) {
-		runIn(3600,infoLogOff)
+		//runIn(3600,infoLogOff)	// These devices are so quiet I think we can live without this.
 		runIn(2400,debugLogOff)
 		runIn(1200,traceLogOff)
 	}
@@ -274,13 +274,13 @@ def processMap(Map map) {
 		if (map.attrId == "FF01") {
 
 			// No manual trigger for battery reporting here; when we get an FF01 it's only through the check-in reports.
-			def batteryData = map.value		
+			def deviceData = map.value		
 
 			// Report the battery voltage and calculated percentage.
 			def batteryVoltageHex = "undefined"
 			BigDecimal batteryVoltage = 0
 
-			batteryVoltageHex = batteryData[8..9] + batteryData[6..7]
+			batteryVoltageHex = deviceData[8..9] + deviceData[6..7]
 			logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
 
 			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
