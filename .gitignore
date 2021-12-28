@@ -1,2 +1,4 @@
 .DS_Store
 generic/drivers/virtual_ups.groovy
+samotech/drivers/samotech_sm-308.groovy
+samotech/CHANGELOG.md
