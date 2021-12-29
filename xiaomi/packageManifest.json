@@ -21,7 +21,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg11lm.groovy",
       "required": false,
-      "version": "1.00"
+      "version": "1.01"
     },
     {
       "id": "3cb6a1f1-a3e3-4d9d-9688-384151e1cb67",
@@ -29,7 +29,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg12lm.groovy",
       "required": false,
-      "version": "1.00"
+      "version": "1.01"
     },
     {
       "id": "380679c8-c0a7-4dcf-b32a-d90647ff8bd9",

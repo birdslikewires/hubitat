@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG12LM Driver v1.00 (21st December 2021)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG12LM Driver v1.01 (29th December 2021)
  *	
  */
 
@@ -31,7 +31,7 @@ metadata {
 		attribute "batteryVoltage", "string"
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
-		attribute "temperatureWithUnit", "string"
+		//attribute "temperatureWithUnit", "string"
 
 		if (debugMode) {
 			command "checkPresence"
