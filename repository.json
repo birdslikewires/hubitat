@@ -81,6 +81,19 @@
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/packageManifest.json",
       "description": "Drivers for devices based on the Tuya platform."
+    },
+    {
+      "id": "def56a54-9e7c-4f7a-8c5b-71f35207499e",
+      "name": "Xiaomi Aqara Drivers from BirdsLikeWires",
+      "category": "Control",
+      "tags": [
+        "Buttons",
+        "Lights & Switches",
+        "Temperature & Humidity",
+        "Zigbee"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/packageManifest.json",
+      "description": "Drivers for Xiaomi Aqara devices."
     }
   ]
 }
