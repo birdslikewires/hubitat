@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 31st December 2021
+
+- Initial driver for the GZCGQ01LM light sensor.
+
 ## 28th December 2021
 
 - Initial driver for the WSDCGQ11LM temperature and humidity sensor.
