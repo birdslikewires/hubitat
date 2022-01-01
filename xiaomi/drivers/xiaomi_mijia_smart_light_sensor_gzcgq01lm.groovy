@@ -1,13 +1,13 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.00 (31st December 2021)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.01 (31st December 2021)
  *	
  */
 
 
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 
 @Field int reportIntervalMinutes = 60		// How often the device should be reporting in.
 
@@ -32,7 +32,6 @@ metadata {
 
 		if (debugMode) {
 			command "checkPresence"
-			command "parseThis"
 		}
 
 		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM", application: "1A"
@@ -86,6 +85,7 @@ def initialize() {
 
 	state.clear()
 	state.presenceUpdated = 0
+	state.rawLux = 0
 
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
@@ -101,7 +101,7 @@ def updated() {
 	// Runs whenever preferences are saved.
 
 	if (!debugMode) {
-		//runIn(3600,infoLogOff)	// These devices are so quiet I think we can live without this.
+		runIn(3600,infoLogOff)
 		runIn(2400,debugLogOff)
 		runIn(1200,traceLogOff)
 	}
@@ -348,6 +348,8 @@ def processMap(Map map) {
 		} 
 
 	} else if (map.cluster == "0400") {
+
+		// Illuminance data received.
 
 		Integer lux = Integer.parseInt(map.value,16)
 		Integer luxTolerance = 200
