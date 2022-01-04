@@ -38,6 +38,14 @@
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg07lm.groovy",
       "required": false,
       "version": "1.00"
+    },
+    {
+      "id": "a45a2a70-3a59-49e8-bbf4-f84dd5a3a9f6",
+      "name": "Xiaomi Mijia Smart Light Sensor GZCGQ01LM",
+      "namespace": "BirdsLikeWires",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor_gzcgq01lm.groovy",
+      "required": false,
+      "version": "1.01"
     }
   ]
 }
