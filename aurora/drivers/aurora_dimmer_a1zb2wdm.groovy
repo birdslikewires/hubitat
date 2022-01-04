@@ -86,8 +86,23 @@ def configure() {
 	// Configuration complete.
 	logging("${device} : Configured", "info")
 
+	updated()
 	initialize()
 	
+}
+
+
+def updated() {
+	// Runs whenever preferences are saved.
+
+	if (!debugMode) {
+		//runIn(3600,infoLogOff)	// These devices are so quiet I think we can live without this.
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
+	}
+
+	loggingStatus()
+
 }
 
 
@@ -118,20 +133,6 @@ def refresh() {
 		"he rattr 0x${device.deviceNetworkId} 0x03 0x0006 0x0000 {}"
 	])
 	//sendZigbeeCommands(zigbee.onOffRefresh())  // Doesn't include the level or indicator status.
-
-}
-
-
-def updated() {
-	// Runs whenever preferences are saved.
-
-	if (!debugMode) {
-		//runIn(3600,infoLogOff)	// These devices are so quiet I think we can live without this.
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	loggingStatus()
 
 }
 
