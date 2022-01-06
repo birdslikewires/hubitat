@@ -32,6 +32,7 @@ metadata {
 
 		if (debugMode) {
 			command "checkPresence"
+			command "testCommand"
 		}
 
 		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM", application: "1A"
@@ -48,6 +49,13 @@ preferences {
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true
 	
+}
+
+
+def testCommand() {
+
+	logging("${device} : Test Command", "info")
+
 }
 
 
