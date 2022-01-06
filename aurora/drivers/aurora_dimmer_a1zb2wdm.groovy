@@ -8,8 +8,8 @@
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-
 @Field int reportIntervalMinutes = 10
+
 
 metadata {
 
