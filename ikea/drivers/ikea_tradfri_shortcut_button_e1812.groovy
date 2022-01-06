@@ -7,9 +7,8 @@
 
 import groovy.transform.Field
 
-@Field boolean debugMode = true
-
-@Field int reportIntervalMinutes = 120		// How often should the device report in.
+@Field boolean debugMode = false
+@Field int reportIntervalMinutes = 120
 
 
 metadata {
