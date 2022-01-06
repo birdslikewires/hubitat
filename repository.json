@@ -48,14 +48,14 @@
     },
     {
       "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
-      "name": "IKEA Symfonisk and Trådfri Drivers from BirdsLikeWires",
+      "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
       "category": "Control",
       "tags": [
         "Buttons",
         "Zigbee"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/packageManifest.json",
-      "description": "Drivers for IKEA Trådfri devices."
+      "description": "Drivers for IKEA Tradfri devices."
     },
     {
       "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",
@@ -84,7 +84,7 @@
     },
     {
       "id": "def56a54-9e7c-4f7a-8c5b-71f35207499e",
-      "name": "Xiaomi Aqara Drivers from BirdsLikeWires",
+      "name": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
       "category": "Control",
       "tags": [
         "Buttons",
@@ -93,7 +93,7 @@
         "Zigbee"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/packageManifest.json",
-      "description": "Drivers for Xiaomi Aqara devices."
+      "description": "Drivers for Xiaomi Aqara and Mijia devices."
     }
   ]
 }

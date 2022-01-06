@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Signal Repeater E1746 Driver v1.00 (5th January 2022)
+ *  IKEA Tradfri Signal Repeater E1746 Driver v1.01 (6th January 2022)
  *	
  */
 
@@ -13,7 +13,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Trådfri Signal Repeater E1746", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy") {
+	definition (name: "IKEA Tradfri Signal Repeater E1746", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy") {
 
 		capability "Configuration"
 		capability "Initialize"
@@ -25,7 +25,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0009,0B05,1000,FC7C", outClusters: "0019,0020,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI signal repeater", deviceJoinName: "Trådfri Signal Repeater", application: "20"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0009,0B05,1000,FC7C", outClusters: "0019,0020,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI signal repeater", deviceJoinName: "Tradfri Signal Repeater", application: "20"
 
 	}
 

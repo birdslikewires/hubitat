@@ -1,5 +1,10 @@
 # IKEA Symfonisk and Trådfri Drivers for Hubitat - Changelog
 
+## 6th January 2022
+
+- The å character was making it tricky for people to find the driver, so I have relented.
+- The removeDataValue() function was introduced with HE v2.2.1, so that's our new minimum.
+
 ## 20th December 2021
 
 - Calculate the device presence timeout threshold automatically.

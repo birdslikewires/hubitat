@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Trådfri Shortcut Button E1812 Driver v1.07 (20th December 2021)
+ *  IKEA Tradfri Shortcut Button E1812 Driver v1.08 (6th January 2022)
  *	
  */
 
@@ -14,7 +14,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Trådfri Shortcut Button E1812", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy") {
+	definition (name: "IKEA Tradfri Shortcut Button E1812", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -34,7 +34,7 @@ metadata {
 			command "checkPresence"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "Trådfri Shortcut Button", application: "21"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "Tradfri Shortcut Button", application: "21"
 
 	}
 
