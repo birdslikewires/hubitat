@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.00 (28th December 2021)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.01 (28th December 2021)
  *	
  */
 
@@ -32,6 +32,8 @@ metadata {
 		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 		attribute "humidityWithUnit", "string"
+		attribute "pressureDirection", "string"
+		//attribute "pressurePrevious", "string"
 		attribute "pressureWithUnit", "string"
 		attribute "temperatureWithUnit", "string"
 
@@ -387,9 +389,21 @@ def processMap(Map map) {
 		BigDecimal pressure = hexStrToSignedInt(pressureFlippedHex)
 		pressure = pressure.setScale(1, BigDecimal.ROUND_HALF_UP) / 10
 
+		BigDecimal lastPressure = device.currentState("pressure").value.toBigDecimal()
+
+		////////// WORK TO DO - RECORD PREVIOUS PRESSURE AS LASTPRESSURE IF PRESSURE HAS CHANGED OR SOMETHING - TOO TIRED!
+
+		// BigDecimal pressurePrevious = device.currentState("pressurePrevious").value.toBigDecimal()
+		// if (pressurePrevious != null && pressure != lastPressure) {
+		// 	endEvent(name: "pressurePrevious", value: lastPressure, unit: "kPa")
+		// } else if 
+
+		String pressureDirection = pressure > lastPressure ? "rising" : "falling"
+
 		logging("${device} : pressure : ${pressure} from hex value ${pressureFlippedHex} flipped from ${map.value}", "trace")
 		logging("${device} : Pressure : ${pressure} kPa", "info")
 		sendEvent(name: "pressure", value: pressure, unit: "kPa")
+		sendEvent(name: "pressureDirection", value: "${pressureDirection}")
 		sendEvent(name: "pressureWithUnit", value: "${pressure} kPa")
 
 	} else if (map.cluster == "0405") { 
