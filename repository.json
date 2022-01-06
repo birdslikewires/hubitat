@@ -71,6 +71,18 @@
       "description": "Drivers for Salus devices."
     },
     {
+      "id": "615188d1-ee93-4d05-a087-db592cfb1463",
+      "name": "Samotech Drivers from BirdsLikeWires",
+      "category": "Control",
+      "tags": [
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/packageManifest.json",
+      "description": "Drivers for Samotech devices."
+    },
+    {
       "id": "6abb75c5-fbaf-42b6-a065-a92c25455a21",
       "name": "Tuya Drivers from BirdsLikeWires",
       "category": "Control",
