@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech SM308 Series Driver v1.00 (6th January 2022)
+ *  Samotech SM308 Series Driver v1.01 (6th January 2022)
  *	
  */
 
@@ -239,6 +239,10 @@ void processMap(Map map) {
 	} else if (map.clusterId == "8004") {
 		
 		processDescriptors(map)
+
+	} else if (map.cluster == "8038" || map.clusterId == "8038") {
+
+		logging("${device} : Skipping management network update notify message.", "debug")
 
 	} else if (map.cluster == "0000") {
 
