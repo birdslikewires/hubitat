@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.02 (7th January 2022)
+ *  Samotech Switch SM308 Driver v1.03 (7th January 2022)
  *	
  */
 
@@ -73,6 +73,7 @@ def installed() {
 
 def configure() {
 
+	// Tidy up.
 	unschedule()
 
 	state.clear()
@@ -81,7 +82,7 @@ def configure() {
 	sendEvent(name: "mode", value: "static", isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
-	// Default preferences.
+	// Set default preferences.
 	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
 	device.updateSetting("flashRate", [value: 1000, type: "number"])
 	device.updateSetting("flashRelays", [value: "", type: "enum"])
@@ -109,12 +110,15 @@ def configure() {
 		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 	])
 
-	if ("${getDeviceDataByName('model')}" == "SM308-2CH") {
+	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
 
+	if (state.relayCount > 1) {
 		// Create child devices.
-		fetchChild("Switch","01")
-		fetchChild("Switch","02")
-
+		for (int i = 1; i == state.relayCount; i++) {
+			fetchChild("Switch","0$i")
+		}
+	} else {
+		deleteChildren()
 	}
 
 	sendEvent(name: "configuration", value: "success", isStateChange: false)
@@ -255,23 +259,33 @@ void processMap(map) {
 
 			if (map.value == "00") {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"off"]])
+				if (state.relayCount > 1) {
 
-				def currentChildStates = fetchChildStates("switch","${cd.id}")
-				logging("${device} : currentChildStates : ${cd.id} ${currentChildStates}", "debug")
+					def childDevice = fetchChild("Switch", "${map.endpoint}")
+					childDevice.parse([[name:"switch", value:"off"]])
 
-				if (currentChildStates.every{it == "off"}) {
-					logging("${device} : All Devices Off", "info")
+					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					logging("${device} : currentChildStates : ${childDevice.id} ${currentChildStates}", "debug")
+
+					if (currentChildStates.every{it == "off"}) {
+						logging("${device} : Switch : All Off", "info")
+						sendEvent(name: "switch", value: "off")
+					}
+
+				} else {
+
 					sendEvent(name: "switch", value: "off")
+
 				}
 
 				logging("${device} : Switch ${map.endpoint} : Off", "info")
 
 			} else {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"on"]])
+				if (state.relayCount > 1) {
+					def childDevice = fetchChild("Switch", "${map.endpoint}")
+					childDevice.parse([[name:"switch", value:"on"]])
+				}
 
 				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switch ${map.endpoint} : On", "info")
@@ -286,46 +300,43 @@ void processMap(map) {
 		} else if (map.command == "0A") {
 			// Relay States (Local Actuation)
 
-			if (map.value == "01") {
-
-				def cd = fetchChild("Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"on"]])
-				refresh()
-				logging("${device} : Local Switch ${map.endpoint} : On", "info")
-
-			} else {
-
-				def cd = fetchChild("Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"off"]])
-				refresh()
-				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
-
-			}			
+			reportToDev(map)	// There's no way to control these modules locally. This message would be weird.
 
 		} else if (map.command == "0B") {
 			// Relay States (Remote Actuation)
 
-			if (map.data[0] == "01") {
+			if (map.data[0] == "00") {
 
-				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
-				cd.parse([[name:"switch", value:"on"]])
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
+				if (state.relayCount > 1) {
 
-			} else {
+					def childDevice = fetchChild("Switch", "${map.sourceEndpoint}")
+					childDevice.parse([[name:"switch", value:"off"]])
 
-				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
-				cd.parse([[name:"switch", value:"off"]])
+					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
 
-				def currentChildStates = fetchChildStates("switch","${cd.id}")
-				logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+					if (currentChildStates.every{it == "off"}) {
+						logging("${device} : All Devices Off", "info")
+						sendEvent(name: "switch", value: "off")
+					}
 
-				if (currentChildStates.every{it == "off"}) {
-					logging("${device} : All Devices Off", "info")
+				} else {
+
 					sendEvent(name: "switch", value: "off")
+
 				}
 
 				logging("${device} : Switched ${map.sourceEndpoint} : Off", "info")
+
+			} else {
+
+				if (state.relayCount > 1) {
+					def childDevice = fetchChild("Switch", "${map.sourceEndpoint}")
+					childDevice.parse([[name:"switch", value:"on"]])
+				}
+
+				sendEvent(name: "switch", value: "on")
+				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
 
 			}
 
@@ -393,20 +404,31 @@ void sendZigbeeCommands(List<String> cmds) {
 
 
 def fetchChild(String type, String endpoint) {
-
 	// Creates and retrieves child devices matched to endpoints.
-	def cd = getChildDevice("${device.id}-${endpoint}")
+
+	def childDevice = getChildDevice("${device.id}-${endpoint}")
 
 	if (endpoint != "null") {
 
-		if (!cd) {
+		if (!childDevice) {
+
 			logging("${device} : Creating child device $device.id-$endpoint", "debug")
-			cd = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+
+			childDevice = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+
 			if (type == "Switch") {
+
 				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
-				cd.parse([[name: "switch", value: 'off']])
+				childDevice.parse([[name: "switch", value: 'off']])
+
+			} else {
+
+				logging("${device} : fetchChild() : I don't know what to do with the '$type' device type.", "error")
+
 			}
-			cd.updateSetting("txtEnable", false)
+
+			childDevice.updateSetting("txtEnable", false)
+
 		}
 
 		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
@@ -417,20 +439,20 @@ def fetchChild(String type, String endpoint) {
 
 	}
 
-	return cd
+	return childDevice
 
 }
 
 
 def fetchChildStates(String state, String requestor) {
-
-	logging("${device} : fetchChildStates() got call from $requestor", "debug")
-
 	// Retrieves requested states of child devices.
+
+	logging("${device} : fetchChildStates() : Called by $requestor", "debug")
+
 	def childStates = []
 	def children = getChildDevices()
 
-	children.each { child ->
+	children.each {child->
 
 		// Give things a chance!
 		pauseExecution(100)
@@ -438,10 +460,10 @@ def fetchChildStates(String state, String requestor) {
 		// Grabs the requested state from the child device.
 		String childState = child.currentValue("${state}")
 
-		// Don't include the requestor's state in the results, as we're likely in the process of updating it.
-		if ("${requestor}" != "${child.id}" ) {
+		if ("${child.id}" != "${requestor}") {
+			// Don't include the requestor's state in the results, as we're likely in the process of updating it.
 			childStates.add("${childState}")
-			logging("${device} : fetchChildStates() found $child.id is '$childState'", "debug")
+			logging("${device} : fetchChildStates() : Found $child.id is '$childState'", "debug")
 		}
 
 	}
@@ -451,26 +473,39 @@ def fetchChildStates(String state, String requestor) {
 }
 
 
-void componentRefresh(com.hubitat.app.DeviceWrapper cd) {
+def deleteChildren() {
+	// Deletes children we may have created.
 
-	logging("componentRefresh() from $cd.deviceNetworkId", "debug")
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+	logging("${device} : deleteChildren() : Deleting rogue children.", "debug")
 
-}
-
-
-void componentOn(com.hubitat.app.DeviceWrapper cd) {
-
-	logging("componentOn() from $cd.deviceNetworkId", "debug")
-	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
+	def children = getChildDevices()
+    children.each {child->
+  		deleteChildDevice(child.deviceNetworkId)
+    }
 
 }
 
 
-void componentOff(com.hubitat.app.DeviceWrapper cd) {
+void componentRefresh(com.hubitat.app.DeviceWrapper childDevice) {
 
-	logging("componentOff() from $cd.deviceNetworkId", "debug")
-	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+	logging("componentRefresh() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+
+void componentOn(com.hubitat.app.DeviceWrapper childDevice) {
+
+	logging("componentOn() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
+
+}
+
+
+void componentOff(com.hubitat.app.DeviceWrapper childDevice) {
+
+	logging("componentOff() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
 
 }
 
