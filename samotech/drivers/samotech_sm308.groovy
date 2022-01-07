@@ -1,22 +1,21 @@
 /*
  * 
- *  Samotech SM308 Series Driver v1.01 (6th January 2022)
+ *  Samotech Switch SM308 Driver v1.02 (7th January 2022)
  *	
  */
 
 
 import groovy.transform.Field
 
-@Field boolean debugMode = false
+@Field boolean debugMode = true
 @Field int reportIntervalMinutes = 10
 
 
 metadata {
 
-	definition (name: "Samotech SM308 Series", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/samotech_sm308.groovy") {
+	definition (name: "Samotech Switch SM308", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/samotech_switch_sm308.groovy") {
 
 		capability "Actuator"
-
 		capability "Configuration"
 		capability "PresenceSensor"
 		capability "Refresh"
@@ -33,6 +32,7 @@ metadata {
 
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "Samotech SM308", application: "00"
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "Samotech SM308-S", application: "00"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "Samotech SM308-2CH", application: "00"
 
 	}
 
@@ -43,10 +43,15 @@ preferences {
 	
 	input name: "flashEnabled", type: "bool", title: "Enable flash", defaultValue: false
 	input name: "flashRate", type: "number", title: "Flash rate (ms)", range: "500..5000", defaultValue: 1000
+
+	if ("${getDeviceDataByName('model')}" == "SM308-2CH") {
+		input name: "flashRelays", type: "enum", title: "Flash relay", options:[["FF":"Both"],["01":"Relay 1"],["02":"Relay 2"]]
+	}
+
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
-	
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false	
+
 }
 
 
@@ -79,6 +84,7 @@ def configure() {
 	// Default preferences.
 	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
 	device.updateSetting("flashRate", [value: 1000, type: "number"])
+	device.updateSetting("flashRelays", [value: "", type: "enum"])
 	device.updateSetting("infoLogging", [value: "true", type: "bool"])
 	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
 	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
@@ -103,6 +109,15 @@ def configure() {
 		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 	])
 
+	if ("${getDeviceDataByName('model')}" == "SM308-2CH") {
+
+		// Create child devices.
+		fetchChild("Switch","01")
+		fetchChild("Switch","02")
+
+	}
+
+	sendEvent(name: "configuration", value: "success", isStateChange: false)
 	logging("${device} : Configured", "info")
 
 	updated()
@@ -130,7 +145,7 @@ def updated() {
 
 void refresh() {
 
-	sendZigbeeCommands(zigbee.onOffRefresh())
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
 	logging("${device} : Refreshed", "info")
 
 }
@@ -138,7 +153,7 @@ void refresh() {
 
 void off() {
 
-	sendZigbeeCommands(zigbee.off())
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
 	sendEvent(name: "mode", value: "static")
 
 }
@@ -146,7 +161,7 @@ void off() {
 
 void on() {
 
-	sendZigbeeCommands(zigbee.on())
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x01 {}"])
 	sendEvent(name: "mode", value: "static")
 
 }
@@ -156,6 +171,11 @@ void flash() {
 
 	if (!flashEnabled) {
 		logging("${device} : Flash : Disabled", "warn")
+		return
+	}
+
+	if (!flashRelays && "${getDeviceDataByName('model')}" == "SM308-2CH") {
+		logging("${device} : Flash : No relay chosen in preferences.", "warn")
 		return
 	}
 
@@ -174,9 +194,14 @@ void flashOn() {
 
     if (mode != "flashing") return
     runInMillis((flashRate ?: 1000).toInteger(), flashOff)
-    sendZigbeeCommands(zigbee.on())
+
+	String flashEndpoint = "FF"
+	if (flashRelays) flashEndpoint = flashRelays
+
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${flashEndpoint} 0x0006 0x01 {}"])
 
 }
+
 
 void flashOff() {
 
@@ -185,7 +210,11 @@ void flashOff() {
 
     if (mode != "flashing") return
 	runInMillis((flashRate ?: 1000).toInteger(), flashOn)
-    sendZigbeeCommands(zigbee.off())
+
+	String flashEndpoint = "FF"
+	if (flashRelays) flashEndpoint = flashRelays
+
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${flashEndpoint} 0x0006 0x00 {}"])
 
 }
 
@@ -213,32 +242,126 @@ def parse(String description) {
 }
 
 
-void processMap(Map map) {
+void processMap(map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
-	if (map.cluster == "0006") {
-		// Received on/off cluster.
-	
-		if (map.value == "00") {
+	if (map.cluster == "0006" || map.clusterId == "0006") {
+		// Relay configuration and response handling.
+		// State confirmation and command receipts.
 
-			sendEvent(name: "switch", value: "off")
-			logging("${device} : Switch : Off", "info")
+		if (map.command == "01") {
+			// Relay States (Refresh)
+
+			if (map.value == "00") {
+
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+
+				def currentChildStates = fetchChildStates("switch","${cd.id}")
+				logging("${device} : currentChildStates : ${cd.id} ${currentChildStates}", "debug")
+
+				if (currentChildStates.every{it == "off"}) {
+					logging("${device} : All Devices Off", "info")
+					sendEvent(name: "switch", value: "off")
+				}
+
+				logging("${device} : Switch ${map.endpoint} : Off", "info")
+
+			} else {
+
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+
+				sendEvent(name: "switch", value: "on")
+				logging("${device} : Switch ${map.endpoint} : On", "info")
+
+			}
+
+		} else if (map.command == "07") {
+			// Relay Configuration
+
+			logging("${device} : Relay Configuration : Successful", "info")
+
+		} else if (map.command == "0A") {
+			// Relay States (Local Actuation)
+
+			if (map.value == "01") {
+
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+				refresh()
+				logging("${device} : Local Switch ${map.endpoint} : On", "info")
+
+			} else {
+
+				def cd = fetchChild("Switch", "${map.endpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+				refresh()
+				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
+
+			}			
+
+		} else if (map.command == "0B") {
+			// Relay States (Remote Actuation)
+
+			if (map.data[0] == "01") {
+
+				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				cd.parse([[name:"switch", value:"on"]])
+				sendEvent(name: "switch", value: "on")
+				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
+
+			} else {
+
+				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				cd.parse([[name:"switch", value:"off"]])
+
+				def currentChildStates = fetchChildStates("switch","${cd.id}")
+				logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+
+				if (currentChildStates.every{it == "off"}) {
+					logging("${device} : All Devices Off", "info")
+					sendEvent(name: "switch", value: "off")
+				}
+
+				logging("${device} : Switched ${map.sourceEndpoint} : Off", "info")
+
+			}
+
+		} else if (map.command == "00") {
+
+			logging("${device} : skipping state counter message : ${map}", "trace")
 
 		} else {
 
-			sendEvent(name: "switch", value: "on")
-			logging("${device} : Switch : On", "info")
+			reportToDev(map)
 
 		}
 
-	} else if (map.clusterId == "0006") {
+	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
-		logging("${device} : Skipping command confirmation message, waiting for status report.", "debug")
+		logging("${device} : skipping power messaging (unsupported in hardware) : ${map}", "trace")
+
+	} else if (map.cluster == "8001" || map.clusterId == "8001") {
+
+		logging("${device} : skipping network address response message : ${map}", "trace")
 
 	} else if (map.clusterId == "8004") {
 		
 		processDescriptors(map)
+
+	} else if (map.cluster == "8021" || map.clusterId == "8021") {
+
+		logging("${device} : skipping discovery message : ${map}", "trace")
+
+	} else if (map.cluster == "8032" || map.clusterId == "8032") {
+
+		logging("${device} : skipping management routing response message : ${map}", "trace")
+
+	} else if (map.cluster == "8034" || map.clusterId == "8034") {
+
+		logging("${device} : skipping management leave response message : ${map}", "trace")
 
 	} else if (map.cluster == "8038" || map.clusterId == "8038") {
 
@@ -253,7 +376,7 @@ void processMap(Map map) {
 		reportToDev(map)
 
 	}
-
+	
 }
 
 
@@ -265,6 +388,89 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+def fetchChild(String type, String endpoint) {
+
+	// Creates and retrieves child devices matched to endpoints.
+	def cd = getChildDevice("${device.id}-${endpoint}")
+
+	if (endpoint != "null") {
+
+		if (!cd) {
+			logging("${device} : Creating child device $device.id-$endpoint", "debug")
+			cd = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+			if (type == "Switch") {
+				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
+				cd.parse([[name: "switch", value: 'off']])
+			}
+			cd.updateSetting("txtEnable", false)
+		}
+
+		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
+
+	} else {
+
+		logging("${device} : Received null endpoint for device $device.id", "error")
+
+	}
+
+	return cd
+
+}
+
+
+def fetchChildStates(String state, String requestor) {
+
+	logging("${device} : fetchChildStates() got call from $requestor", "debug")
+
+	// Retrieves requested states of child devices.
+	def childStates = []
+	def children = getChildDevices()
+
+	children.each { child ->
+
+		// Give things a chance!
+		pauseExecution(100)
+	
+		// Grabs the requested state from the child device.
+		String childState = child.currentValue("${state}")
+
+		// Don't include the requestor's state in the results, as we're likely in the process of updating it.
+		if ("${requestor}" != "${child.id}" ) {
+			childStates.add("${childState}")
+			logging("${device} : fetchChildStates() found $child.id is '$childState'", "debug")
+		}
+
+	}
+
+	return childStates
+
+}
+
+
+void componentRefresh(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentRefresh() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+
+void componentOn(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentOn() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
+
+}
+
+
+void componentOff(com.hubitat.app.DeviceWrapper cd) {
+
+	logging("componentOff() from $cd.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${cd.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
 
 }
 
