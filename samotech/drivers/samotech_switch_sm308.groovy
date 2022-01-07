@@ -66,7 +66,9 @@ def testCommand() {
 	// LOOKS LIKE SOME FORM OF REPORTNG CAN BE CONFIGURED
 	// sendZigbeeCommands(zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange))
 
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0702 0x00 {}"])
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x01 0x0702 0x0000 {}"])
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x02 0x0702 0x0000 {}"])
+
 	//sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0B04 0x00 {}"])
 
 }
@@ -380,7 +382,7 @@ void processMap(map) {
 		// logging("${device} : power hex value : ${map.value}", "trace")
 		// logging("${device} : power sensor reports : ${powerValue}", "debug")
 
-		logging("${device} : Power messaging seems broken. It looks more like energy logging. Received: ${powerValue}", "debug")
+		logging("${device} : Power messaging seems broken. It looks more like energy logging. Received: ${powerValue} for endpoint ${map.endpoint}.", "debug")
 		//reportToDev(map)
 
 	} else if (map.cluster == "8001" || map.clusterId == "8001") {
