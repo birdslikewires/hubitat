@@ -59,6 +59,16 @@ def testCommand() {
 
 	logging("${device} : Test Command", "info")
 
+	// minReportTime=10
+	// maxReportTime=20
+	// reportableChange=0x01
+
+	// LOOKS LIKE SOME FORM OF REPORTNG CAN BE CONFIGURED
+	// sendZigbeeCommands(zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange))
+
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0702 0x00 {}"])
+	//sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0B04 0x00 {}"])
+
 }
 
 
@@ -364,7 +374,14 @@ void processMap(map) {
 
 	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
-		logging("${device} : Skipping power messaging (unsupported in hardware).", "debug")
+		def int powerValue = zigbee.convertHexToInt(map.value)
+		// sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
+		// sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
+		// logging("${device} : power hex value : ${map.value}", "trace")
+		// logging("${device} : power sensor reports : ${powerValue}", "debug")
+
+		logging("${device} : Power messaging seems broken. It looks more like energy logging. Received: ${powerValue}", "debug")
+		//reportToDev(map)
 
 	} else if (map.cluster == "8001" || map.clusterId == "8001") {
 
@@ -687,7 +704,7 @@ void reportToDev(map) {
 	}
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
 	logging("${device} : Splurge! : ${map}", "trace")
 
 }
