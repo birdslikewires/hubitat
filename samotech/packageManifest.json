@@ -9,9 +9,9 @@
   "drivers": [
     {
       "id": "22c40404-a992-4c45-830b-173cae035992",
-      "name": "Samotech SM308 Series",
+      "name": "Samotech Switch SM308",
       "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_sm308.groovy",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_sm308.groovy",
       "required": false,
       "version": "1.01"
     }
