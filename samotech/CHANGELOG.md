@@ -3,6 +3,7 @@
 ## 7th January 2022
 
 - Does support the SM308-2CH. Hooray!
+- Added parent device debouncing for when there are too many children shouting.
 
 ## 6th January 2022
 

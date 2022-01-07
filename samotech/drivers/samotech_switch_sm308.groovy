@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.03 (7th January 2022)
+ *  Samotech Switch SM308 Driver v1.04 (7th January 2022)
  *	
  */
 
@@ -245,7 +245,6 @@ def parse(String description) {
 
 }
 
-
 void processMap(map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
@@ -297,46 +296,59 @@ void processMap(map) {
 
 			logging("${device} : Relay Configuration : Successful", "info")
 
-		} else if (map.command == "0A") {
-			// Relay States (Local Actuation)
+		} else if (map.command == "0A" || map.command == "0B") {
+			// Relay States
 
-			reportToDev(map)	// There's no way to control these modules locally. This message would be weird.
+			// Command "0A" is local actuation, command "0B" is remote actuation.
+			// The SM308-2CH (correctly) doesn't send "0A" messages when triggered remotely, but the SM308 and SM308-S do.
+			// On the single channel devices we'll use the local "0A" messages as they're essentially a success confirmation.
 
-		} else if (map.command == "0B") {
-			// Relay States (Remote Actuation)
+			// We need to ignore the 'correct' remote actuation response for debouncing on the single channel devices.
+			if (state.relayCount == 1 && map.command == "0B") {
 
-			if (map.data[0] == "00") {
+				logging("${device} : Skipping remote actuation response in favour of local. Should be through in a few hundred milliseconds.", "debug")
+				
+			} else {
 
-				if (state.relayCount > 1) {
+				String relayActuated = (map.command == "0A") ? map.endpoint : map.sourceEndpoint
+				String relayState = (map.command == "0A") ? map.value : map.data[0]
 
-					def childDevice = fetchChild("Switch", "${map.sourceEndpoint}")
-					childDevice.parse([[name:"switch", value:"off"]])
+				if (relayState == "00") {
 
-					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
-					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+					if (state.relayCount > 1) {
 
-					if (currentChildStates.every{it == "off"}) {
-						logging("${device} : All Devices Off", "info")
+						def childDevice = fetchChild("Switch", "$relayActuated")
+						childDevice.parse([[name:"switch", value:"off"]])
+
+						def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+						logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+
+						if (currentChildStates.every{it == "off"}) {
+
+							debounceParentState("switch", "off", "All Devices Off", "info", 100)
+
+						}
+
+					} else {
+
 						sendEvent(name: "switch", value: "off")
+
 					}
+
+					logging("${device} : Switched $relayActuated : Off", "info")
 
 				} else {
 
-					sendEvent(name: "switch", value: "off")
+					if (state.relayCount > 1) {
+						def childDevice = fetchChild("Switch", "$relayActuated")
+						childDevice.parse([[name:"switch", value:"on"]])
+					}
+
+					sendEvent(name: "switch", value: "on")
+					logging("${device} : Switched $relayActuated : On", "info")
 
 				}
 
-				logging("${device} : Switched ${map.sourceEndpoint} : Off", "info")
-
-			} else {
-
-				if (state.relayCount > 1) {
-					def childDevice = fetchChild("Switch", "${map.sourceEndpoint}")
-					childDevice.parse([[name:"switch", value:"on"]])
-				}
-
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
 
 			}
 
@@ -352,11 +364,11 @@ void processMap(map) {
 
 	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
-		logging("${device} : skipping power messaging (unsupported in hardware) : ${map}", "trace")
+		logging("${device} : Skipping power messaging (unsupported in hardware).", "debug")
 
 	} else if (map.cluster == "8001" || map.clusterId == "8001") {
 
-		logging("${device} : skipping network address response message : ${map}", "trace")
+		logging("${device} : Skipping network address response message.", "debug")
 
 	} else if (map.clusterId == "8004") {
 		
@@ -364,15 +376,15 @@ void processMap(map) {
 
 	} else if (map.cluster == "8021" || map.clusterId == "8021") {
 
-		logging("${device} : skipping discovery message : ${map}", "trace")
+		logging("${device} : Skipping discovery message.", "debug")
 
 	} else if (map.cluster == "8032" || map.clusterId == "8032") {
 
-		logging("${device} : skipping management routing response message : ${map}", "trace")
+		logging("${device} : Skipping management routing response message.", "debug")
 
 	} else if (map.cluster == "8034" || map.clusterId == "8034") {
 
-		logging("${device} : skipping management leave response message : ${map}", "trace")
+		logging("${device} : Skipping management leave response message.", "debug")
 
 	} else if (map.cluster == "8038" || map.clusterId == "8038") {
 
@@ -399,6 +411,21 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+@Field static Boolean debouncingParentState = false
+def debounceParentState(String attribute, String state, String message, String level, Integer duration) {
+
+	if (debouncingParentState) return
+	debouncingParentState = true
+
+	sendEvent(name: "$attribute", value: "$state")
+	logging("${device} : $message", "$level")
+
+	pauseExecution duration
+	debouncingParentState = false
 
 }
 
