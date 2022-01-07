@@ -94,14 +94,6 @@ def configure() {
 	sendEvent(name: "mode", value: "static", isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
-	// Set default preferences.
-	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
-	device.updateSetting("flashRate", [value: 1000, type: "number"])
-	device.updateSetting("flashRelays", [value: "", type: "enum"])
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
-
 	// Schedule reporting and presence checking.
 	int randomSixty
 
@@ -133,6 +125,15 @@ def configure() {
 		deleteChildren()
 	}
 
+	// Set default preferences.
+	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
+	device.updateSetting("flashRate", [value: 1000, type: "number"])
+	device.updateSetting("flashRelays", [value: "", type: "enum"])
+	device.updateSetting("infoLogging", [value: "true", type: "bool"])
+	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
+	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+
+	// Notify.
 	sendEvent(name: "configuration", value: "success", isStateChange: false)
 	logging("${device} : Configured", "info")
 
@@ -141,7 +142,7 @@ def configure() {
 }
 
 
-def updated() {
+void updated() {
 	// Runs when preferences are saved.
 
 	unschedule(debugLogOff)
@@ -152,7 +153,7 @@ def updated() {
 		runIn(1200,traceLogOff)
 	}
 
-	logging("${device} : Preferences : Updated", "info")
+	logging("${device} : Preferences Updated", "info")
 
 	loggingStatus()
 
@@ -235,7 +236,7 @@ void flashOff() {
 }
 
 
-def parse(String description) {
+void parse(String description) {
 	// Primary parse routine.
 
 	logging("${device} : parse() : $description", "trace")
@@ -257,7 +258,8 @@ def parse(String description) {
 
 }
 
-void processMap(map) {
+
+void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
@@ -366,7 +368,7 @@ void processMap(map) {
 
 		} else if (map.command == "00") {
 
-			logging("${device} : skipping state counter message : ${map}", "trace")
+			logging("${device} : Skipped : State Counter Message", "debug")
 
 		} else {
 
@@ -435,7 +437,7 @@ void sendZigbeeCommands(List<String> cmds) {
 
 
 @Field static Boolean debouncingParentState = false
-def debounceParentState(String attribute, String state, String message, String level, Integer duration) {
+void debounceParentState(String attribute, String state, String message, String level, Integer duration) {
 
 	if (debouncingParentState) return
 	debouncingParentState = true
@@ -519,7 +521,7 @@ def fetchChildStates(String state, String requestor) {
 }
 
 
-def deleteChildren() {
+void deleteChildren() {
 	// Deletes children we may have created.
 
 	logging("${device} : deleteChildren() : Deleting rogue children.", "debug")
