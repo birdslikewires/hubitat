@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.04 (7th January 2022)
+ *  Samotech Switch SM308 Driver v1.05 (8th January 2022)
  *	
  */
 
@@ -731,6 +731,24 @@ private String[] millisToDhms(int millisToParse) {
 }
 
 
+private String percentageToHex(Integer pc) {
+
+	BigDecimal safePc = pc > 0 ? (pc*2.55) : 0
+	safePc = safePc > 255 ? 255 : safePc
+	return Integer.toHexString(safePc.intValue())
+
+}
+
+
+private Integer hexToPercentage(String hex) {
+
+	String safeHex = hex.take(2)
+    Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
+	return pc / 2.55
+
+}
+
+
 private BigDecimal hexToBigDecimal(String hex) {
 
     int d = Integer.parseInt(hex, 16) << 21 >> 21
@@ -803,4 +821,3 @@ private boolean logging(String message, String level) {
 	return didLog
 
 }
-
