@@ -1,5 +1,9 @@
 # Samotech Drivers for Hubitat - Changelog
 
+## 8th January 2022
+
+- Updated the Library section.
+
 ## 7th January 2022
 
 - Does support the SM308-2CH. Hooray!
