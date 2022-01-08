@@ -3,6 +3,7 @@
 ## 31st December 2021
 
 - Initial driver for the GZCGQ01LM light sensor.
+- Added reporting of pressure direction (rising and falling) to WSDCGQ11LM.
 
 ## 28th December 2021
 

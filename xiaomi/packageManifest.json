@@ -1,5 +1,5 @@
 {
-  "packageName": "Xiaomi Aqara Drivers from BirdsLikeWires",
+  "packageName": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
   "author": "Andrew Davison",
   "minimumHEVersion": "2.1.9",
   "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
