@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 9th January 2022
+
+- Added WXKG06LM fingerprint to the WXKG07LM driver and tweaked name.
+
 ## 31st December 2021
 
 - Initial driver for the GZCGQ01LM light sensor.

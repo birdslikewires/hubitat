@@ -33,9 +33,9 @@
     },
     {
       "id": "380679c8-c0a7-4dcf-b32a-d90647ff8bd9",
-      "name": "Xiaomi Aqara Wireless Remote Switch WXKG07LM",
+      "name": "Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM",
       "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg07lm.groovy",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg06lm_wxkg07lm.groovy",
       "required": false,
       "version": "1.00"
     },

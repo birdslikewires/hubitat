@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG07LM Driver v1.00 (21st December 2021)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.01 (9th January 2021)
  *	
  */
 
@@ -9,11 +9,11 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 
-@Field int reportIntervalMinutes = 50		// How often the device should be reporting in.
+@Field int reportIntervalMinutes = 50
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Remote Switch WXKG07LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg07lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg06lm_wxkg07lm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -32,6 +32,7 @@ metadata {
 			command "checkPresence"
 		}
 
+		fingerprint profileId: "0104", inClusters: "0000,0003,0019,FFFF,0012", outClusters: "0000,0004,0003,0005,0019,FFFF,0012", manufacturer: "LUMI", model: "lumi.remote.b186acn02", deviceJoinName: "WXKG06LM", application: "09"
 		fingerprint profileId: "0104", inClusters: "0000,0003,0019,FFFF,0012", outClusters: "0000,0004,0003,0005,0019,FFFF,0012", manufacturer: "LUMI", model: "lumi.remote.b286acn02", deviceJoinName: "WXKG07LM", application: "09"
 
 	}
