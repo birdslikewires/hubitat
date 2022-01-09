@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.01 (9th January 2021)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.02 (9th January 2021)
  *	
  */
 
@@ -22,6 +22,7 @@ metadata {
 		capability "Initialize"
 		capability "PresenceSensor"
 		capability "PushableButton"
+		capability "ReleasableButton"
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
@@ -94,14 +95,18 @@ def initialize() {
 }
 
 
-def updated() {
-	// Runs whenever preferences are saved.
+void updated() {
+	// Runs when preferences are saved.
+
+	unschedule(debugLogOff)
+	unschedule(traceLogOff)
 
 	if (!debugMode) {
-		//runIn(3600,infoLogOff)	// These devices are so quiet I think we can live without this.
 		runIn(2400,debugLogOff)
 		runIn(1200,traceLogOff)
 	}
+
+	logging("${device} : Preferences Updated", "info")
 
 	loggingStatus()
 
@@ -341,7 +346,13 @@ def processMap(Map map) {
 			//    09AA1005418751011001
 			//    09AA1005418753011001
 			// Answers on a postcard, please! ;)
-			logging("${device} : processMap : Skipping unknown report with value ${map.value}", "debug")
+
+			// In the interim, we can use this as an "automated release" seeing as these devices don't support real "released" events.
+			// It's a little odd that you can therefore have a held button that's never released, but hey, this is a bonus feature. 
+
+			int heldButton = device.currentState("held").value.toInteger()
+			sendEvent(name: "released", value: heldButton, isStateChange: true)
+			logging("${device} : Trigger : Button ${heldButton} Autoreleased", "info")
 
 		} else {
 

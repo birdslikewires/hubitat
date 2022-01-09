@@ -3,6 +3,7 @@
 ## 9th January 2022
 
 - Added WXKG06LM fingerprint to the WXKG07LM driver and tweaked name.
+- Added "autorelease" feature to make use of a weird message received after a button hold.
 
 ## 31st December 2021
 
