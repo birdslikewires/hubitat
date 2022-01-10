@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.05 (8th January 2022)
+ *  Samotech Switch SM308 Driver v1.06 (10th January 2022)
  *	
  */
 
@@ -314,55 +314,51 @@ void processMap(Map map) {
 			// Relay States
 
 			// Command "0A" is local actuation, command "0B" is remote actuation.
-			// The SM308-2CH (correctly) doesn't send "0A" messages when triggered remotely, but the SM308 and SM308-S do.
-			// On the single channel devices we'll use the local "0A" messages as they're essentially a success confirmation.
 
-			// We need to ignore the 'correct' remote actuation response for debouncing on the single channel devices.
-			if (state.relayCount == 1 && map.command == "0B") {
+			// Some modules send an "0A" response after being switched remotely, which is a nice confirmation, but not correct behaviour.
+			// Trick is, I've got one SM308-S which does this and one SM308-S which doesn't. Both fresh out of the box.
 
-				logging("${device} : Skipping remote actuation response in favour of local. Should be through in a few hundred milliseconds.", "debug")
-				
-			} else {
+			// For the time being we're going to treat these as the same.
+			// We'll be sure not to force our event with "isStateChange" as this would lead to double messaging.
 
-				String relayActuated = (map.command == "0A") ? map.endpoint : map.sourceEndpoint
-				String relayState = (map.command == "0A") ? map.value : map.data[0]
+			// I'll investigate this with a momentary switch when I get chance.
 
-				if (relayState == "00") {
+			String relayActuated = (map.command == "0A") ? map.endpoint : map.sourceEndpoint
+			String relayState = (map.command == "0A") ? map.value : map.data[0]
 
-					if (state.relayCount > 1) {
+			if (relayState == "00") {
 
-						def childDevice = fetchChild("Switch", "$relayActuated")
-						childDevice.parse([[name:"switch", value:"off"]])
+				if (state.relayCount > 1) {
 
-						def currentChildStates = fetchChildStates("switch","${childDevice.id}")
-						logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+					def childDevice = fetchChild("Switch", "$relayActuated")
+					childDevice.parse([[name:"switch", value:"off"]])
 
-						if (currentChildStates.every{it == "off"}) {
+					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
 
-							debounceParentState("switch", "off", "All Devices Off", "info", 100)
+					if (currentChildStates.every{it == "off"}) {
 
-						}
-
-					} else {
-
-						sendEvent(name: "switch", value: "off")
+						debounceParentState("switch", "off", "All Devices Off", "info", 100)
 
 					}
-
-					logging("${device} : Switched $relayActuated : Off", "info")
 
 				} else {
 
-					if (state.relayCount > 1) {
-						def childDevice = fetchChild("Switch", "$relayActuated")
-						childDevice.parse([[name:"switch", value:"on"]])
-					}
-
-					sendEvent(name: "switch", value: "on")
-					logging("${device} : Switched $relayActuated : On", "info")
+					sendEvent(name: "switch", value: "off")
 
 				}
 
+				logging("${device} : Switched $relayActuated : Off", "info")
+
+			} else {
+
+				if (state.relayCount > 1) {
+					def childDevice = fetchChild("Switch", "$relayActuated")
+					childDevice.parse([[name:"switch", value:"on"]])
+				}
+
+				sendEvent(name: "switch", value: "on")
+				logging("${device} : Switched $relayActuated : On", "info")
 
 			}
 
