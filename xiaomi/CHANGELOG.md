@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 10th January 2022
+
+- Device name now set correctly when configured.
+
 ## 9th January 2022
 
 - Added WXKG06LM fingerprint to the WXKG07LM driver and tweaked name.

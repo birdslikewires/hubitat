@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.02 (9th January 2021)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.03 (10th January 2021)
  *	
  */
 
@@ -71,6 +71,10 @@ def configure() {
 	int checkEveryMinutes = 10																// Check presence timestamp every 10 minutes.						
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)				// At X seconds past the minute, every checkEveryMinutes minutes.
+
+	String deviceModel = getDeviceDataByName('model')
+	deviceModel = (deviceModel.indexOf('lumi.remote.b186acn02') >= 0) ? "WXKG06LM" : "WXKG07LM"
+	device.name = "Xiaomi Aqara Wireless Remote Switch $deviceModel"
 
 	// Configuration complete.
 	logging("${device} : Configured", "info")
