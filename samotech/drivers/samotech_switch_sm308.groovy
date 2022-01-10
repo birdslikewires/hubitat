@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.07 (10th January 2022)
+ *  Samotech Switch SM308 Driver v1.08 (10th January 2022)
  *	
  */
 
@@ -13,7 +13,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Samotech Switch SM308", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/samotech_switch_sm308.groovy") {
+	definition (name: "Samotech Switch SM308", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_sm308.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
