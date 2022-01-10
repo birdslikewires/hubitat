@@ -3,6 +3,8 @@
 ## 10th January 2022
 
 - Deal with (or rather, don't deal with) duplicate actuation response messages. https://github.com/birdslikewires/hubitat/issues/12
+- Device reporting (on cluster 0x0702) is only available on SM308-2CH, so ditched that idea. Pinging from the hub works fine.
+- Device name is now correctly configured.
 
 ## 8th January 2022
 

@@ -1,6 +1,6 @@
 /*
  * 
- *  Samotech Switch SM308 Driver v1.06 (10th January 2022)
+ *  Samotech Switch SM308 Driver v1.07 (10th January 2022)
  *	
  */
 
@@ -59,18 +59,6 @@ def testCommand() {
 
 	logging("${device} : Test Command", "info")
 
-	// minReportTime=10
-	// maxReportTime=20
-	// reportableChange=0x01
-
-	// LOOKS LIKE SOME FORM OF REPORTNG CAN BE CONFIGURED
-	// sendZigbeeCommands(zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange))
-
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x01 0x0702 0x0000 {}"])
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x02 0x0702 0x0000 {}"])
-
-	//sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0B04 0x00 {}"])
-
 }
 
 
@@ -113,6 +101,11 @@ def configure() {
 		"he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x4000 {}",
 		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 	])
+
+	String deviceManufacturer = getDeviceDataByName('manufacturer')
+	String deviceModel = getDeviceDataByName('model')
+
+	device.name = "$deviceManufacturer Switch $deviceModel"
 
 	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
 
