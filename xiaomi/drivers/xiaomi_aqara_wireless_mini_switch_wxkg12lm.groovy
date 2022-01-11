@@ -286,8 +286,6 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") { 
 
-		processBasic(map)
-
 		if (map.attrId == "0005" || map.attrId == "FF01") {
 
 			def deviceData = ""
@@ -382,6 +380,7 @@ void processMap(Map map) {
 
 		} else {
 
+			// processBasic(map)
 			reportToDev(map)
 
 		}

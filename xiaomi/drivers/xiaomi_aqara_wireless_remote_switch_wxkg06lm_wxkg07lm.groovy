@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.05 (11th January 2022)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.06 (11th January 2022)
  *	
  */
 
@@ -200,8 +200,6 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") {
 
-		processBasic(map)
-
 		if (map.attrId == "FF01") {
 
 			// No manual trigger for battery reporting here; when we get an FF01 it's only through the check-in reports.
@@ -281,6 +279,7 @@ void processMap(Map map) {
 
 		} else {
 
+			// processBasic(map)
 			reportToDev(map)
 
 		}

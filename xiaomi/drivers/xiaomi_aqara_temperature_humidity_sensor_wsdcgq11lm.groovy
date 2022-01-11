@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.02 (11th January 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.03 (11th January 2022)
  *	
  */
 
@@ -270,8 +270,6 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") {
 
-		processBasic(map)
-
 		if (map.attrId == "0005") {
 
 			// Scrounge more value! We can capture a short press of the reset button and make it useful.
@@ -346,6 +344,7 @@ void processMap(Map map) {
 
 		} else {
 
+			// processBasic(map)
 			reportToDev(map)
 
 		}

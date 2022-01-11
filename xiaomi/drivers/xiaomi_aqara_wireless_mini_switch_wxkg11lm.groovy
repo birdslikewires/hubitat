@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM Driver v1.02 (11th January 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM Driver v1.03 (11th January 2022)
  *	
  */
 
@@ -190,8 +190,6 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") { 
 
-		processBasic(map)
-
 		if (map.attrId == "0005" || map.attrId == "FF01") {
 
 			def deviceData = ""
@@ -286,6 +284,7 @@ void processMap(Map map) {
 
 		} else {
 
+			// processBasic(map)
 			reportToDev(map)
 
 		}
