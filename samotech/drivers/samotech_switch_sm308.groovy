@@ -56,18 +56,14 @@ preferences {
 
 
 def testCommand() {
-
 	logging("${device} : Test Command", "info")
-
 }
 
 
 def installed() {
 	// Runs after first installation.
-
 	logging("${device} : Installed", "info")
 	configure()
-
 }
 
 
@@ -81,6 +77,14 @@ def configure() {
 
 	sendEvent(name: "mode", value: "static", isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	// Set default preferences.
+	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
+	device.updateSetting("flashRate", [value: 1000, type: "number"])
+	device.updateSetting("flashRelays", [value: "", type: "enum"])
+	device.updateSetting("infoLogging", [value: "true", type: "bool"])
+	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
+	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
 
 	// Schedule reporting and presence checking.
 	int randomSixty
@@ -102,11 +106,12 @@ def configure() {
 		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 	])
 
+	// Set device name.
 	String deviceManufacturer = getDeviceDataByName('manufacturer')
 	String deviceModel = getDeviceDataByName('model')
-
 	device.name = "$deviceManufacturer Switch $deviceModel"
 
+	// Store relay count and create children.
 	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
 
 	if (state.relayCount > 1) {
@@ -118,17 +123,9 @@ def configure() {
 		deleteChildren()
 	}
 
-	// Set default preferences.
-	device.updateSetting("flashEnabled", [value: "false", type: "bool"])
-	device.updateSetting("flashRate", [value: 1000, type: "number"])
-	device.updateSetting("flashRelays", [value: "", type: "enum"])
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
-
 	// Notify.
-	sendEvent(name: "configuration", value: "success", isStateChange: false)
-	logging("${device} : Configured", "info")
+	sendEvent(name: "configuration", value: "complete", isStateChange: false)
+	logging("${device} : Configuration complete.", "info")
 
 	updated()
 
