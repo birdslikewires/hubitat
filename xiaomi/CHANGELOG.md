@@ -1,8 +1,13 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 11th January 2022
+
+- Added press debouncing (WXKG06LM / WXKG07LM).
+- Refactored the code a bit.
+
 ## 10th January 2022
 
-- Device name now set correctly when configured.
+- Device name now set correctly when configured (WXKG06LM / WXKG07LM).
 
 ## 9th January 2022
 
