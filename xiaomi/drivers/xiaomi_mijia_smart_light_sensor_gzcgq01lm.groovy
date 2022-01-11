@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.02 (11th January 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.03 (11th January 2022)
  *	
  */
 
@@ -284,7 +284,7 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") {
 
-		processBasic()
+		processBasic(map)
 
 	} else {
 
