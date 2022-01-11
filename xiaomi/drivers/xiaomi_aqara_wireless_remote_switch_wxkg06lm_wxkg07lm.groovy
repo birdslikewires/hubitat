@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.04 (11th January 2021)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.05 (11th January 2022)
  *	
  */
 
@@ -44,11 +44,10 @@ metadata {
 preferences {
 	
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
 }
-
 
 
 def testCommand() {
@@ -102,6 +101,7 @@ def configure() {
 void updated() {
 	// Runs when preferences are saved.
 
+	unschedule(infoLogOff)
 	unschedule(debugLogOff)
 	unschedule(traceLogOff)
 
@@ -190,7 +190,17 @@ void processMap(Map map) {
 
 	String[] receivedData = map.data
 
-	if (map.cluster == "0000") { 
+	if (map.cluster == "0012") { 
+
+		debouncePress(map)
+
+	} else if (map.clusterId == "8004") {
+		
+		processDescriptors(map)
+
+	} else if (map.cluster == "0000") {
+
+		processBasic(map)
 
 		if (map.attrId == "FF01") {
 
@@ -275,18 +285,6 @@ void processMap(Map map) {
 
 		}
 
-	} else if (map.cluster == "0012") { 
-
-		debouncePress(map)
-
-	} else if (map.clusterId == "8004") {
-		
-		processDescriptors(map)
-
-	} else if (map.cluster == "0000") {
-
-		processBasic(map)
-
 	} else {
 
 		reportToDev(map)
@@ -327,7 +325,7 @@ void debouncePress(Map map) {
 }
 
 
-// Library v1.00 (11th January 2022)
+// Library v1.01 (11th January 2022)
 
 
 void sendZigbeeCommands(List<String> cmds) {
@@ -335,6 +333,158 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+void updatePresence() {
+
+	long millisNow = new Date().time
+	state.presenceUpdated = millisNow
+	sendEvent(name: "presence", value: "present")
+
+}
+
+
+void checkPresence() {
+	// Check how long ago the presence state was updated.
+
+	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+
+	if (state.presenceUpdated > 0) {
+
+		long millisNow = new Date().time
+		long millisElapsed = millisNow - state.presenceUpdated
+		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long reportIntervalMillis = reportIntervalMinutes * 60000
+		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
+		BigInteger hubUptime = location.hub.uptime
+
+		if (millisElapsed > presenceTimeoutMillis) {
+
+			if (hubUptime > uptimeAllowanceMinutes * 60) {
+
+				sendEvent(name: "presence", value: "not present")
+				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
+
+			} else {
+
+				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
+
+			}
+
+		} else {
+
+			sendEvent(name: "presence", value: "present")
+			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
+
+		}
+
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed}", "trace")
+		logging("${device} : checkPresence() : Report interval is ${reportIntervalMillis} ms, timeout is ${presenceTimeoutMillis} ms.", "trace")
+
+	} else {
+
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
+
+	}
+
+}
+
+
+void processBasic(Map map) {
+	// Process the basic descriptors normally received from Zigbee Cluster 0000 into device data values.
+
+	if (map.attrId == "0001") {
+
+		updateDataValue("application", "${map.value}")
+		logging("${device} : Application : ${map.value}", "debug")
+
+	} else if (map.attrId == "0004") {
+
+		updateDataValue("manufacturer", map.value)
+		logging("${device} : Manufacturer : ${map.value}", "debug")
+
+	} else if (map.attrId == "0005") {
+
+		updateDataValue("model", map.value)
+		logging("${device} : Model : ${map.value}", "debug")
+
+	} else if (map.attrId == "4000") {
+
+		updateDataValue("softwareBuild", "${map.value}")
+		logging("${device} : Firmware : ${map.value}", "debug")
+
+	}
+
+}
+
+
+void processDescriptors(Map map) {
+	// Process the simple descriptors normally received from Zigbee Cluster 8004 into device data values.
+
+	String[] receivedData = map.data
+
+	if (receivedData[1] == "00") {
+		// Received simple descriptor data.
+
+		//updateDataValue("endpointId", receivedData[5])						// can lead to a weird duplicate
+		updateDataValue("profileId", receivedData[6..7].reverse().join())
+
+		Integer inClusterNum = Integer.parseInt(receivedData[11], 16)
+		Integer position = 12
+		Integer positionCounter = null
+		String inClusters = ""
+		if (inClusterNum > 0) {
+			(1..inClusterNum).each() {b->
+				positionCounter = position+((b-1)*2)
+				inClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				if (b < inClusterNum) {
+					inClusters += ","
+				}
+			}
+		}
+		position += inClusterNum*2
+		Integer outClusterNum = Integer.parseInt(receivedData[position], 16)
+		position += 1
+		String outClusters = ""
+		if (outClusterNum > 0) {
+			(1..outClusterNum).each() {b->
+				positionCounter = position+((b-1)*2)
+				outClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				if (b < outClusterNum) {
+					outClusters += ","
+				}
+			}
+		}
+
+		updateDataValue("inClusters", inClusters)
+		updateDataValue("outClusters", outClusters)
+
+		logging("${device} : Received $inClusterNum inClusters : $inClusters", "debug")
+		logging("${device} : Received $outClusterNum outClusters : $outClusters", "debug")
+
+	} else {
+
+		reportToDev(map)
+
+	}
+
+}
+
+
+void reportToDev(map) {
+
+	String[] receivedData = map.data
+
+	def receivedDataCount = ""
+	if (receivedData != null) {
+		receivedDataCount = "${receivedData.length} bits of "
+	}
+
+	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Splurge! : ${map}", "trace")
 
 }
 
@@ -461,158 +611,13 @@ void componentOff(com.hubitat.app.DeviceWrapper childDevice) {
 }
 
 
-void updatePresence() {
+private String flipLittleEndian(Map map, String attribute) {
 
-	long millisNow = new Date().time
-	state.presenceUpdated = millisNow
-	sendEvent(name: "presence", value: "present")
-
-}
-
-
-void checkPresence() {
-	// Check how long ago the presence state was updated.
-
-	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
-
-	if (state.presenceUpdated > 0) {
-
-		long millisNow = new Date().time
-		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
-		long reportIntervalMillis = reportIntervalMinutes * 60000
-		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
-		BigInteger hubUptime = location.hub.uptime
-
-		if (millisElapsed > presenceTimeoutMillis) {
-
-			if (hubUptime > uptimeAllowanceMinutes * 60) {
-
-				sendEvent(name: "presence", value: "not present")
-				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
-
-			} else {
-
-				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
-
-			}
-
-		} else {
-
-			sendEvent(name: "presence", value: "present")
-			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
-
-		}
-
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed}", "trace")
-		logging("${device} : checkPresence() : Report interval is ${reportIntervalMillis} ms, timeout is ${presenceTimeoutMillis} ms.", "trace")
-
-	} else {
-
-		logging("${device} : Presence : Waiting for first presence report.", "warn")
-
+	String bigEndianAttribute = ""
+	for (int v = map."${attribute}".length(); v > 0; v -= 2) {
+		bigEndianAttribute += map."${attribute}".substring(v - 2, v)
 	}
-
-}
-
-
-void processBasic(Map map) {
-	// Process the basic descriptors normally received from Zigbee Cluster 0000 into device data values.
-
-	if (map.attrId == "0001") {
-
-		updateDataValue("application", "${map.value}")
-		logging("${device} : Application : ${map.value}", "debug")
-
-	} else if (map.attrId == "0004") {
-
-		updateDataValue("manufacturer", map.value)
-		logging("${device} : Manufacturer : ${map.value}", "debug")
-
-	} else if (map.attrId == "0005") {
-
-		updateDataValue("model", map.value)
-		logging("${device} : Model : ${map.value}", "debug")
-
-	} else if (map.attrId == "4000") {
-
-		updateDataValue("softwareBuild", "${map.value}")
-		logging("${device} : Firmware : ${map.value}", "debug")
-
-	} else {
-
-		reportToDev(map)
-
-	}
-
-}
-
-
-void processDescriptors(Map map) {
-	// Process the simple descriptors normally received from Zigbee Cluster 8004 into device data values.
-
-	String[] receivedData = map.data
-
-	if (receivedData[1] == "00") {
-		// Received simple descriptor data.
-
-		//updateDataValue("endpointId", receivedData[5])						// can lead to a weird duplicate
-		updateDataValue("profileId", receivedData[6..7].reverse().join())
-
-		Integer inClusterNum = Integer.parseInt(receivedData[11], 16)
-		Integer position = 12
-		Integer positionCounter = null
-		String inClusters = ""
-		if (inClusterNum > 0) {
-			(1..inClusterNum).each() {b->
-				positionCounter = position+((b-1)*2)
-				inClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
-				if (b < inClusterNum) {
-					inClusters += ","
-				}
-			}
-		}
-		position += inClusterNum*2
-		Integer outClusterNum = Integer.parseInt(receivedData[position], 16)
-		position += 1
-		String outClusters = ""
-		if (outClusterNum > 0) {
-			(1..outClusterNum).each() {b->
-				positionCounter = position+((b-1)*2)
-				outClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
-				if (b < outClusterNum) {
-					outClusters += ","
-				}
-			}
-		}
-
-		updateDataValue("inClusters", inClusters)
-		updateDataValue("outClusters", outClusters)
-
-		logging("${device} : Received $inClusterNum inClusters : $inClusters", "debug")
-		logging("${device} : Received $outClusterNum outClusters : $outClusters", "debug")
-
-	} else {
-
-		reportToDev(map)
-
-	}
-
-}
-
-
-void reportToDev(map) {
-
-	String[] receivedData = map.data
-
-	def receivedDataCount = ""
-	if (receivedData != null) {
-		receivedDataCount = "${receivedData.length} bits of "
-	}
-
-	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! : ${map}", "trace")
+	return bigEndianAttribute
 
 }
 
@@ -657,6 +662,14 @@ private BigDecimal hexToBigDecimal(String hex) {
     int d = Integer.parseInt(hex, 16) << 21 >> 21
     return BigDecimal.valueOf(d)
 
+}
+
+
+private String hexToBinary(String thisByte, Integer size = 8) {
+
+	String binaryValue = new BigInteger(thisByte, 16).toString(2);
+	return String.format("%${size}s", binaryValue).replace(' ', '0')
+	
 }
 
 
