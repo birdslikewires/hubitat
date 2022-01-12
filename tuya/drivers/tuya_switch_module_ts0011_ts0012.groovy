@@ -1,6 +1,6 @@
 /*
  * 
- *  Tuya Switch Module TS0011 / TS0012 Driver v1.00 (12th January 2022)
+ *  Tuya Switch Module TS0011 / TS0012 Driver v1.01 (12th January 2022)
  *	
  */
 
@@ -49,14 +49,20 @@ preferences {
 	}
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false	
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true	
 
 }
 
 
 def testCommand() {
 	logging("${device} : Test Command", "info")
+
+	sendZigbeeCommands(
+		zigbee.onOffRefresh() +
+		zigbee.levelRefresh()
+	)
+
 }
 
 
@@ -83,8 +89,8 @@ def configure() {
 	device.updateSetting("flashRate", [value: 1000, type: "number"])
 	device.updateSetting("flashRelays", [value: "", type: "enum"])
 	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+	device.updateSetting("debugLogging", [value: "true", type: "bool"])
+	device.updateSetting("traceLogging", [value: "true", type: "bool"])
 
 	// Schedule reporting and presence checking.
 	int randomSixty
@@ -96,6 +102,15 @@ def configure() {
 	int checkEveryMinutes = 10				
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+	
+	// We shouldn't need to bind to level cluster (0008) as it isn't included, but it seemed to make binding more reliable.
+	// Maybe it was just a delay thing, who knows.
+	sendZigbeeCommands(
+		zigbee.onOffConfig() +
+		zigbee.levelConfig() +
+		zigbee.onOffRefresh() +
+		zigbee.levelRefresh()
+	)
 
 	// Request application value, manufacturer, model name, software build and simple descriptor data.
 	sendZigbeeCommands([
@@ -157,7 +172,12 @@ void refresh() {
 
 void off() {
 
-	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
+	//sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
+
+	sendZigbeeCommands([
+		"he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}",
+		"he cmd 0x${device.deviceNetworkId} 0x02 0x0006 0x00 {}",
+	])
 	sendEvent(name: "mode", value: "static")
 
 }
@@ -374,6 +394,10 @@ void processMap(Map map) {
 	} else if (map.cluster == "8038" || map.clusterId == "8038") {
 
 		logging("${device} : Skipping management network update notify message.", "debug")
+
+	} else if (map.cluster == "E000" || map.cluster == "E001") {
+
+		logging("${device} : Skipping manufacturer specific clusters.", "debug")
 
 	} else if (map.cluster == "0000") {
 
