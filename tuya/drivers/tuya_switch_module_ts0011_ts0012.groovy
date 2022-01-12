@@ -57,12 +57,6 @@ preferences {
 
 def testCommand() {
 	logging("${device} : Test Command", "info")
-
-	sendZigbeeCommands(
-		zigbee.onOffRefresh() +
-		zigbee.levelRefresh()
-	)
-
 }
 
 
@@ -172,12 +166,7 @@ void refresh() {
 
 void off() {
 
-	//sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
-
-	sendZigbeeCommands([
-		"he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}",
-		"he cmd 0x${device.deviceNetworkId} 0x02 0x0006 0x00 {}",
-	])
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0xFF 0x0006 0x00 {}"])
 	sendEvent(name: "mode", value: "static")
 
 }
