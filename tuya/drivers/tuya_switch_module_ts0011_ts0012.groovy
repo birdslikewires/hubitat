@@ -14,7 +14,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Tuya $friendlyType TS0011 / TS0012", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/tuya_relay_module_ts0012.groovy") {
+	definition (name: "Tuya $friendlyType TS0011 / TS0012", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
