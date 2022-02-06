@@ -21,7 +21,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy",
       "required": false,
-      "version": "1.08"
+      "version": "1.09"
     },
     {
       "id": "5f306d7c-655c-41bb-a11d-76456da40b9f",
