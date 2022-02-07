@@ -1,10 +1,15 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.05 (24th October 2021)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.06 (7th February 2022)
  *	
  */
 
+
 import groovy.transform.Field
+
+@Field boolean debugMode = true
+@Field int reportIntervalMinutes = 50
+
 
 metadata {
 
@@ -14,7 +19,6 @@ metadata {
 		capability "Configuration"
 		capability "DoubleTapableButton"
 		capability "HoldableButton"
-		capability "Initialize"
 		capability "Momentary"
 		capability "PresenceSensor"
 		capability "PushableButton"
@@ -24,142 +28,150 @@ metadata {
 		capability "SwitchLevel"
 
 		attribute "batteryState", "string"
+		attribute "batteryVoltage", "string"
+		attribute "batteryVoltageWithUnit", "string"
 		attribute "batteryWithUnit", "string"
 
 		attribute "direction", "string"
 		attribute "levelChange", "integer"
 
-		//command "checkPresence"
+		if (debugMode) {
+			command "checkPresence"
+			command "testCommand"
+		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "Symfonisk Sound Controller", application: "21"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "IKEA Symfonisk Sound Controller", application: "21"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000,FC7C", outClusters: "0003,0004,0005,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "IKEA Symfonisk Sound Controller", application: "21"
 
 	}
 
 }
 
-@Field int reportIntervalSeconds = 3600		// How often should the device report in.
-@Field int presenceTimeoutMinutes = 140		// Allow one missed report with some leeway.
 
 preferences {
 	
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
 }
 
 
-def installed() {
-	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
+def testCommand() {
+
+	logging("${device} : Test Command", "info")
+
 }
 
 
-def initialize() {
+def installed() {
+	// Runs after first installation.
 
-	// Set states to starting values and schedule a single refresh.
-	// Runs on reboot, or can be triggered manually.
-
-	// Reset states.
-	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Initialisation complete.
-	logging("${device} : Initialised", "info")
+	logging("${device} : Installed", "info")
+	configure()
 
 }
 
 
 def configure() {
 
-	// Set preferences and ongoing scheduled tasks.
-	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
-
-	initialize()
+	// Tidy up.
 	unschedule()
 
-	// Default logging preferences.
-	device.updateSetting("infoLogging",[value:"true",type:"bool"])
-	device.updateSetting("debugLogging",[value:"true",type:"bool"])
-	device.updateSetting("traceLogging",[value:"true",type:"bool"])
+	state.clear()
+	state.presenceUpdated = 0
 
-	// Important Bit
-	sendZigbeeCommands(zigbee.onOffConfig())
+	sendEvent(name: "level", value: 0, isStateChange: false)
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	// Schedule reporting and presence checking.
+	int randomSixty
+
+	//sendZigbeeCommands(zigbee.onOffConfig())
+	int reportIntervalSeconds = reportIntervalMinutes * 60
 	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
-	sendZigbeeCommands(zigbee.enrollResponse())
+	//sendZigbeeCommands(zigbee.enrollResponse())
 
-	// Schedule the presence check.
-	int checkEveryMinutes = 10																					// Check presence timestamp every 10 minutes.						
+	int checkEveryMinutes = 10
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)									// At X seconds past the minute, every checkEveryMinutes minutes.
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
-	// Configuration complete.
+	// Request application value, manufacturer, model name, software build and simple descriptor data.
+	sendZigbeeCommands([
+		"he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0001 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0004 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x4000 {}",
+		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
+	])
+
+	// Set default preferences.
+	device.updateSetting("infoLogging", [value: "true", type: "bool"])
+	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
+	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+
+	// Notify.
+	sendEvent(name: "configuration", value: "success", isStateChange: false)
 	logging("${device} : Configured", "info")
 
-}
-
-
-def updated() {
-
-	// Runs whenever preferences are saved.
-
-	loggingStatus()
-	runIn(3600,infoLogOff)
-	runIn(2400,debugLogOff)
-	runIn(1200,traceLogOff)
-	refresh()
+	updated()
 
 }
 
 
-void loggingStatus() {
+void updated() {
+	// Runs when preferences are saved.
 
-	log.info "${device} : Logging : ${infoLogging == true}"
-	log.debug "${device} : Debug Logging : ${debugLogging == true}"
-	log.trace "${device} : Trace Logging : ${traceLogging == true}"
+	unschedule(debugLogOff)
+	unschedule(traceLogOff)
 
-}
-
-
-void traceLogOff(){
-	
-	log.trace "${device} : Trace Logging : Automatically Disabled"
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
-
-}
-
-void debugLogOff(){
-	
-	log.debug "${device} : Debug Logging : Automatically Disabled"
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-
-}
-
-
-void infoLogOff(){
-	
-	log.info "${device} : Info Logging : Automatically Disabled"
-	device.updateSetting("infoLogging",[value:"false",type:"bool"])
-
-}
-
-
-void reportToDev(map) {
-
-	String[] receivedData = map.data
-
-	def receivedDataCount = ""
-	if (receivedData != null) {
-		receivedDataCount = "${receivedData.length} bits of "
+	if (!debugMode) {
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
 	}
 
-	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! : ${map}", "trace")
+	logging("${device} : Preferences Updated", "info")
+
+	loggingStatus()
 
 }
 
+
+void refresh() {
+
+	// Battery status can be requested if command is sent within about 3 seconds of an actuation.
+	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021))
+	logging("${device} : Refreshed", "info")
+
+}
+
+
+void push(buttonId) {
+	
+	sendEvent(name:"pushed", value: buttonId, isStateChange:true)
+	
+}
+
+
+void hold(buttonId) {
+	
+	sendEvent(name:"held", value: buttonId, isStateChange:true)
+	
+}
+
+
+void release(buttonId) {
+	
+	sendEvent(name:"released", value: buttonId, isStateChange:true)
+	
+}
+
+
+void doubleTap(buttonId) {
+	
+	sendEvent(name:"doubleTapped", value: buttonId, isStateChange:true)
+	
+}
 
 void off() {
 
@@ -176,32 +188,6 @@ void on() {
 	sendEvent(name: "pushed", value: 1, isStateChange: true)
 	logging("${device} : Switch : On", "info")
 
-}
-
-
-void push(buttonId) {
-	
-	sendEvent(name:"pushed", value: buttonId, isStateChange:true)
-	
-}
-
-void doubleTap(buttonId) {
-	
-	sendEvent(name:"doubleTapped", value: buttonId, isStateChange:true)
-	
-}
-
-void hold(buttonId) {
-	
-	sendEvent(name:"held", value: buttonId, isStateChange:true)
-	
-}
-
-
-void release(buttonId) {
-	
-	sendEvent(name:"released", value: buttonId, isStateChange:true)
-	
 }
 
 
@@ -228,72 +214,7 @@ void setLevel(BigDecimal level, BigDecimal duration) {
 }
 
 
-void refresh() {
-
-	// Battery status can be requested if the command is sent within about 3 seconds of an actuation.
-	// I considered removing this, but it can be useful for forcing a battery read when the device is to hand.
-
-	logging("${device} : Refreshing", "info")
-	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021))
-
-}
-
-
-def updatePresence() {
-
-	long millisNow = new Date().time
-	state.presenceUpdated = millisNow
-
-}
-
-
-def checkPresence() {
-
-	// Check how long ago the presence state was updated.
-
-	uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
-
-	if (state.presenceUpdated > 0) {
-
-		long millisNow = new Date().time
-		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
-		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
-		BigInteger hubUptime = location.hub.uptime
-
-		if (millisElapsed > presenceTimeoutMillis) {
-
-			if (hubUptime > uptimeAllowanceMinutes * 60) {
-
-				sendEvent(name: "presence", value: "not present")
-				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
-
-			} else {
-
-				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
-
-			}
-
-		} else {
-
-			sendEvent(name: "presence", value: "present")
-			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
-
-		}
-
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
-
-	} else {
-
-		logging("${device} : Presence : Waiting for first presence report.", "warn")
-
-	}
-
-}
-
-
-def parse(String description) {
-
+void parse(String description) {
 	// Primary parse routine.
 
 	logging("${device} : parse() : $description", "trace")
@@ -316,13 +237,11 @@ def parse(String description) {
 }
 
 
-def processMap(Map map) {
+void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
 	String[] receivedData = map.data
-
-	logging("${device} : Processing : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "debug")
 
 	if (map.cluster == "0001") { 
 
@@ -369,7 +288,7 @@ def processMap(Map map) {
 
 	} else if (map.clusterId == "0006") { 
 
-		if (receivedData.length == 0) {
+		if (map.command == "02") {
 
 			parsePress(map)
 
@@ -391,6 +310,10 @@ def processMap(Map map) {
 
 		logging("${device} : Skipped : IAS Zone", "debug")
 
+	} else if (map.clusterId == "8004") {
+
+		processDescriptors(map)
+
 	} else if (map.clusterId == "8021") {
 
 		logging("${device} : Skipped : Bind Response", "debug")
@@ -399,20 +322,23 @@ def processMap(Map map) {
 
 		logging("${device} : Skipped : Unbind Response", "debug")
 
+	} else if (map.cluster == "0000") {
+
+		processBasic(map)
+
 	} else {
 
-		// Not a clue what we've received.
 		reportToDev(map)
 
 	}
-
-	return null
 
 }
 
 
 @Field static Boolean isParsing = false
 def parsePress(Map map) {
+
+	logging("${device} : parsePress() : Called!", "debug")
 
 	if (isParsing) return
 	isParsing = true
@@ -477,13 +403,12 @@ def parsePress(Map map) {
 				// Double-press is a supported Hubitat action, so just report the event.
 				logging("${device} : Trigger : Button ${buttonNumber} Double Pressed", "info")
 				sendEvent(name: "doubleTapped", value: buttonNumber, isStateChange: true)
-				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 
 			} else if (receivedData[0] == "01") {
 
-				// Triple-pressing is not a supported Hubitat action, but this device doesn't support hold or release on the button, so we can use that for triggers.
+				// Triple-pressing is not a supported Hubitat action, but this device doesn't support hold or release on the button, so we'll use "held" for this.
 				logging("${device} : Trigger : Button ${buttonNumber} Triple Pressed", "info")
-				sendEvent(name: "released", value: buttonNumber, isStateChange: true)
+				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 
 			} else {
 
@@ -546,12 +471,299 @@ def parsePress(Map map) {
 }
 
 
-void sendZigbeeCommands(List<String> cmds) {
+// Library v1.02 (12th January 2022)
 
+
+void sendZigbeeCommands(List<String> cmds) {
 	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+void updatePresence() {
+
+	long millisNow = new Date().time
+	state.presenceUpdated = millisNow
+	sendEvent(name: "presence", value: "present")
+
+}
+
+
+void checkPresence() {
+	// Check how long ago the presence state was updated.
+
+	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+
+	if (state.presenceUpdated > 0) {
+
+		long millisNow = new Date().time
+		long millisElapsed = millisNow - state.presenceUpdated
+		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long reportIntervalMillis = reportIntervalMinutes * 60000
+		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
+		BigInteger hubUptime = location.hub.uptime
+
+		if (millisElapsed > presenceTimeoutMillis) {
+
+			if (hubUptime > uptimeAllowanceMinutes * 60) {
+
+				sendEvent(name: "presence", value: "not present")
+				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
+
+			} else {
+
+				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
+
+			}
+
+		} else {
+
+			sendEvent(name: "presence", value: "present")
+			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
+
+		}
+
+		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed}", "trace")
+		logging("${device} : checkPresence() : Report interval is ${reportIntervalMillis} ms, timeout is ${presenceTimeoutMillis} ms.", "trace")
+
+	} else {
+
+		logging("${device} : Presence : Waiting for first presence report.", "warn")
+
+	}
+
+}
+
+
+void processBasic(Map map) {
+	// Process the basic descriptors normally received from Zigbee Cluster 0000 into device data values.
+
+	if (map.attrId == "0001") {
+
+		updateDataValue("application", "${map.value}")
+		logging("${device} : Application : ${map.value}", "debug")
+
+	} else if (map.attrId == "0004") {
+
+		updateDataValue("manufacturer", map.value)
+		logging("${device} : Manufacturer : ${map.value}", "debug")
+
+	} else if (map.attrId == "0005") {
+
+		updateDataValue("model", map.value)
+		logging("${device} : Model : ${map.value}", "debug")
+
+	} else if (map.attrId == "4000") {
+
+		updateDataValue("softwareBuild", "${map.value}")
+		logging("${device} : Firmware : ${map.value}", "debug")
+
+	}
+
+}
+
+
+void processDescriptors(Map map) {
+	// Process the simple descriptors normally received from Zigbee Cluster 8004 into device data values.
+
+	String[] receivedData = map.data
+
+	if (receivedData[1] == "00") {
+		// Received simple descriptor data.
+
+		//updateDataValue("endpointId", receivedData[5])						// can lead to a weird duplicate
+		updateDataValue("profileId", receivedData[6..7].reverse().join())
+
+		Integer inClusterNum = Integer.parseInt(receivedData[11], 16)
+		Integer position = 12
+		Integer positionCounter = null
+		String inClusters = ""
+		if (inClusterNum > 0) {
+			(1..inClusterNum).each() {b->
+				positionCounter = position+((b-1)*2)
+				inClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				if (b < inClusterNum) {
+					inClusters += ","
+				}
+			}
+		}
+		position += inClusterNum*2
+		Integer outClusterNum = Integer.parseInt(receivedData[position], 16)
+		position += 1
+		String outClusters = ""
+		if (outClusterNum > 0) {
+			(1..outClusterNum).each() {b->
+				positionCounter = position+((b-1)*2)
+				outClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				if (b < outClusterNum) {
+					outClusters += ","
+				}
+			}
+		}
+
+		updateDataValue("inClusters", inClusters)
+		updateDataValue("outClusters", outClusters)
+
+		logging("${device} : Received $inClusterNum inClusters : $inClusters", "debug")
+		logging("${device} : Received $outClusterNum outClusters : $outClusters", "debug")
+
+	} else {
+
+		reportToDev(map)
+
+	}
+
+}
+
+
+void reportToDev(map) {
+
+	String[] receivedData = map.data
+
+	def receivedDataCount = ""
+	if (receivedData != null) {
+		receivedDataCount = "${receivedData.length} bits of "
+	}
+
+	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Splurge! : ${map}", "trace")
+
+}
+
+
+@Field static Boolean debouncingParentState = false
+void debounceParentState(String attribute, String state, String message, String level, Integer duration) {
+
+	if (debouncingParentState) return
+	debouncingParentState = true
+
+	sendEvent(name: "$attribute", value: "$state")
+	logging("${device} : $message", "$level")
+
+	pauseExecution duration
+	debouncingParentState = false
+
+}
+
+
+def fetchChild(String type, String endpoint) {
+	// Creates and retrieves child devices matched to endpoints.
+
+	def childDevice = getChildDevice("${device.id}-${endpoint}")
+
+	if (endpoint != "null") {
+
+		if (!childDevice) {
+
+			logging("${device} : Creating child device $device.id-$endpoint", "debug")
+
+			childDevice = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+
+			if (type == "Switch") {
+
+				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
+				childDevice.parse([[name: "switch", value: 'off']])
+
+			} else {
+
+				logging("${device} : fetchChild() : I don't know what to do with the '$type' device type.", "error")
+
+			}
+
+			childDevice.updateSetting("txtEnable", false)
+
+		}
+
+		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
+
+	} else {
+
+		logging("${device} : Received null endpoint for device $device.id", "error")
+
+	}
+
+	return childDevice
+
+}
+
+
+def fetchChildStates(String state, String requestor) {
+	// Retrieves requested states of child devices.
+
+	logging("${device} : fetchChildStates() : Called by $requestor", "debug")
+
+	def childStates = []
+	def children = getChildDevices()
+
+	children.each {child->
+
+		// Give things a chance!
+		pauseExecution(100)
+	
+		// Grabs the requested state from the child device.
+		String childState = child.currentValue("${state}")
+
+		if ("${child.id}" != "${requestor}") {
+			// Don't include the requestor's state in the results, as we're likely in the process of updating it.
+			childStates.add("${childState}")
+			logging("${device} : fetchChildStates() : Found $child.id is '$childState'", "debug")
+		}
+
+	}
+
+	return childStates
+
+}
+
+
+void deleteChildren() {
+	// Deletes children we may have created.
+
+	logging("${device} : deleteChildren() : Deleting rogue children.", "debug")
+
+	def children = getChildDevices()
+    children.each {child->
+  		deleteChildDevice(child.deviceNetworkId)
+    }
+
+}
+
+
+void componentRefresh(com.hubitat.app.DeviceWrapper childDevice) {
+
+	logging("componentRefresh() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+
+void componentOn(com.hubitat.app.DeviceWrapper childDevice) {
+
+	logging("componentOn() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
+
+}
+
+
+void componentOff(com.hubitat.app.DeviceWrapper childDevice) {
+
+	logging("componentOff() from $childDevice.deviceNetworkId", "debug")
+	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
+
+}
+
+
+private String flipLittleEndian(Map map, String attribute) {
+
+	String bigEndianAttribute = ""
+	for (int v = map."${attribute}".length(); v > 0; v -= 2) {
+		bigEndianAttribute += map."${attribute}".substring(v - 2, v)
+	}
+	return bigEndianAttribute
 
 }
 
@@ -595,6 +807,37 @@ private BigDecimal hexToBigDecimal(String hex) {
 
     int d = Integer.parseInt(hex, 16) << 21 >> 21
     return BigDecimal.valueOf(d)
+
+}
+
+
+private String hexToBinary(String thisByte, Integer size = 8) {
+
+	String binaryValue = new BigInteger(thisByte, 16).toString(2);
+	return String.format("%${size}s", binaryValue).replace(' ', '0')
+	
+}
+
+
+void traceLogOff(){
+	
+	log.trace "${device} : Trace Logging : Automatically Disabled"
+	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+
+}
+
+void debugLogOff(){
+	
+	log.debug "${device} : Debug Logging : Automatically Disabled"
+	device.updateSetting("debugLogging",[value:"false",type:"bool"])
+
+}
+
+
+void infoLogOff(){
+	
+	log.info "${device} : Info  Logging : Automatically Disabled"
+	device.updateSetting("infoLogging",[value:"false",type:"bool"])
 
 }
 

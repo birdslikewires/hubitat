@@ -1,8 +1,12 @@
 # IKEA Symfonisk and Trådfri Drivers for Hubitat - Changelog
 
+## 7th February 2022
+
+- Reorganised and updated a bunch o' code for E1744.
+
 ## 6th February 2022
 
-- Reorganised and updated a bunch o' code.
+- Reorganised and updated a bunch o' code for E1812.
 - Support added for v2.3.080 firmware and doubleTap function.
 
 ## 6th January 2022
