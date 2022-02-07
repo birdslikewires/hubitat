@@ -3,6 +3,7 @@
 ## 7th February 2022
 
 - Reorganised and updated a bunch o' code for E1744.
+- Corrected a mistake in the library code.
 
 ## 6th February 2022
 

@@ -13,7 +13,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller_e1744.groovy",
       "required": false,
-      "version": "1.06"
+      "version": "1.07"
     },
     {
       "id": "683107b8-d0b2-4984-9edc-0ecd1d90ac10",
@@ -21,7 +21,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy",
       "required": false,
-      "version": "1.09"
+      "version": "1.10"
     },
     {
       "id": "5f306d7c-655c-41bb-a11d-76456da40b9f",

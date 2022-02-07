@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Symfonisk Sound Controller E1744 Driver v1.06 (7th February 2022)
+ *  IKEA Symfonisk Sound Controller E1744 Driver v1.07 (7th February 2022)
  *	
  */
 
@@ -471,7 +471,7 @@ def parsePress(Map map) {
 }
 
 
-// Library v1.02 (12th January 2022)
+// Library v1.03 (7th February 2022)
 
 
 void sendZigbeeCommands(List<String> cmds) {
@@ -838,6 +838,15 @@ void infoLogOff(){
 	
 	log.info "${device} : Info  Logging : Automatically Disabled"
 	device.updateSetting("infoLogging",[value:"false",type:"bool"])
+
+}
+
+
+void loggingStatus() {
+
+	log.info  "${device} : Info Logging : ${infoLogging == true}"
+	log.debug "${device} : Debug Logging : ${debugLogging == true}"
+	log.trace "${device} : Trace Logging : ${traceLogging == true}"
 
 }
 
