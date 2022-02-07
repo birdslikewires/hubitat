@@ -1,5 +1,9 @@
 # Samotech Drivers for Hubitat - Changelog
 
+## 7th February 2022
+
+- Updated library and a few minor quality-of-life tweaks.
+
 ## 10th January 2022
 
 - Deal with (or rather, don't deal with) duplicate actuation response messages. https://github.com/birdslikewires/hubitat/issues/12
