@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.06 (19th February 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.07 (19th February 2022)
  *	
  */
 
@@ -102,8 +102,8 @@ def configure() {
 	device.name = "Xiaomi Mijia Smart Light Sensor GZCGQ01LM"
 
 	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
+	sendEvent(name: "configuration", value: "set", isStateChange: false)
+	logging("${device} : Configuration : Hub settings complete.", "info")
 
 	updated()
 
@@ -247,7 +247,6 @@ void processMap(Map map) {
 
 		} else {
 
-			// Not a clue what we've received.
 			reportToDev(map)
 
 		}
@@ -293,7 +292,6 @@ void processMap(Map map) {
 
 		} else {
 
-			// Not a clue what we've received.
 			reportToDev(map)
 
 		}
@@ -430,6 +428,7 @@ void processConfigurationResponse(Map map) {
 
 		if (receivedData[0] == "00") {
 
+			sendEvent(name: "configuration", value: "received", isStateChange: false)
 			logging("${device} : Configuration : Received by device.", "info")
 
 		} else {

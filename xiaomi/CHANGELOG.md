@@ -4,7 +4,8 @@
 
 - Bind and configuration messages are now sent as part of the configure() method (GZCGQ01LM).
 - Looks like our requested values are either ignored or out of range, the interval always stays around 8 seconds (GZCGQ01LM).
-- Do not turn off debug and trace logs when hitting Configure, as they may be in use. Allow the scheduled tasks to do this.
+- Do not turn off debug and trace logs when hitting Configure, as they may be in use. Allow the scheduled tasks to do this (GZCGQ01LM).
+- Configuration temporary state can be either "set" or "receieved". The former confirms local settings, the latter the device (GZCGQ01LM).
 - Some minor tidying and tweaking (GZCGQ01LM).
 
 ## 11th January 2022
