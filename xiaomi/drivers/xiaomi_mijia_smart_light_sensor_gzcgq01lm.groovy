@@ -308,6 +308,10 @@ void processMap(Map map) {
 		
 		processDescriptors(map)
 
+	} else if (map.clusterId == "8005") {
+
+		logging("${device} : Skipped : Active End Point Response", "debug")
+
 	} else if (map.clusterId == "8021") {
 
 		logging("${device} : Skipped : Bind Response", "debug")
