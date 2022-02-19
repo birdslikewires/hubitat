@@ -1,5 +1,11 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 19th February 2022
+
+- Bind and configuration messages are now sent as part of the configure() method.
+- Looks like our requested values are either ignored or out of range, the interval always stays around 8 seconds.
+- Some minor tidying and tweaking.
+
 ## 11th January 2022
 
 - Added press debouncing (WXKG06LM / WXKG07LM).

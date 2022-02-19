@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.04 (11th January 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.05 (19th February 2022)
  *	
  */
 
@@ -9,6 +9,7 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 60
+@Field int luxTolerance = 200
 
 
 metadata {
@@ -34,8 +35,8 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM", application: "1A"
-		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "XIAOMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM", application: "1A"
+		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM"
+		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "XIAOMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM"
 
 	}
 
@@ -79,9 +80,22 @@ def configure() {
 	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
 	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
 
-	// Schedule reporting and presence checking.
-	int randomSixty
-	
+	// Configure device reporting.
+	int reportIntervalMinSeconds = 3
+	int reportIntervalMaxSeconds = reportIntervalMinutes * 60
+
+	ArrayList<String> cmds = [
+		"zdo bind ${device.deviceNetworkId} 0x01 0x01 0x0000 {${device.zigbeeId}} {}",
+		"zdo bind ${device.deviceNetworkId} 0x01 0x01 0x0001 {${device.zigbeeId}} {}",
+		"zdo bind ${device.deviceNetworkId} 0x01 0x01 0x0003 {${device.zigbeeId}} {}",
+		"zdo bind ${device.deviceNetworkId} 0x01 0x01 0x0400 {${device.zigbeeId}} {}",
+	]
+	cmds += zigbee.configureReporting(0x0001, 0x0020, 0x20, reportIntervalMaxSeconds, reportIntervalMaxSeconds, null)
+    cmds += zigbee.configureReporting(0x0400, 0x0000, 0x21, reportIntervalMinSeconds, reportIntervalMaxSeconds, luxTolerance)
+	sendZigbeeCommands(cmds)
+ 
+	// Schedule presence checking.
+ 	int randomSixty
 	int checkEveryMinutes = 10					
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
@@ -173,7 +187,12 @@ void processMap(Map map) {
 
 	String[] receivedValue = map.value
 
-	if (map.cluster == "0001") { 
+	if (map.cluster == "0000") {
+
+		// processBasic(map)
+		reportToDev(map)
+
+	} else if (map.cluster == "0001") { 
 
 		if (map.attrId == "0020") {
 			
@@ -235,6 +254,37 @@ void processMap(Map map) {
 
 		}
 
+	} else if (map.cluster == "0400") {
+
+		// Illuminance data received.
+
+		Integer lux = Integer.parseInt(map.value,16)
+		Integer luxVariance = Math.abs(state.rawLux - lux)
+
+		if (state.rawLux == null || luxVariance > luxTolerance) {
+
+			state.rawLux = lux
+			lux = lux > 0 ? Math.round(Math.pow(10,(lux/10000)) - 1) : 0
+
+			def lastLux = device.currentState("illuminance").value.toInteger()
+			String illuminanceDirection = lux > lastLux ? "brightening" : "darkening"
+			String illuminanceDirectionLog = illuminanceDirection.capitalize()
+
+			logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "debug")
+			sendEvent(name: "illuminance", value: lux, unit: "lux")
+			sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
+			sendEvent(name: "illuminanceWithUnit", value: "${lux} lux")
+
+		} else {
+
+			logging("${device} : Lux : Variance of ${luxVariance} (previously ${state.rawLux}, now ${lux}) is within tolerance.", "debug")
+
+		}
+
+	} else if (map.clusterId == "0001") {
+
+		processConfigurationResponse(map)
+
 	} else if (map.clusterId == "0003") {
 
 		if (map.command == "01") {
@@ -248,44 +298,19 @@ void processMap(Map map) {
 			// Not a clue what we've received.
 			reportToDev(map)
 
-		} 
-
-	} else if (map.cluster == "0400") {
-
-		// Illuminance data received.
-
-		Integer lux = Integer.parseInt(map.value,16)
-		Integer luxTolerance = 200
-		Integer luxVariance = Math.abs(state.rawLux - lux)
-
-		if (state.rawLux == null || luxVariance > luxTolerance) {
-
-			state.rawLux = lux
-			lux = lux > 0 ? Math.round(Math.pow(10,(lux/10000)) - 1) : 0
-
-			def lastLux = device.currentState("illuminance").value.toInteger()
-			String illuminanceDirection = lux > lastLux ? "brightening" : "darkening"
-			String illuminanceDirectionLog = illuminanceDirection.capitalize()
-
-			logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "info")
-			sendEvent(name: "illuminance", value: lux, unit: "lux")
-			sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
-			sendEvent(name: "illuminanceWithUnit", value: "${lux} lux")
-
-		} else {
-
-			logging("${device} : Lux : Variance of ${luxVariance} (previously ${state.rawLux}, now ${lux}) is within tolerance.", "debug")
-
 		}
+
+	} else if (map.clusterId == "0400") {
+
+		processConfigurationResponse(map)
 
 	} else if (map.clusterId == "8004") {
 		
 		processDescriptors(map)
 
-	} else if (map.cluster == "0000") {
+	} else if (map.clusterId == "8021") {
 
-		// processBasic(map)
-		reportToDev(map)
+		logging("${device} : Skipped : Bind Response", "debug")
 
 	} else {
 
@@ -385,6 +410,31 @@ void processBasic(Map map) {
 
 		updateDataValue("softwareBuild", "${map.value}")
 		logging("${device} : Firmware : ${map.value}", "debug")
+
+	}
+
+}
+
+
+void processConfigurationResponse(Map map) {
+
+	String[] receivedData = map.data
+
+	if (map.command == "07") {
+
+		if (receivedData[0] == "00") {
+
+			logging("${device} : Configuration : Received by device.", "info")
+
+		} else {
+
+			logging("${device} : Configuration : Device may not have processed configuration correctly.", "warn")
+
+		}
+
+	} else {
+
+		reportToDev(map)
 
 	}
 
