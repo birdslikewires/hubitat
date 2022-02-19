@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.05 (19th February 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.06 (19th February 2022)
  *	
  */
 
@@ -77,8 +77,6 @@ def configure() {
 
 	// Set default preferences.
 	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
 
 	// Configure device reporting.
 	int reportIntervalMinSeconds = 3
@@ -300,6 +298,10 @@ void processMap(Map map) {
 
 		}
 
+	} else if (map.clusterId == "0013") {
+
+		logging("${device} : Skipped : Device Announce Broadcast", "debug")
+
 	} else if (map.clusterId == "0400") {
 
 		processConfigurationResponse(map)
@@ -325,7 +327,7 @@ void processMap(Map map) {
 }
 
 
-// Library v1.01 (11th January 2022)
+// Library v1.02 (19th February 2022)
 
 
 void sendZigbeeCommands(List<String> cmds) {
