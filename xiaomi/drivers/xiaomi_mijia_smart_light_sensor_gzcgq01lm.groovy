@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.07 (19th February 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.08 (20th February 2022)
  *	
  */
 
@@ -183,7 +183,7 @@ void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
-	String[] receivedValue = map.value
+	String receivedValue = map.value != null ? map.value : null
 
 	if (map.cluster == "0000") {
 
@@ -255,7 +255,7 @@ void processMap(Map map) {
 
 		// Illuminance data received.
 
-		Integer lux = Integer.parseInt(map.value,16)
+		Integer lux = Integer.parseInt(receivedValue,16)
 		Integer luxVariance = Math.abs(state.rawLux - lux)
 
 		if (state.rawLux == null || luxVariance > luxTolerance) {

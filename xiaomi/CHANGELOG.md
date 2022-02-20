@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 20th February 2022
+
+- Read map.value into a string at the beginning of the processMap method.
+
 ## 19th February 2022
 
 - Bind and configuration messages are now sent as part of the configure() method (GZCGQ01LM).
