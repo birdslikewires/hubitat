@@ -282,7 +282,7 @@ void processMap(Map map) {
 
 		} else {
 
-			logging("${device} : Lux : Illuminance message has been received without a value. This is weird.", "debug")
+			logging("${device} : Lux : Illuminance message has been received without a value. This is weird.", "warn")
 
 		}
 
