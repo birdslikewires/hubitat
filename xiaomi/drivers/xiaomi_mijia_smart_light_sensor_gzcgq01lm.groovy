@@ -255,26 +255,34 @@ void processMap(Map map) {
 
 		// Illuminance data received.
 
-		Integer lux = Integer.parseInt(receivedValue,16)
-		Integer luxVariance = Math.abs(state.rawLux - lux)
+		if (receivedValue != null) {
 
-		if (state.rawLux == null || luxVariance > luxTolerance) {
+			Integer lux = Integer.parseInt(receivedValue,16)
+			Integer luxVariance = Math.abs(state.rawLux - lux)
 
-			state.rawLux = lux
-			lux = lux > 0 ? Math.round(Math.pow(10,(lux/10000)) - 1) : 0
+			if (state.rawLux == null || luxVariance > luxTolerance) {
 
-			def lastLux = device.currentState("illuminance").value.toInteger()
-			String illuminanceDirection = lux > lastLux ? "brightening" : "darkening"
-			String illuminanceDirectionLog = illuminanceDirection.capitalize()
+				state.rawLux = lux
+				lux = lux > 0 ? Math.round(Math.pow(10,(lux/10000)) - 1) : 0
 
-			logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "debug")
-			sendEvent(name: "illuminance", value: lux, unit: "lux")
-			sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
-			sendEvent(name: "illuminanceWithUnit", value: "${lux} lux")
+				def lastLux = device.currentState("illuminance").value.toInteger()
+				String illuminanceDirection = lux > lastLux ? "brightening" : "darkening"
+				String illuminanceDirectionLog = illuminanceDirection.capitalize()
+
+				logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "debug")
+				sendEvent(name: "illuminance", value: lux, unit: "lux")
+				sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
+				sendEvent(name: "illuminanceWithUnit", value: "${lux} lux")
+
+			} else {
+
+				logging("${device} : Lux : Variance of ${luxVariance} (previously ${state.rawLux}, now ${lux}) is within tolerance.", "debug")
+
+			}
 
 		} else {
 
-			logging("${device} : Lux : Variance of ${luxVariance} (previously ${state.rawLux}, now ${lux}) is within tolerance.", "debug")
+			logging("${device} : Lux : Illuminance message has been received without a value. This is weird.", "debug")
 
 		}
 
