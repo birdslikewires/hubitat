@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 21st February 2022
+
+- Handle decimal lux values retained from other drivers.
+
 ## 20th February 2022
 
 - Read map.value into a string at the beginning of the processMap method.

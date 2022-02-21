@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.08 (20th February 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.09 (21st February 2022)
  *	
  */
 
@@ -73,6 +73,8 @@ def configure() {
 	state.presenceUpdated = 0
 	state.rawLux = 0
 	
+	sendEvent(name: "illuminance", value: 0, unit: "lux")
+	sendEvent(name: "illuminanceWithUnit", value: "0 lux")
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
 	// Set default preferences.
@@ -265,7 +267,9 @@ void processMap(Map map) {
 				state.rawLux = lux
 				lux = lux > 0 ? Math.round(Math.pow(10,(lux/10000)) - 1) : 0
 
-				def lastLux = device.currentState("illuminance").value.toInteger()
+				def lastLux = device.currentState("illuminance").value
+				lastLux = lastLux.indexOf('.') >= 0 ? 0 : lastLux.toInteger()  // In case a decimal has snuck through.
+		
 				String illuminanceDirection = lux > lastLux ? "brightening" : "darkening"
 				String illuminanceDirectionLog = illuminanceDirection.capitalize()
 
