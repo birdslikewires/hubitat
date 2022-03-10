@@ -13,7 +13,7 @@
       "namespace": "BirdsLikeWires",
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor_wsdcgq11lm.groovy",
       "required": false,
-      "version": "1.03"
+      "version": "1.04"
     },
     {
       "id": "4640c4e7-eb67-4fb2-bd1f-abefe4da277b",

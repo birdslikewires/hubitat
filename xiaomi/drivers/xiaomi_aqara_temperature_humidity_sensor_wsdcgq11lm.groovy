@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.03 (11th January 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.04 (10th March 2022)
  *	
  */
 
@@ -211,7 +211,7 @@ void processMap(Map map) {
 		BigDecimal pressure = hexStrToSignedInt(pressureFlippedHex)
 		pressure = pressure.setScale(1, BigDecimal.ROUND_HALF_UP) / 10
 
-		BigDecimal lastPressure = device.currentState("pressure").value.toBigDecimal()
+		BigDecimal lastPressure = device.currentState("pressure") ? device.currentState("pressure").value.toBigDecimal() : 0
 
 		////////// WORK TO DO - RECORD PREVIOUS PRESSURE AS LASTPRESSURE IF PRESSURE HAS CHANGED OR SOMETHING - TOO TIRED!
 
@@ -239,7 +239,7 @@ void processMap(Map map) {
 
 		logging("${device} : humidity : ${humidity} from hex value ${humidityFlippedHex} flipped from ${map.value}", "trace")
 
-		BigDecimal lastTemperature = device.currentState("temperature").value.toBigDecimal()
+		BigDecimal lastTemperature = device.currentState("temperature") ? device.currentState("temperature").value.toBigDecimal() : 0
 
 		String temperatureScale = location.temperatureScale
 		if (temperatureScale == "F") {

@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 10th March 2022
+
+- Catch null values when evaluating previous readings.
+
 ## 21st February 2022
 
 - Handle decimal lux values retained from other drivers.
