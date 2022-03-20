@@ -1,6 +1,10 @@
 # Generic Drivers for Hubitat - Changelog
 
-## 22ns November 2021
+## 20th March 2022
+
+- virtual_switchable_presence: General overhaul to better show presence and absence times and durations.
+
+## 22nd November 2021
 
 - Added time and date stamp for each "actuation" of the switch.
 
