@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.04 (10th March 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.05 (21st March 2022)
  *	
  */
 
@@ -86,7 +86,6 @@ def configure() {
 
 	// Schedule reporting and presence checking.
 	int randomSixty
-	
 	int checkEveryMinutes = 10					
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
@@ -358,7 +357,9 @@ void processMap(Map map) {
 }
 
 
-// Library v1.01 (11th January 2022)
+
+// Library v1.03 (20th March 2022) // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
 
 
 void sendZigbeeCommands(List<String> cmds) {
@@ -447,6 +448,32 @@ void processBasic(Map map) {
 
 		updateDataValue("softwareBuild", "${map.value}")
 		logging("${device} : Firmware : ${map.value}", "debug")
+
+	}
+
+}
+
+
+void processConfigurationResponse(Map map) {
+
+	String[] receivedData = map.data
+
+	if (map.command == "07") {
+
+		if (receivedData[0] == "00") {
+
+			sendEvent(name: "configuration", value: "received", isStateChange: false)
+			logging("${device} : Configuration : Received by device.", "info")
+
+		} else {
+
+			logging("${device} : Configuration : Device may not have processed configuration correctly.", "warn")
+
+		}
+
+	} else {
+
+		reportToDev(map)
 
 	}
 
@@ -655,7 +682,7 @@ private String flipLittleEndian(Map map, String attribute) {
 }
 
 
-private String[] millisToDhms(int millisToParse) {
+private String[] millisToDhms(long millisToParse) {
 
 	long secondsToParse = millisToParse / 1000
 

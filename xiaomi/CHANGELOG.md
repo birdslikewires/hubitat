@@ -1,5 +1,9 @@
 # Xiaomi Aqara Drivers for Hubitat - Changelog
 
+## 22nd March 2022
+
+- Updated the Library section a bit.
+
 ## 10th March 2022
 
 - Catch null values when evaluating previous readings.
