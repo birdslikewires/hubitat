@@ -1,19 +1,28 @@
 {
-  "packageName": "Salus Drivers from BirdsLikeWires",
-  "author": "Andrew Davison",
-  "minimumHEVersion": "2.1.9",
-  "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-  "releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/salus/CHANGELOG.md",
-  "documentationLink": "https://github.com/birdslikewires/hubitat",
-  "dateReleased": "2020-12-21",
-  "drivers": [
-    {
-      "id": "3df1563d-0820-4f56-8ffd-23b7ee123ee2",
-      "name": "Salus Smart Plug SP600",
-      "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_smart_plug_sp600.groovy",
-      "required": false,
-      "version": "1.15"
-    }
-  ]
+	"packageName": "Salus Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.1.9",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/salus/CHANGELOG.md",
+	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"dateReleased": "2020-12-21",
+	"bundles": [
+		{
+		"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+		"name": "library",
+		"namespace": "BirdsLikeWires",
+		"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+		"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "3df1563d-0820-4f56-8ffd-23b7ee123ee2",
+			"name": "Salus Smart Plug SP600",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_smart_plug_sp600.groovy",
+			"required": false,
+			"version": "1.15"
+		}
+	]
 }

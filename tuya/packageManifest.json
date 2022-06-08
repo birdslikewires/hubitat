@@ -1,35 +1,44 @@
 {
-  "packageName": "Tuya Drivers from BirdsLikeWires",
-  "author": "Andrew Davison",
-  "minimumHEVersion": "2.1.9",
-  "licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-  "releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/tuya/CHANGELOG.md",
-  "documentationLink": "https://github.com/birdslikewires/hubitat",
-  "dateReleased": "2020-12-27",
-  "drivers": [
-    {
-      "id": "5e36541f-2596-4f07-9207-5599eaa29637",
-      "name": "Tuya Smart Plug TY-HG06337",
-      "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_plug_ty-hg06337.groovy",
-      "required": false,
-      "version": "1.02"
-    },
-    {
-      "id": "220070f0-7b7d-4158-86c1-f5378a16de57",
-      "name": "Tuya Smart USB Extension TY-HG06338",
-      "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_usb_extension_ty-hg06338.groovy",
-      "required": false,
-      "version": "1.05"
-    },
-    {
-      "id": "567a083b-1641-4001-8cb0-b3add10158eb",
-      "name": "Tuya Switch Module TS0011 / TS0012",
-      "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy",
-      "required": false,
-      "version": "1.01"
-    }
-  ]
+	"packageName": "Tuya Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.1.9",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/tuya/CHANGELOG.md",
+	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"dateReleased": "2020-12-27",
+	"bundles": [
+		{
+		"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+		"name": "library",
+		"namespace": "BirdsLikeWires",
+		"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+		"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "5e36541f-2596-4f07-9207-5599eaa29637",
+			"name": "Tuya Smart Plug TY-HG06337",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_plug_ty-hg06337.groovy",
+			"required": false,
+			"version": "1.02"
+		},
+		{
+			"id": "220070f0-7b7d-4158-86c1-f5378a16de57",
+			"name": "Tuya Smart USB Extension TY-HG06338",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_usb_extension_ty-hg06338.groovy",
+			"required": false,
+			"version": "1.05"
+		},
+		{
+			"id": "567a083b-1641-4001-8cb0-b3add10158eb",
+			"name": "Tuya Switch Module TS0011 / TS0012",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy",
+			"required": false,
+			"version": "1.01"
+		}
+	]
 }

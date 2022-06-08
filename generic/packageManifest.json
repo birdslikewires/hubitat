@@ -12,8 +12,7 @@
 		"name": "library",
 		"namespace": "BirdsLikeWires",
     "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
-		"required": true,
-    "version": "1.04"
+		"required": true
 		}
 	],
   "drivers": [
