@@ -1,13 +1,13 @@
 /*
  * 
- *  AlertMe Key Fob Driver v1.18 (3rd July 2021)
+ *  AlertMe Fob Driver v1.19 (7th June 2022)
  *	
  */
 
 
 metadata {
 
-	definition (name: "AlertMe Key Fob", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_keyfob.groovy") {
+	definition (name: "AlertMe Fob", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -28,7 +28,7 @@ metadata {
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Key Fob"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Fob"
 
 	}
 
