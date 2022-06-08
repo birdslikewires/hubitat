@@ -6,6 +6,16 @@
   "releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/generic/CHANGELOG.md",
   "documentationLink": "https://github.com/birdslikewires/hubitat",
   "dateReleased": "2020-12-21",
+  "bundles": [
+		{
+		"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+		"name": "library",
+		"namespace": "BirdsLikeWires",
+    "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+		"required": true,
+    "version": "1.04"
+		}
+	],
   "drivers": [
     {
       "id": "27b466da-e169-4270-9e1a-29a5173f9883",
