@@ -1,5 +1,10 @@
 # AlertMe Drivers for Hubitat - Changelog
 
+## 8th June 2022
+
+- Changes to what is now the "Fob" driver, first to flip the name and second to switch to using library code. Bit of a test case here.
+- Tiny amount of code added to begin Pendant support within the Fob driver.
+
 ## 11th August 2021
 
 - Added warning to Button driver regarding 2008 firmware. This firmware was found on two never-used Button devices. On rare occasions during pairing attempts they would respond to the hub with their device details, but would then immediately re-enter pairing mode before eventually timing out.
