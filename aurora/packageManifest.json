@@ -4,14 +4,15 @@
 	"minimumHEVersion": "2.2.1",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/aurora/CHANGELOG.md",
+	"documentationLink": "https://github.com/birdslikewires/hubitat",
 	"dateReleased": "2021-01-17",
 	"bundles": [
 		{
-		"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
-		"name": "library",
-		"namespace": "BirdsLikeWires",
-		"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
-		"required": true
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"required": true
 		}
 	],
 	"drivers": [

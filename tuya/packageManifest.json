@@ -8,11 +8,11 @@
 	"dateReleased": "2020-12-27",
 	"bundles": [
 		{
-		"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
-		"name": "library",
-		"namespace": "BirdsLikeWires",
-		"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
-		"required": true
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"required": true
 		}
 	],
 	"drivers": [
