@@ -33,11 +33,11 @@
     },
     {
       "id": "aa1ab2a1-8df9-4f37-924c-ecd88b79e43e",
-      "name": "AlertMe Key Fob",
+      "name": "AlertMe Fob",
       "namespace": "BirdsLikeWires",
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_keyfob.groovy",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy",
       "required": false,
-      "version": "1.18"
+      "version": "1.19"
     },
     {
       "id": "1447f569-33a8-4bb9-a554-6ea22f3de617",
