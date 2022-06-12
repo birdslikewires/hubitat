@@ -1,8 +1,15 @@
 /*
  * 
- *  AlertMe Fob Driver v1.20 (7th June 2022)
+ *  AlertMe Fob Driver v1.21 (12th June 2022)
  *	
  */
+
+
+#include BirdsLikeWires.library
+import groovy.transform.Field
+
+@Field boolean debugMode = false
+@Field int reportIntervalMinutes = 2
 
 
 metadata {
@@ -11,7 +18,6 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "Initialize"
 		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "Refresh"
@@ -28,6 +34,12 @@ metadata {
 		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
 
+		if (debugMode) {
+			command "checkPresence"
+			command "testCommand"
+		}
+
+		fingerprint profileId: "C216", inClusters: "00F0,00C0", outClusters: "", manufacturer: "AlertMe.com", model: "Care Pendant Device", deviceJoinName: "AlertMe Pendant"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Fob"
 
 	}
@@ -44,183 +56,108 @@ preferences {
 }
 
 
-def installed() {
-	// Runs after first pairing.
-	logging("${device} : Paired!", "info")
+def testCommand() {
+	logging("${device} : Test Command", "info")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}"])	   // version information request
 }
 
 
-def initialize() {
-
-	// Set states to starting values and schedule a single refresh.
-	// Runs on reboot, or can be triggered manually.
-
-	// Reset states...
-
-	state.batteryOkay = true
-	state.lastAwayPress = 0
-	state.lastAwayRelease = 0
-	state.lastHomePress = 0
-	state.lastHomeRelease = 0
-	state.operatingMode = "normal"
-	state.presenceUpdated = 0
-	state.rangingPulses = 0
-
-	// ...but don't arbitrarily reset the state of the device's main functions or tamper status.
-
-	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryState",value: "discharging", isStateChange: false)
-	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "lqi", value: 0, isStateChange: false)
-	sendEvent(name: "operation", value: "unknown", isStateChange: false)
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-	sendEvent(name: "temperature", value: 0, unit: "C", isStateChange: false)
-	sendEvent(name: "temperatureWithUnit", value: "unknown", isStateChange: false)
-
-	// Remove disused state variables from earlier versions.
-	state.remove("batteryInstalled")
-	state.remove("firmwareVersion")
-	state.remove("lastPress")
-	state.remove("lastRelease")
-	state.remove("uptime")
-	state.remove("uptimeReceived")
-	state.remove("presentAt")
-	state.remove("relayClosed")
-	state.remove("rssi")
-	state.remove("supplyPresent")
-
-	// Remove unnecessary device details.
-	removeDataValue("application")
-
-	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	runIn(randomSixty,refresh)
-
-	// Initialisation complete.
-	logging("${device} : Initialised", "info")
-
+def installed() {
+	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
 }
 
 
 def configure() {
 
-	// Set preferences and ongoing scheduled tasks.
-	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
+	int randomSixty
+	String modelCheck = "${getDeviceDataByName('model')}"
 
-	initialize()
+	// Tidy up.
 	unschedule()
 
-	// Default logging preferences.
-	device.updateSetting("infoLogging",[value:"true",type:"bool"])
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
+	state.clear()
+	state.presenceUpdated = 0
 
-	// Schedule our ranging report.
-	int checkEveryHours = 6																						// Request a ranging report and refresh every 6 hours or every 1 hour for outlets.						
+
+
+	state.lastAwayPress = 0
+	state.lastAwayRelease = 0
+	state.lastHomePress = 0
+	state.lastHomeRelease = 0
+	
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	// Set default preferences.
+	device.updateSetting("infoLogging", [value: "true", type: "bool"])
+	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
+	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+
+	// Schedule presence checking.
+	int checkEveryMinutes = 1
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+
+	// Schedule ranging report.
+	int checkEveryHours = 6					
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", rangeAndRefresh)	// At X seconds past X minute, every checkEveryHours hours, starting at Y hour.
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${checkEveryHours} * * ? *", rangeAndRefresh)
 
-	// Schedule the presence check.
-	int checkEveryMinutes = 1																					// Check presence timestamp every 6 minutes or every 1 minute for key fobs.						
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)									// At X seconds past the minute, every checkEveryMinutes minutes.
-
-	// Configuration complete.
-	logging("${device} : Configured", "info")
+	// Set device name.
+	if ("${modelCheck}" == "Care Pendant Device") {
+		device.name = "AlertMe Pendant"
+	} else if ("${modelCheck}" == "Keyfob Device") {
+		device.name = "AlertMe Fob"
+	}
 
 	// Run a ranging report and then switch to normal operating mode.
 	rangingMode()
 	runIn(12,normalMode)
+
+	// Notify.
+	sendEvent(name: "configuration", value: "complete", isStateChange: false)
+	logging("${device} : Configuration complete.", "info")
+
+	updated()
 	
 }
 
 
-def updated() {
+void updated() {
+	// Runs when preferences are saved.
 
-	// Runs whenever preferences are saved.
+	unschedule(infoLogOff)
+	unschedule(debugLogOff)
+	unschedule(traceLogOff)
 
-	loggingStatus()
-	runIn(3600,infoLogOff)
-	runIn(2400,debugLogOff)
-	runIn(1200,traceLogOff)
-	refresh()
-
-}
-
-
-void loggingStatus() {
-
-	log.info "${device} : Logging : ${infoLogging == true}"
-	log.debug "${device} : Debug Logging : ${debugLogging == true}"
-	log.trace "${device} : Trace Logging : ${traceLogging == true}"
-
-}
-
-
-void traceLogOff(){
-	
-	log.trace "${device} : Trace Logging : Automatically Disabled"
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
-
-}
-
-void debugLogOff(){
-	
-	log.debug "${device} : Debug Logging : Automatically Disabled"
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-
-}
-
-
-void infoLogOff(){
-	
-	log.info "${device} : Info Logging : Automatically Disabled"
-	device.updateSetting("infoLogging",[value:"false",type:"bool"])
-
-}
-
-
-void reportToDev(map) {
-
-	String[] receivedData = map.data
-
-	def receivedDataCount = ""
-	if (receivedData != null) {
-		receivedDataCount = "${receivedData.length} bits of "
+	if (!debugMode) {
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
 	}
 
-	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! : ${map}", "trace")
+	logging("${device} : Preferences Updated", "info")
+
+	loggingStatus()
 
 }
 
 
 def normalMode() {
+	// Normal operation.
 
-	// This is the standard running mode.
-
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	state.operatingMode = "normal"
-	refresh()
-	sendEvent(name: "operation", value: "normal")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
 	logging("${device} : Operation : Normal", "info")
 
 }
 
 
 def rangingMode() {
-
-	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator
-	// while reporting LQI values. It's also a handy means of identifying or pinging a device.
-
-	// Don't set state.operatingMode here! Ranging is a temporary state only.
+	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator while reporting LQI values.
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
-	sendEvent(name: "operation", value: "ranging")
 	logging("${device} : Operation : Ranging", "info")
 
 	// Ranging will be disabled after a maximum of 30 pulses.
@@ -230,22 +167,21 @@ def rangingMode() {
 
 
 def quietMode() {
+	// Turns off all reporting except for a ranging message every 2 minutes. Pretty useless except as a temporary state.
 
-	// Turns off all reporting except for a ranging message every 2 minutes.
-
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	state.operatingMode = "quiet"
-
-	// We don't receive any of these in quiet mode, so reset them.
-	sendEvent(name: "battery",value:0, unit: "%", isStateChange: false)
-	sendEvent(name: "batteryVoltage", value: 0, unit: "V", isStateChange: false)
-	sendEvent(name: "batteryVoltageWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "batteryWithUnit", value: "unknown", isStateChange: false)
-	sendEvent(name: "operation", value: "quiet")
-
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 	logging("${device} : Operation : Quiet", "info")
 
-	refresh()
+}
+
+
+def rangeAndRefresh() {
+	// This toggles ranging mode to update the device's LQI value.
+
+	int returnToModeSeconds = 6			// We use 3 seconds for outlets, 6 seconds for battery devices, which respond a little more slowly.
+	rangingMode()
+	runIn(returnToModeSeconds, "${state.operatingMode}Mode")
 
 }
 
@@ -258,89 +194,12 @@ void refresh() {
 }
 
 
-def rangeAndRefresh() {
-
-	// This toggles ranging mode to update the device's LQI value.
-
-	int returnToModeSeconds = 6			// We use 3 seconds for outlets, 6 seconds for battery devices, which respond a little more slowly.
-
-	rangingMode()
-	runIn(returnToModeSeconds, "${state.operatingMode}Mode")
-
-}
-
-
-def updatePresence() {
-
-	long millisNow = new Date().time
-	state.presenceUpdated = millisNow
-
-}
-
-
-def checkPresence() {
-
-	// Check how long ago the presence state was updated.
-
-	// AlertMe devices check in with some sort of report at least every 2 minutes (every minute for outlets).
-
-	// It would be suspicious if nothing was received after 4 minutes, but this check runs every 6 minutes
-	// by default (every minute for key fobs) so we don't exaggerate a wayward transmission or two.
-
-	presenceTimeoutMinutes = 4
-	uptimeAllowanceMinutes = 5
-
-	if (state.presenceUpdated > 0 && state.batteryOkay == true) {
-
-		long millisNow = new Date().time
-		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
-		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
-		BigInteger hubUptime = location.hub.uptime
-
-		if (millisElapsed > presenceTimeoutMillis) {
-
-			if (hubUptime > uptimeAllowanceMinutes * 60) {
-
-				sendEvent(name: "presence", value: "not present")
-				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
-
-			} else {
-
-				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
-
-			}
-
-		} else {
-
-			sendEvent(name: "presence", value: "present")
-			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
-
-		}
-
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis} ms)", "trace")
-
-	} else if (state.presenceUpdated > 0 && state.batteryOkay == false) {
-
-		sendEvent(name: "presence", value: "not present")
-		logging("${device} : Presence : Battery too low! Reporting not present as this device will no longer be reliable.", "warn")
-
-	} else {
-
-		logging("${device} : Presence : Waiting for first presence report.", "warn")
-
-	}
-
-}
-
-
 def parse(String description) {
 
 	// Primary parse routine.
 
 	logging("${device} : Parse : $description", "debug")
 
-	state.batteryOkay == true ?	sendEvent(name: "presence", value: "present") : sendEvent(name: "presence", value: "not present")
 	updatePresence()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
@@ -371,6 +230,21 @@ def processMap(Map map) {
 		// Match Descriptor Request Response
 		logging("${device} : Sending Match Descriptor Response", "debug")
 		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
+
+	} else if (map.clusterId == "00C0") {
+
+		// Pendant trigger message.
+
+		if (map.command == "0A") {
+
+			logging("${device} : Trigger : Pendant Button Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+
+		} else {
+
+			reportToDev(map)
+
+		}
 
 	} else if (map.clusterId == "00F0") {
 
@@ -662,66 +536,5 @@ def processMap(Map map) {
 	}
 
 	return null
-
-}
-
-
-void sendZigbeeCommands(List<String> cmds) {
-
-	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
-
-    logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
-    sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
-
-}
-
-
-private String[] millisToDhms(int millisToParse) {
-
-	long secondsToParse = millisToParse / 1000
-
-	def dhms = []
-	dhms.add(secondsToParse % 60)
-	secondsToParse = secondsToParse / 60
-	dhms.add(secondsToParse % 60)
-	secondsToParse = secondsToParse / 60
-	dhms.add(secondsToParse % 24)
-	secondsToParse = secondsToParse / 24
-	dhms.add(secondsToParse % 365)
-	return dhms
-
-}
-
-
-private boolean logging(String message, String level) {
-
-	boolean didLog = false
-
-	if (level == "error") {
-		log.error "$message"
-		didLog = true
-	}
-
-	if (level == "warn") {
-		log.warn "$message"
-		didLog = true
-	}
-
-	if (traceLogging && level == "trace") {
-		log.trace "$message"
-		didLog = true
-	}
-
-	if (debugLogging && level == "debug") {
-		log.debug "$message"
-		didLog = true
-	}
-
-	if (infoLogging && level == "info") {
-		log.info "$message"
-		didLog = true
-	}
-
-	return didLog
 
 }
