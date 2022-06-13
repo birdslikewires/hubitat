@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.04 (8th June 2022)
+ *  BirdsLikeWires Library v1.05 (12th June 2022)
  *	
  */
 
@@ -217,8 +217,12 @@ void debounceParentState(String attribute, String state, String message, String 
 }
 
 
-def fetchChild(String type, String endpoint) {
+def fetchChild(String namespace, String type, String endpoint) {
 	// Creates and retrieves child devices matched to endpoints.
+
+	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
+	// Type will determine the driver to use.
+	// Endpoint is any identifier unique to the parent.
 
 	def childDevice = getChildDevice("${device.id}-${endpoint}")
 
@@ -228,20 +232,16 @@ def fetchChild(String type, String endpoint) {
 
 			logging("${device} : Creating child device $device.id-$endpoint", "debug")
 
-			childDevice = addChildDevice("hubitat", "Generic Component ${type}", "${device.id}-${endpoint}", [name: "${device.displayName} ${type} ${endpoint}", label: "${device.displayName} ${type} ${endpoint}", isComponent: false])
+			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type} ${endpoint}", label: "${type} ${endpoint}", isComponent: false])
 
-			if (type == "Switch") {
+			if (type.indexOf('Switch') >= 0) {
 
-				// We could use this as an opportunity to set all the relays to a known state, but we don't. Just in case.
+				// Presume a switch to be off until told otherwise.
 				childDevice.parse([[name: "switch", value: 'off']])
-
-			} else {
-
-				logging("${device} : fetchChild() : I don't know what to do with the '$type' device type.", "error")
 
 			}
 
-			childDevice.updateSetting("txtEnable", false)
+			//childDevice.updateSetting("txtEnable", false)
 
 		}
 
