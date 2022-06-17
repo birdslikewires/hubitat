@@ -1,0 +1,36 @@
+{
+	"packageName": "Hildebrand Glow Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.2.1",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"dateReleased": "2022-06-17",
+	"bundles": [
+		{
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "3742aa80-4520-4893-9574-29f15297a3db",
+			"name": "Hildebrand Glow",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy",
+			"required": true,
+			"version": "1.00"
+		},
+		{
+			"id": "9290d4d8-6217-42fa-855b-fb39be0a491f",
+			"name": "Hildebrand Glow Meter",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy",
+			"required": true,
+			"version": "1.00"
+		}
+	]
+}
