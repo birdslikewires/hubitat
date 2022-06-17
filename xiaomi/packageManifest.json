@@ -3,8 +3,8 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.1",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/xiaomi/CHANGELOG.md",
-	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/xiaomi",
 	"dateReleased": "2021-12-29",
 	"bundles": [
 		{

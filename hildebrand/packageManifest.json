@@ -4,7 +4,7 @@
 	"minimumHEVersion": "2.2.1",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hildebrand",
 	"dateReleased": "2022-06-17",
 	"bundles": [
 		{

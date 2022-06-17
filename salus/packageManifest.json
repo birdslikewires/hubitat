@@ -3,8 +3,8 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.1.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check the changelog: https://github.com/birdslikewires/hubitat/blob/master/salus/CHANGELOG.md",
-	"documentationLink": "https://github.com/birdslikewires/hubitat",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/salus",
 	"dateReleased": "2020-12-21",
 	"bundles": [
 		{
