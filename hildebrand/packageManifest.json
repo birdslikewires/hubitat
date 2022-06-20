@@ -20,17 +20,17 @@
 			"id": "3742aa80-4520-4893-9574-29f15297a3db",
 			"name": "Hildebrand Glow",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_mqtt.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.02"
 		},
 		{
 			"id": "9290d4d8-6217-42fa-855b-fb39be0a491f",
 			"name": "Hildebrand Glow Meter",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_meter_child.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.01"
 		}
 	]
 }
