@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow Meter Child Driver v1.00 (15th June 2022)
+ *  Hildebrand Glow Meter Child Driver v1.01 (20th June 2022)
  *	
  */
 
@@ -36,16 +36,16 @@ void initialize() {
 void parse(List<Map> description) {
 
     description.each {
-
-		if (it.name in ["mpan","mprn","supplier"]) {
-
-			state."${it.name}" = it.value
-
-		} else {
-
-    		sendEvent(it)
-
-		}
-
+    	sendEvent(it)
     }
+
+}
+
+
+void setState(List<Map> description) {
+
+    description.each {
+		state."${it.name}" = it.value
+    }
+
 }
