@@ -47,6 +47,17 @@
       "description": "Generic utility drivers for platform exploration."
     },
     {
+      "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
+      "name": "Hildebrand Glow Drivers from BirdsLikeWires",
+      "category": "Utility",
+      "tags": [
+        "Energy Monitoring",
+        "MQTT"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/packageManifest.json",
+      "description": "Drivers for Hildebrand Glow consumer access devices."
+    },
+    {
       "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
       "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
       "category": "Control",
