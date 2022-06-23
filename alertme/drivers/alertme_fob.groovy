@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.21 (12th June 2022)
+ *  AlertMe Fob Driver v1.22 (23rd June 2022)
  *	
  */
 
@@ -239,6 +239,7 @@ def processMap(Map map) {
 
 			logging("${device} : Trigger : Pendant Button Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00C0 {11 00 FD 01} {0xC216}"])
 
 		} else {
 
