@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.22 (23rd June 2022)
+ *  AlertMe Fob Driver v1.23 (23rd June 2022)
  *	
  */
 
