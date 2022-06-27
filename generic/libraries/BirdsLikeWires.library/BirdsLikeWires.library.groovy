@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.05 (12th June 2022)
+ *  BirdsLikeWires Library v1.06 (27th June 2022)
  *	
  */
 
@@ -20,6 +20,59 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+void push(buttonId) {
+	
+	sendEvent(name:"pushed", value: buttonId, isStateChange:true)
+	
+}
+
+
+void doubleTap(buttonId) {
+	
+	sendEvent(name:"doubleTapped", value: buttonId, isStateChange:true)
+	
+}
+
+
+void hold(buttonId) {
+	
+	sendEvent(name:"held", value: buttonId, isStateChange:true)
+	
+}
+
+
+void release(buttonId) {
+	
+	sendEvent(name:"released", value: buttonId, isStateChange:true)
+	
+}
+
+
+void setLevel(BigDecimal level) {
+
+	setLevel(level,1)
+
+}
+
+
+void setLevel(BigDecimal level, BigDecimal duration) {
+
+	BigDecimal safeLevel = level <= 100 ? level : 100
+	safeLevel = safeLevel < 0 ? 0 : safeLevel
+
+	String hexLevel = percentageToHex(safeLevel.intValue())
+
+	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+	String hexDuration = Integer.toHexString(safeDuration.intValue())
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+
+	sendEvent(name: "level", value: "${safeLevel}")
 
 }
 

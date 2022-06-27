@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.04 (26th June 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.05 (27th June 2022)
  *	
  */
 
@@ -35,9 +35,10 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LMr1"
-		fingerprint profileId: "0104", inClusters: "0000,0012,0003", outClusters: "0000", manufacturer: "LUMI", model: "lumi.remote.b1acn01", deviceJoinName: "WXKG11LMr2"
+		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LM r1"
+		fingerprint profileId: "0104", inClusters: "0000,0012,0003", outClusters: "0000", manufacturer: "LUMI", model: "lumi.remote.b1acn01", deviceJoinName: "WXKG11LM r2"
 		fingerprint profileId: "0104", inClusters: "0000,0012,0006,0001", outClusters: "0000", manufacturer: "LUMI", model: "lumi.sensor_switch.aq3", deviceJoinName: "WXKG12LM"
+		fingerprint profileId: "0104", inClusters: "0000,0012,0006,0001", outClusters: "0000", manufacturer: "LUMI", model: "lumi.sensor_swit", deviceJoinName: "WXKG12LM"
 
 	}
 
@@ -67,14 +68,15 @@ def installed() {
 
 def configure() {
 
+	int randomSixty
+	String modelCheck = "${getDeviceDataByName('model')}"
+
 	// Tidy up.
 	unschedule()
 
 	state.clear()
 	state.presenceUpdated = 0
 	
-	sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
-	sendEvent(name: "level", value: 0, isStateChange: false)
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
 	// Set default preferences.
@@ -82,15 +84,23 @@ def configure() {
 	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
 	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
 
-	// Schedule reporting and presence checking.
-	int randomSixty
-	
+	// Schedule presence checking.
 	int checkEveryMinutes = 10					
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
-	// Set device name.
-	device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
+	// Set device specifics.
+	if ("$modelCheck" == "lumi.sensor_switch.aq2") {
+		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r1"
+	} else if ("$modelCheck" == "lumi.remote.b1acn01") {
+		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r2"
+		sendEvent(name: "level", value: 0, isStateChange: false)
+	} else if ("$modelCheck" == "lumi.sensor_switch.aq3" || "$modelCheck" == "lumi.sensor_swit") {
+		// There's a weird truncation of the model name here which doesn't occur with the '11LM. I think it's a firmware bug.
+		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
+		sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
+		sendEvent(name: "level", value: 0, isStateChange: false)
+	}
 
 	// Notify.
 	sendEvent(name: "configuration", value: "complete", isStateChange: false)
@@ -120,59 +130,6 @@ void updated() {
 }
 
 
-void push(buttonId) {
-	
-	sendEvent(name:"pushed", value: buttonId, isStateChange:true)
-	
-}
-
-
-void doubleTap(buttonId) {
-	
-	sendEvent(name:"doubleTapped", value: buttonId, isStateChange:true)
-	
-}
-
-
-void hold(buttonId) {
-	
-	sendEvent(name:"held", value: buttonId, isStateChange:true)
-	
-}
-
-
-void release(buttonId) {
-	
-	sendEvent(name:"released", value: buttonId, isStateChange:true)
-	
-}
-
-
-void setLevel(BigDecimal level) {
-
-	setLevel(level,1)
-
-}
-
-
-void setLevel(BigDecimal level, BigDecimal duration) {
-
-	BigDecimal safeLevel = level <= 100 ? level : 100
-	safeLevel = safeLevel < 0 ? 0 : safeLevel
-
-	String hexLevel = percentageToHex(safeLevel.intValue())
-
-	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-	String hexDuration = Integer.toHexString(safeDuration.intValue())
-
-	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
-
-	sendEvent(name: "level", value: "${safeLevel}")
-
-}
-
-
 void accelerationInactive() {
 
 	sendEvent(name: "acceleration", value: "inactive", isStateChange: true)
@@ -184,7 +141,7 @@ void parse(String description) {
 
 	// Primary parse routine.
 
-	logging("${device} : Parse : $description", "debug")
+	logging("${device} : Parse : $description", "trace")
 
 	updatePresence()
 
@@ -221,12 +178,10 @@ void parse(String description) {
 
 void processMap(Map map) {
 
-	logging("${device} : processMap() : ${map}", "trace")
-
 	String[] receivedData = map.data
 
 	if (map.cluster == "0006") { 
-		// Here we handle button presses for the WXKG11LM 
+		// Handle button presses for the WXKG11LM 
 
 		int buttonNumber = map.value[-1..-1].toInteger()
 		buttonNumber = buttonNumber == 0 ? 1 : buttonNumber
@@ -240,7 +195,7 @@ void processMap(Map map) {
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 	} else if (map.cluster == "0012") { 
-		// Here we handle button presses for the WXKG12LM and holds for WXKG11LMr2
+		// Handle button presses for the WXKG12LM and holds for WXKG11LMr2
 
 		if (map.value == "0100") {
 
@@ -299,32 +254,50 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") { 
 
-		if (map.attrId == "0005" || map.attrId == "FF01") {
+		def deviceData = ""
 
-			def deviceData = ""
+		if (map.attrId == "0005") {
+			// Received when pairing and when short-pressing the reset button.
 
-			if (map.attrId == "0005") {
+			if (map.size == "36") {
+				// Model data only, usually received during pairing.
+				logging("${device} : Model data received.", "debug")
 
-				// Grab battery data triggered by short press of the reset button.
+			} else if (map.size == "70") {
+				// Short reset button presses always contain battery data.
+
+				// Grab device data triggered by short press of the reset button.
 				deviceData = map.value.split('FF42')[1]
 
-				// Scrounge more value! It's another button, so as these can quad-click we'll call this button five.
+				// Scrounge more value! It's another button, so as '11LMs can quad-click we'll call this button five.
 				logging("${device} : Trigger : Button 5 Pressed", "info")
 				sendEvent(name: "pushed", value: 5, isStateChange: true)
 
+			}
+
+		} else if (map.attrId == "FF01") {
+			// Received when reporting in and when the button is pressed more than twice.
+			
+			int dataSize = map.value.size()
+
+			if (dataSize > 20) {
+				// Only the check-in reports contain device data.
+				deviceData = map.value
+
 			} else {
 
-				// We get data with an attrId of FF01 when pressed more than twice, but only the check-in reports contain battery info.
-				def dataSize = map.value.size()
+				logging("${device} : deviceData : No device data in this report.", "debug")
+				return
 
-				if (dataSize > 20) {
-					deviceData = map.value
-				} else {
-					logging("${device} : deviceData : No battery information in this report.", "debug")
-					return
-				}
-				
 			}
+
+		} else {
+
+			reportToDev(map)
+
+		}
+
+		if ("$deviceData" != "") {
 
 			// Report the battery voltage and calculated percentage.
 			def batteryVoltageHex = "undefined"
@@ -386,11 +359,6 @@ void processMap(Map map) {
 			// logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 			// logging("${device} : Temperature : $temperatureCelsius °C", "info")
 			// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
-
-		} else {
-
-			// processBasic(map)
-			reportToDev(map)
 
 		}
 
