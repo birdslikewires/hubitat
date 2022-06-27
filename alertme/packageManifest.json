@@ -8,6 +8,13 @@
 	"dateReleased": "2020-12-21",
 	"bundles": [
 		{
+			"id": "8cff3efd-b31d-47fd-bbf8-9fade2247a7d",
+			"name": "alertme",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/libraries/library.zip",
+			"required": true
+		},
+		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
