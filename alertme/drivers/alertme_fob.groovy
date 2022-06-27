@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.23 (23rd June 2022)
+ *  AlertMe Fob Driver v1.24 (27th June 2022)
  *	
  */
 
@@ -30,8 +30,6 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "string"
-		attribute "batteryVoltageWithUnit", "string"
-		attribute "batteryWithUnit", "string"
 		attribute "mode", "string"
 
 		if (debugMode) {
@@ -271,7 +269,6 @@ def processMap(Map map) {
 
 		logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 		sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
-		sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
 
 		BigDecimal batteryPercentage = 0
 		BigDecimal batteryVoltageScaleMin = 2.8
@@ -292,7 +289,6 @@ def processMap(Map map) {
 			}
 
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 			sendEvent(name: "batteryState", value: "discharging")
 
 		} else if (batteryVoltage < batteryVoltageScaleMin) {
@@ -306,7 +302,6 @@ def processMap(Map map) {
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 			sendEvent(name: "batteryState", value: "exhausted")
 
 		} else {
@@ -321,7 +316,6 @@ def processMap(Map map) {
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 			sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-			sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 			sendEvent(name: "batteryState", value: "fault")
 
 		}
