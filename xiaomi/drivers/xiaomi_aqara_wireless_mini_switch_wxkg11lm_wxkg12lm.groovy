@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.05 (27th June 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.06 (27th June 2022)
  *	
  */
 
@@ -199,13 +199,14 @@ void processMap(Map map) {
 
 		if (map.value == "0100") {
 
-			logging("${device} : Trigger : Button Pressed", "info")
+			logging("${device} : Trigger : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 
 		} else if (map.value == "0200") {
 
 			logging("${device} : Trigger : Button Double Tapped", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			logging("${device} : Trigger : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
 
 		} else if (map.value == "0000" || map.value == "1000") {
@@ -263,8 +264,9 @@ void processMap(Map map) {
 				// Model data only, usually received during pairing.
 				logging("${device} : Model data received.", "debug")
 
-			} else if (map.size == "70") {
+			} else if (map.size == "70" || map.size == "88") {
 				// Short reset button presses always contain battery data.
+				// Value size of 70 sent by '11LM, size of 88 by '12LM.
 
 				// Grab device data triggered by short press of the reset button.
 				deviceData = map.value.split('FF42')[1]
