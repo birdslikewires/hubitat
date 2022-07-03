@@ -38,11 +38,11 @@ metadata {
 
 preferences {
 
-	input name: "mqttBroker", type: "text", title: "MQTT Broker Address:", required: true
+	input name: "cloudActive", type: "bool", title: "Use Hildebrand Cloud MQTT Broker", defaultValue: true
+	input name: "cloudId", type: "text", title: "Device ID:", required: true
+	input name: "mqttBroker", type: "text", title: "Local MQTT Broker Address:", required: false
 	input name: "mqttUser", type: "text", title: "MQTT Username:", required: false
 	input name: "mqttPass", type: "password", title: "MQTT Password:", required: false
-	input name: "cloudActive", type: "bool", title: "Use Hildebrand Cloud", defaultValue: false
-	input name: "cloudId", type: "text", title: "Cloud ID:", required: false
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
