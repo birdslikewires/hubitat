@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.03 (3rd July 2022)
+ *  Hildebrand Glow MQTT Driver v1.04 (15th July 2022)
  *	
  */
 
@@ -319,8 +319,15 @@ void parse(String description) {
 
 				if (updateOccasional) {
 
+					BigDecimal volume = json.gasmeter.energy.import.cumulativevol
+					gasMeter.parse([[name:"volume", value:volume]])
+					String volUnits = json.gasmeter.energy.import.cumulativevolunits
+					gasMeter.setState([[name:"volumeUnits", value:"${volUnits}"]])
+
 					BigDecimal cumulative = json.gasmeter.energy.import.cumulative
 					gasMeter.parse([[name:"energy", value:cumulative]])
+					String units = json.gasmeter.energy.import.units
+					gasMeter.setState([[name:"energyUnit", value:"${units}"]])
 
 					BigDecimal day = json.gasmeter.energy.import.day
 					BigDecimal week = json.gasmeter.energy.import.week
@@ -332,9 +339,6 @@ void parse(String description) {
 
 					String mprn = json.gasmeter.energy.import.mprn
 					gasMeter.setState([[name:"mprn", value:mprn]])
-
-					String units = json.gasmeter.energy.import.units
-					gasMeter.setState([[name:"energyUnit", value:"${units}"]])
 
 					BigDecimal unitrate = json.gasmeter.energy.import.price.unitrate
 					BigDecimal unitratePence = unitrate * 100

@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow Meter Child Driver v1.01 (20th June 2022)
+ *  Hildebrand Glow Meter Child Driver v1.02 (15th July 2022)
  *	
  */
 
@@ -20,6 +20,7 @@ metadata {
 
 		attribute "unitrate", "decimal"
 		attribute "standingcharge", "decimal"
+		attribute "volume", "decimal"
 
 	}
 
