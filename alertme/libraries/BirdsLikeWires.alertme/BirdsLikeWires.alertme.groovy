@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.00 (27th June 2022)
+ *  BirdsLikeWires AlertMe Library v1.01 (25th July 2022)
  *	
  */
 
@@ -77,6 +77,22 @@ void updated() {
 }
 
 
+def lockedMode() {
+	// Disables the local power button on a SmartPlug.
+
+	// Locked mode is not as useful as it might first appear. Though it disables the local power button on
+	// the SmartPlug, this can be reset by rebooting the outlet by holding that same power button for
+	// ten seconds. Or you could just turn off the supply, of course.
+
+	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
+
+	state.operatingMode = "locked"
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 02 01} {0xC216}"])
+	logging("${device} : Operation : Locked", "info")
+
+}
+
+
 void normalMode() {
 	// Normal operation.
 
@@ -112,7 +128,20 @@ void quietMode() {
 void refresh() {
 
 	logging("${device} : Refreshing", "info")
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}"])	   // version information request
+
+	String modelCheck = "${getDeviceDataByName('model')}"
+
+	def cmds = new ArrayList<String>()
+
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
+
+	if ("${modelCheck}" == "SmartPlug") {
+
+		cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")    // power control operating mode nudge
+
+	}
+
+	sendZigbeeCommands(cmds)
 
 }
 
@@ -175,16 +204,31 @@ void alertmeDeviceStatus(Map map) {
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 	logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
+	if (getDataValue("model").startsWith("SmartPlug") && getDataValue("firmware").startsWith("2010")) {
+			// Early SmartPlug firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
+			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
+			batteryVoltage = batteryVoltage * 1.40
+			logging("${device} : Early firmware requires batteryVoltage correction!", "debug")
+	}
+
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 	sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
 
 	BigDecimal batteryPercentage = 0
-	BigDecimal batteryVoltageScaleMin = 2.8
-	BigDecimal batteryVoltageScaleMax = 3.1
+	BigDecimal batteryVoltageScaleMin = 2.80
+	BigDecimal batteryVoltageScaleMax = 3.10
 
-	if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.4) {
+	if ("$modelCheck" == "SmartPlug") {
+
+		// A good three-cell 3.6 V NiMH battery will sit between 4.10 V and 4.25 V while charging.
+		batteryVoltageScaleMin = 4.10
+		batteryVoltageScaleMax = 4.15
+
+	}
+
+	if (batteryVoltage >= batteryVoltageScaleMin && batteryVoltage <= 4.40) {
 
 		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
 		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
@@ -198,6 +242,12 @@ void alertmeDeviceStatus(Map map) {
 
 		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
 		sendEvent(name: "batteryState", value: "discharging")
+
+		if ("$modelCheck" == "SmartPlug" && batteryVoltage > batteryVoltageScaleMax) {
+			!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charged")
+		} else {
+			!state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging")
+		}
 
 	} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -329,10 +379,21 @@ void alertmeDiscovery(Map map) {
 
 void alertmeSkip(String clusterId) {
 
-	// These clusters are sometimes received from the SPG100 and I have no idea why.
-	//   8001 arrives with 12 bytes of data
-	//   8038 arrives with 27 bytes of data
-	logging("${device} : Skipping data received on clusterId ${clusterId}.", "debug")
+	if ("$clusterId" == "8032") {
+
+		// These clusters are sometimes received when joining new devices to the mesh.
+		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
+		// We don't do anything with this, the mesh re-jigs itself and is a known thing with AlertMe devices.
+		logging("${device} : New join has triggered a routing table reshuffle.", "debug")
+
+	} else {
+
+		// These clusters are sometimes received from the SPG100 and I have no idea why.
+		//   8001 arrives with 12 bytes of data
+		//   8038 arrives with 27 bytes of data
+		logging("${device} : Skipping data received on clusterId ${clusterId}.", "debug")
+
+	}
 
 }
 
