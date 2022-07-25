@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.02 (26th July 2022)
+ *  BirdsLikeWires AlertMe Library v1.03 (26th July 2022)
  *	
  */
 
@@ -89,7 +89,7 @@ def lockedMode() {
 	state.operatingMode = "locked"
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 02 01} {0xC216}"])
-	
+
 	logging("${device} : Operation : Locked", "info")
 
 }
@@ -215,7 +215,7 @@ void alertmeDeviceStatus(Map map) {
 	if (getDataValue("model").startsWith("SmartPlug") && getDataValue("firmware").startsWith("2010")) {
 			// Early SmartPlug firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
 			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
-			batteryVoltage = batteryVoltage * 1.40
+			batteryVoltage = batteryVoltage * 1.43
 			logging("${device} : Early firmware requires batteryVoltage correction!", "debug")
 	}
 
