@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.01 (25th July 2022)
+ *  BirdsLikeWires AlertMe Library v1.02 (26th July 2022)
  *	
  */
 
@@ -87,7 +87,9 @@ def lockedMode() {
 	// To complicate matters this mode cannot be disabled remotely, so far as I can tell.
 
 	state.operatingMode = "locked"
+
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 02 01} {0xC216}"])
+	
 	logging("${device} : Operation : Locked", "info")
 
 }
@@ -97,7 +99,12 @@ void normalMode() {
 	// Normal operation.
 
 	state.operatingMode = "normal"
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}"])
+
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}")									// Sets normal operating mode.
+	("${modelCheck}" == "SmartPlug") ?: cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
+	sendZigbeeCommands(cmds)
+
 	logging("${device} : Operation : Normal", "info")
 
 }
@@ -106,11 +113,11 @@ void normalMode() {
 void rangingMode() {
 	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator while reporting LQI values.
 
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
-	logging("${device} : Operation : Ranging", "info")
-
-	// Ranging will be disabled after a maximum of 30 pulses.
 	state.rangingPulses = 0
+
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
+
+	logging("${device} : Operation : Ranging", "info")
 
 }
 
@@ -119,7 +126,9 @@ void quietMode() {
 	// Turns off all reporting except for a ranging message every 2 minutes. Pretty useless except as a temporary state.
 
 	state.operatingMode = "quiet"
+
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
+
 	logging("${device} : Operation : Quiet", "info")
 
 }
@@ -132,7 +141,6 @@ void refresh() {
 	String modelCheck = "${getDeviceDataByName('model')}"
 
 	def cmds = new ArrayList<String>()
-
 	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
 
 	if ("${modelCheck}" == "SmartPlug") {
