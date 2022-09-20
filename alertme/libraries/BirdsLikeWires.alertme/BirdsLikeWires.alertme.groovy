@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.03 (26th July 2022)
+ *  BirdsLikeWires AlertMe Library v1.04 (20th September 2022)
  *	
  */
 
@@ -186,6 +186,23 @@ void parse(String description) {
 		}
 
 	}
+
+}
+
+
+void alertmeCare(Integer cmd) {
+
+	// 0x00 = Idle - cancels other states and returns pendant to idle mode.
+	// 0x01 = Help needed - single beep with single red flash, then "beacon" messages every 30 seconds (command 0A sent on cluster C0). Same as a physical button press.
+	// 0x02 = Help acknowledgement - appears to skip the next "beacon". No indication on the fob.
+	// 0x03 = Help called - two beeps and continuous red flashing.
+	// 0x04 = Help coming - three beeps and continuous green flashing.
+
+	cluster = 0x00C0
+	attributeId = 0x020
+	dataType = DataType.ENUM8
+	sendZigbeeCommands(zigbee.writeAttribute(cluster, attributeId, dataType, cmd, [destEndpoint :0x02]))
+	logging("${device} : Care Command 0x0${cmd} Sent", "debug")
 
 }
 

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.25 (27th June 2022)
+ *  AlertMe Fob Driver v1.26 (20th September 2022)
  *	
  */
 
@@ -39,7 +39,6 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00C0", outClusters: "", manufacturer: "AlertMe.com", model: "Care Pendant Device", deviceJoinName: "AlertMe Pendant"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Fob"
 
 	}
@@ -105,7 +104,7 @@ void processMap(Map map) {
 
 			logging("${device} : Trigger : Pendant Button Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00C0 {11 00 FD 01} {0xC216}"])
+			alertmeCare(0)	// Plonks the pendant straight back into idle mode.
 
 		} else {
 
@@ -115,7 +114,7 @@ void processMap(Map map) {
 
 	} else if (map.clusterId == "00F0") {
 
-		// 00F0 - Device Status Cluster
+		// Device Status Cluster
 		alertmeDeviceStatus(map)
 
 	} else if (map.clusterId == "00F3") {
@@ -227,16 +226,9 @@ void processMap(Map map) {
 		// 00F6 - Discovery Cluster
 		alertmeDiscovery(map)
 
-	} else if (map.clusterId == "8001" || map.clusterId == "8038") {
+	} else if (map.clusterId == "8001" || map.clusterId == "8032" || map.clusterId == "8038") {
 
 		alertmeSkip(map.clusterId)
-
-	} else if (map.clusterId == "8032" ) {
-
-		// These clusters are sometimes received when joining new devices to the mesh.
-		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
-		// We don't do anything with this, the mesh re-jigs itself and is a known thing with AlertMe devices.
-		logging("${device} : New join has triggered a routing table reshuffle.", "debug")
 
 	} else {
 
