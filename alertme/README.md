@@ -42,7 +42,7 @@ The *Push* events from the "Help Needed" mode should be used to trigger some for
 
 The Pendant can be set back to "Idle" mode by being switched "off".
 
-**NOTE:** Though you could use this driver to create a facsimile of a critical care pendant system, absolutely no guarantee of reliability or suitability is given or implied. 
+**NOTE:** Though you could use this driver to create a facsimile of a critical care pendant system, absolutely no guarantee of reliability or suitability is given or implied.
 
 - [AlertMe Power Clamp](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_powerclamp.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_powerclamp.groovy)
 
