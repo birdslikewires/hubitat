@@ -72,6 +72,14 @@
 			"version": "1.18"
 		},
 		{
+			"id": "046d352f-6394-4714-9a11-510aeea322b4",
+			"name": "AlertMe Pendant",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_pendant.groovy",
+			"required": false,
+			"version": "1.00"
+		},
+		{
 			"id": "81be6755-09ad-45af-91a8-52308e3fc319",
 			"name": "AlertMe Power Clamp",
 			"namespace": "BirdsLikeWires",
