@@ -22,13 +22,17 @@ The Alarm Sensor also mimics a Motion Sensor as the sound detection capability i
 
 - [AlertMe Contact Sensor](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_contact.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_contact.groovy)
 
-- [AlertMe Key Fob](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_keyfob.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_keyfob.groovy)
+- [AlertMe Fob](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_fob.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy)
 
 - [AlertMe Lamp](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_lamp.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_lamp.groovy)
 
 The Lamp is a desktop indicator rather than a room-illuminating 'bulb', with the ability to run sequences based on RGB colours, fade duration and dwell times. The Lamp has an internal battery and should (!) act as a repeater.
 
 - [AlertMe Motion Sensor](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_motion.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_motion.groovy)
+
+- [AlertMe Pendant](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_pendant.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_pendant.groovy)
+
+**NOTE:** Though you could use this driver to create a facsimile of a critical care pendant system, absolutely no guarantee of reliability or suitability is given or implied. 
 
 - [AlertMe Power Clamp](https://github.com/birdslikewires/hubitat/blob/master/alertme/drivers/alertme_powerclamp.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_powerclamp.groovy)
 
