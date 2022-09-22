@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.44 (25th July 2022)
+ *  AlertMe Smart Plug Driver v1.45 (22nd September 2022)
  *	
  */
 
@@ -65,16 +65,23 @@ preferences {
 	
 }
 
+
 void testCommand() {
+
 	logging("${device} : Test Command", "info")
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}"])	   // version information request
+
 }
 
 
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])	   // power control operating mode nudge
+	// Set device name.
+	device.name = "AlertMe Smart Plug"
+
+	// Enable power control.
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])
 
 }
 
