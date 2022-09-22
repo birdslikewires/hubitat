@@ -69,7 +69,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_motion.groovy",
 			"required": false,
-			"version": "1.18"
+			"version": "1.19"
 		},
 		{
 			"id": "046d352f-6394-4714-9a11-510aeea322b4",
