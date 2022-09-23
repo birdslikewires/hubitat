@@ -53,7 +53,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy",
 			"required": false,
-			"version": "1.25"
+			"version": "1.27"
 		},
 		{
 			"id": "1447f569-33a8-4bb9-a554-6ea22f3de617",
