@@ -9,7 +9,7 @@
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 2		// The real reporting interval of the device.
 @Field int checkEveryMinutes = 6			// How often we should check for presence.
 @Field int rangeEveryHours = 6				// How often we run a ranging report.
