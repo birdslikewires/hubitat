@@ -379,7 +379,7 @@ void alertmeDiscovery(Map map) {
 
 		} else if (map.data[1] == "00") {
 
-			// This is the ranging report received when the device reboots.
+			// This is the ranging report received when the smart plug reboots.
 			// After rebooting a refresh is required to bring back remote control.
 			logging("${device} : reboot ranging report received", "debug")
 			refresh()
