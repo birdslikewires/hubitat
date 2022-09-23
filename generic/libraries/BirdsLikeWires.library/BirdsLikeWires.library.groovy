@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.06 (27th June 2022)
+ *  BirdsLikeWires Library v1.07 (23rd September 2022)
  *	
  */
 
@@ -89,11 +89,11 @@ void updatePresence() {
 void checkPresence() {
 	// Check how long ago the presence state was updated.
 
+	long millisNow = new Date().time
 	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
 
 	if (state.presenceUpdated > 0) {
 
-		long millisNow = new Date().time
 		long millisElapsed = millisNow - state.presenceUpdated
 		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
 		long reportIntervalMillis = reportIntervalMinutes * 60000
@@ -128,6 +128,27 @@ void checkPresence() {
 		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
+
+	////
+	//// Not ready to go on this yet.
+	//// There's no way to apply a configuration upon driver change OR a driver update, which can leave devices with
+	//// incorrect settings and scheduled jobs which have become orphaned. This is my easy solution, just reapply the
+	//// configuration each day - but I need to be sure all my drivers are applying only a working config and not
+	//// resetting important device states. So here this stays for now.
+	////
+
+	// Reapply our configuration each day.
+	// if (state.configUpdated) {
+
+	// 	long millisElapsed = millisNow - state.configUpdated
+	// 	(millisElapsed > 86400000) ?: configure()
+
+	// } else {
+
+	// 	state.configUpdated = millisNow
+	// 	configure()
+
+	// }
 
 }
 
