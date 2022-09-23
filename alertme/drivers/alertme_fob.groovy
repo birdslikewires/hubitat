@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.26 (20th September 2022)
+ *  AlertMe Fob Driver v1.27 (23rd September 2022)
  *	
  */
 
@@ -56,8 +56,10 @@ preferences {
 
 
 void testCommand() {
+
 	logging("${device} : Test Command", "info")
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}"])	   // version information request
+
 }
 
 
@@ -90,13 +92,7 @@ void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
-	if (map.clusterId == "0006") {
-
-		// Match Descriptor Request Response
-		logging("${device} : Sending Match Descriptor Response", "debug")
-		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
-
-	} else if (map.clusterId == "00C0") {
+	if (map.clusterId == "00C0") {
 
 		// Pendant trigger message.
 
@@ -111,11 +107,6 @@ void processMap(Map map) {
 			reportToDev(map)
 
 		}
-
-	} else if (map.clusterId == "00F0") {
-
-		// Device Status Cluster
-		alertmeDeviceStatus(map)
 
 	} else if (map.clusterId == "00F3") {
 
@@ -220,15 +211,6 @@ void processMap(Map map) {
 			reportToDev(map)
 
 		}
-
-	} else if (map.clusterId == "00F6") {
-
-		// 00F6 - Discovery Cluster
-		alertmeDiscovery(map)
-
-	} else if (map.clusterId == "8001" || map.clusterId == "8032" || map.clusterId == "8038") {
-
-		alertmeSkip(map.clusterId)
 
 	} else {
 

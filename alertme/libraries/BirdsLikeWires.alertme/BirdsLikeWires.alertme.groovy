@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.04 (20th September 2022)
+ *  BirdsLikeWires AlertMe Library v1.05 (23rd September 2022)
  *	
  */
 
@@ -176,7 +176,34 @@ void parse(String description) {
 
 		if (descriptionMap) {
 
-			processMap(descriptionMap)
+			if (descriptionMap.clusterId == "0006") {
+
+				// Match Descriptor Request - All AlertMe devices want this response sent when they ask.
+				logging("${device} : Sending Match Descriptor Response", "debug")
+				sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
+
+			} else if (descriptionMap.clusterId == "00F0") {
+
+				// Device Status Cluster
+				alertmeDeviceStatus(descriptionMap)
+
+			} else if (descriptionMap.clusterId == "00F6") {
+
+				// Discovery Cluster
+				alertmeDiscovery(descriptionMap)
+
+			} else if (descriptionMap.clusterId == "8001" || descriptionMap.clusterId == "8032" || descriptionMap.clusterId == "8038") {
+
+				// Various status messages that we don't need to deal with.
+				alertmeSkip(descriptionMap.clusterId)
+
+			} else {
+
+				// Hand back to the driver for processing.
+				// Only clusters with content unique to a device should be passed back.
+				processMap(descriptionMap)
+
+			}
 
 		} else {
 			
