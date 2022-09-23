@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.05 (23rd September 2022)
+ *  BirdsLikeWires AlertMe Library v1.06 (23rd September 2022)
  *	
  */
 
@@ -173,6 +173,7 @@ void parse(String description) {
 	} else {
 
 		Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+		logging("${device} : parse() : ${descriptionMap}", "trace")
 
 		if (descriptionMap) {
 
