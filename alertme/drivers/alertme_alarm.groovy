@@ -78,8 +78,6 @@ void configureSpecifics() {
 
 void processStatus(ZoneStatus status) {
 
-	logging("${device} : processStatus() : ${status}", "trace")
-
 	if (status.isAlarm1Set() || status.isAlarm2Set()) {
 
 		logging("${device} : Sound : Detected", "info")
