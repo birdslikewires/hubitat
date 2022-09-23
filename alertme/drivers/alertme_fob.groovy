@@ -10,9 +10,9 @@
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-@Field int reportIntervalMinutes = 2
-@Field int checkEveryMinutes = 1
-@Field int rangeEveryHours = 6
+@Field int reportIntervalMinutes = 2		// The real reporting interval of the device.
+@Field int checkEveryMinutes = 1			// How often we should check for presence.
+@Field int rangeEveryHours = 6				// How often we run a ranging report.
 
 
 metadata {
@@ -110,13 +110,13 @@ void processMap(Map map) {
 
 	} else if (map.clusterId == "00F3") {
 
-		// Trigger cluster.
+		// Fob trigger message.
 
-		// On the Button a press is always sent when pushed, but the release is sent only when the button is held for a moment.
 		// On the Keyfob both press and release are always sent, regardless of how long the button is held.
-		// For some reason, key fobs are very 'bouncy' and often send more than one press or release per actuation, sometimes with a long delay.
+		// This can be beneficial in case of a lost transmission. Both press and release could be bound to the same non-toggling action.
 
-		// IMPORTANT! Always force 'isStateChange: true' on sendEvent, otherwise pressing the same button more than once won't trigger anything!
+		// For some reason, key fobs are very 'bouncy' and often send more than one press or release per actuation, sometimes with a long delay.
+		// This could again be for reasons of resiliance, as these were originally designed for arming or disarming the security system.
 
 		long buttonDebounceTimeoutMillis = 8000
 
