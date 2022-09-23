@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.06 (23rd September 2022)
+ *  BirdsLikeWires AlertMe Library v1.07 (23rd September 2022)
  *	
  */
 
@@ -187,6 +187,11 @@ void parse(String description) {
 
 				// Device Status Cluster
 				alertmeDeviceStatus(descriptionMap)
+
+			} else if (descriptionMap.clusterId == "00F2") {
+
+				// Tamper Cluster
+				alertmeTamper(descriptionMap)
 
 			} else if (descriptionMap.clusterId == "00F6") {
 
