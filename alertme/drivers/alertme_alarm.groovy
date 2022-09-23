@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.25 (22nd September 2022)
+ *  AlertMe Alarm Sensor Driver v1.26 (23rd September 2022)
  *	
  */
 
@@ -89,41 +89,6 @@ void processStatus(ZoneStatus status) {
 		logging("${device} : Sound : Not Detected", "info")
 		sendEvent(name: "motion", value: "inactive", isStateChange: true)
 		sendEvent(name: "sound", value: "not detected", isStateChange: true)
-
-	}
-
-}
-
-
-void processMap(Map map) {
-
-	logging("${device} : processMap() : ${map}", "trace")
-
-	// AlertMe values are always sent in a data element.
-	String[] receivedData = map.data
-
-	if (map.clusterId == "00F0") {
-
-		// 00F0 - Device Status Cluster
-		alertmeDeviceStatus(map)
-
-	} else if (map.clusterId == "00F2") {
-
-		// 00F2 - Tamper Cluster
-		alertmeTamper(map)
-
-	} else if (map.clusterId == "00F6") {
-
-		// 00F6 - Discovery Cluster
-		alertmeDiscovery(map)
-
-	} else if (map.clusterId == "8001" || map.clusterId == "8032" || map.clusterId == "8038") {
-
-		alertmeSkip(map.clusterId)
-
-	} else {
-
-		reportToDev(map)
 
 	}
 

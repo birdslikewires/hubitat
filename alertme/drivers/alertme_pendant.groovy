@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Pendant Driver v1.00 (20th September 2022)
+ *  AlertMe Pendant Driver v1.01 (23rd September 2022)
  *	
  */
 
@@ -90,8 +90,6 @@ void on() {
 
 void processMap(Map map) {
 
-	logging("${device} : processMap() : ${map}", "trace")
-
 	if (map.clusterId == "0006") {
 
 		// Match Descriptor Request Response
@@ -115,24 +113,10 @@ void processMap(Map map) {
 
 		}
 
-	} else if (map.clusterId == "00F0") {
-
-		// Device Status Cluster
-		alertmeDeviceStatus(map)
-
 	} else if (map.clusterId == "00F3") {
 
 		// Receiving Fob messages!
 		logging("${device} : WARNING : You can't use a Fob as a Pendant. Please switch back to the AlertMe Fob driver.", "warn")
-
-	} else if (map.clusterId == "00F6") {
-
-		// 00F6 - Discovery Cluster
-		alertmeDiscovery(map)
-
-	} else if (map.clusterId == "8001" || map.clusterId == "8032" || map.clusterId == "8038") {
-
-		alertmeSkip(map.clusterId)
 
 	} else {
 

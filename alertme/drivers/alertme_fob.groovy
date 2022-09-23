@@ -90,8 +90,6 @@ void configureSpecifics() {
 
 void processMap(Map map) {
 
-	logging("${device} : processMap() : ${map}", "trace")
-
 	if (map.clusterId == "00C0") {
 
 		// Pendant trigger message.

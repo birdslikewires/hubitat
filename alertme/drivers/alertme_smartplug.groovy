@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.45 (22nd September 2022)
+ *  AlertMe Smart Plug Driver v1.46 (23rd September 2022)
  *	
  */
 
@@ -103,8 +103,6 @@ void on() {
 
 
 void processMap(Map map) {
-
-	logging("${device} : processMap() : ${map}", "trace")
 
 	if (map.clusterId == "0006") {
 
@@ -270,28 +268,12 @@ void processMap(Map map) {
 
 		} else {
 
-			// Unknown power or energy data.
 			reportToDev(map)
 
 		}
 
-	} else if (map.clusterId == "00F0") {
-
-		// Device status cluster.
-		alertmeDeviceStatus(map)
-
-	} else if (map.clusterId == "00F6") {
-
-		// 00F6 - Discovery Cluster
-		alertmeDiscovery(map)
-
-	} else if (map.clusterId == "8001" || map.clusterId == "8032" || map.clusterId == "8038") {
-
-		alertmeSkip(map.clusterId)
-
 	} else {
 
-		// Not a clue what we've received.
 		reportToDev(map)
 
 	}
