@@ -85,7 +85,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_powerclamp.groovy",
 			"required": false,
-			"version": "1.20"
+			"version": "1.21"
 		},
 		{
 			"id": "5a73c17f-176a-46a6-9d81-db2e4823f32a",
@@ -93,7 +93,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy",
 			"required": false,
-			"version": "1.46"
+			"version": "1.47"
 		}
 	]
 }
