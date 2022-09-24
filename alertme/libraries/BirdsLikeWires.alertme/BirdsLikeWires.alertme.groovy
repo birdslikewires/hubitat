@@ -36,6 +36,9 @@ void configure() {
 	state.presenceUpdated = 0
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
+	// Remove empty device details.
+	removeDataValue("application")
+
 	// Schedule presence checking.
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
