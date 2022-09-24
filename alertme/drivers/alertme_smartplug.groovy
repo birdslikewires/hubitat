@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.46 (23rd September 2022)
+ *  AlertMe Smart Plug Driver v1.47 (24th September 2022)
  *	
  */
 
@@ -104,13 +104,7 @@ void on() {
 
 void processMap(Map map) {
 
-	if (map.clusterId == "0006") {
-
-		// Match Descriptor Request
-		logging("${device} : Sending Match Descriptor Response", "debug")
-		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
-
-	} else if (map.clusterId == "00EE") {
+	if (map.clusterId == "00EE") {
 
 		// Relay actuation and power state messages.
 
@@ -217,7 +211,7 @@ void processMap(Map map) {
 			// Power Reading
 
 			def powerValueHex = "undefined"
-			int powerValue = 0
+			BigDecimal powerValue = 0
 
 			// These power readings are so frequent that we only log them in debug or trace.
 			powerValueHex = map.data[0..1].reverse().join()
@@ -225,7 +219,11 @@ void processMap(Map map) {
 			powerValue = zigbee.convertHexToInt(powerValueHex)
 			logging("${device} : power sensor reports : ${powerValue}", "debug")
 
+			//powerValue = powerValue * sensorCorrectionMultiplier
+			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
+
 			sendEvent(name: "power", value: powerValue, unit: "W")
+			logging("${device} : Power : ${powerValue} W", "info")
 
 		} else if (map.command == "82") {
 
@@ -240,6 +238,7 @@ void processMap(Map map) {
 			BigInteger energyValue = new BigInteger(energyValueHex, 16)
 			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
+			//BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
 			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000)
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 
@@ -257,8 +256,7 @@ void processMap(Map map) {
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
 			def newDhmsUptime = []
-			long totalUptimeValue = uptimeValue * 1000
-			newDhmsUptime = millisToDhms(totalUptimeValue)
+			newDhmsUptime = millisToDhms(uptimeValue * 1000)
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			logging("${device} : Uptime : ${uptimeReadable}", "debug")
