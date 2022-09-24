@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.07 (23rd September 2022)
+ *  BirdsLikeWires Library v1.08 (24th September 2022)
  *	
  */
 
@@ -409,7 +409,7 @@ private String flipLittleEndian(Map map, String attribute) {
 }
 
 
-private String[] millisToDhms(long millisToParse) {
+private String[] millisToDhms(BigInteger millisToParse) {
 
 	long secondsToParse = millisToParse / 1000
 
