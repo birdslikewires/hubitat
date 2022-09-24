@@ -45,7 +45,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_contact.groovy",
 			"required": false,
-			"version": "1.14"
+			"version": "1.15"
 		},
 		{
 			"id": "aa1ab2a1-8df9-4f37-924c-ecd88b79e43e",
