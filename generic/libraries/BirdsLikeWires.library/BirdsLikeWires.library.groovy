@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.08 (24th September 2022)
+ *  BirdsLikeWires Library v1.089 (24th September 2022)
  *	
  */
 
@@ -51,30 +51,31 @@ void release(buttonId) {
 	
 }
 
+//////////////// So, this may well be different for different lamps and dimmers, so... possibly not for here, 
 
-void setLevel(BigDecimal level) {
+// void setLevel(BigDecimal level) {
 
-	setLevel(level,1)
+// 	setLevel(level,1)
 
-}
+// }
 
 
-void setLevel(BigDecimal level, BigDecimal duration) {
+// void setLevel(BigDecimal level, BigDecimal duration) {
 
-	BigDecimal safeLevel = level <= 100 ? level : 100
-	safeLevel = safeLevel < 0 ? 0 : safeLevel
+// 	BigDecimal safeLevel = level <= 100 ? level : 100
+// 	safeLevel = safeLevel < 0 ? 0 : safeLevel
 
-	String hexLevel = percentageToHex(safeLevel.intValue())
+// 	String hexLevel = percentageToHex(safeLevel.intValue())
 
-	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-	String hexDuration = Integer.toHexString(safeDuration.intValue())
+// 	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+// 	String hexDuration = Integer.toHexString(safeDuration.intValue())
 
-	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+// 	String pluralisor = duration == 1 ? "" : "s"
+// 	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
 
-	sendEvent(name: "level", value: "${safeLevel}")
+// 	sendEvent(name: "level", value: "${safeLevel}")
 
-}
+// }
 
 
 void updatePresence() {
