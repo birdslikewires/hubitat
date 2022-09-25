@@ -61,7 +61,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_lamp.groovy",
 			"required": false,
-			"version": "1.22"
+			"version": "1.23"
 		},
 		{
 			"id": "c90b1fcb-e829-4b4e-bcbb-293b12bba796",
