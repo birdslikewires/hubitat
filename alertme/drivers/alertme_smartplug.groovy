@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.47 (24th September 2022)
+ *  AlertMe Smart Plug Driver v1.48 (27th September 2022)
  *	
  */
 
@@ -32,6 +32,7 @@ metadata {
 		capability "Switch"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		//command "lockedMode"
 		command "normalMode"
@@ -39,8 +40,6 @@ metadata {
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
-		attribute "mode", "string"
 		attribute "stateMismatch", "boolean"
 		attribute "uptime", "string"
 		attribute "uptimeReadable", "string"

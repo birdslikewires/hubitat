@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.21 (24th September 2022)
+ *  AlertMe Power Clamp Driver v1.22 (27th September 2022)
  *	
  */
 
@@ -28,14 +28,13 @@ metadata {
 		capability "SignalStrength"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
-		attribute "mode", "string"
 		attribute "uptime", "string"
 		attribute "uptimeReadable", "string"
 

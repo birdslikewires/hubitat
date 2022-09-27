@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Fob Driver v1.27 (23rd September 2022)
+ *  AlertMe Fob Driver v1.28 (27th September 2022)
  *	
  */
 
@@ -26,13 +26,13 @@ metadata {
 		capability "Refresh"
 		capability "ReleasableButton"
 		capability "SignalStrength"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 
 		if (debugMode) {
 			command "checkPresence"

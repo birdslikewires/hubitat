@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Alarm Sensor Driver v1.26 (23rd September 2022)
+ *  AlertMe Alarm Sensor Driver v1.27 (27th September 2022)
  *	
  */
 
@@ -29,14 +29,13 @@ metadata {
 		capability "SoundSensor"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
-		attribute "mode", "string"
 
 		if (debugMode) {
 			command "checkPresence"

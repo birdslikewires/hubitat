@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Contact Sensor Driver v1.15 (24th September 2022)
+ *  AlertMe Contact Sensor Driver v1.16 (27th September 2022)
  *	
  */
 
@@ -28,14 +28,13 @@ metadata {
 		capability "SignalStrength"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
-		attribute "mode", "string"
 
 		if (debugMode) {
 			command "checkPresence"

@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Button Driver v1.24 (23rd September 2022)
+ *  AlertMe Button Driver v1.25 (27th September 2022)
  *	
  */
 
@@ -28,13 +28,13 @@ metadata {
 		capability "SignalStrength"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Depice", deviceJoinName: "AlertMe Button"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"

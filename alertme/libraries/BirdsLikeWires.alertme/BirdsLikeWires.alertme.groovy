@@ -274,7 +274,7 @@ void alertmeDeviceStatus(Map map) {
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-	sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
+	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 	BigDecimal batteryPercentage = 0
 	BigDecimal batteryVoltageScaleMin = 2.80

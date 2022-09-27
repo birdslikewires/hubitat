@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Motion Sensor Driver v1.20 (23rd September 2022)
+ *  AlertMe Motion Sensor Driver v1.21 (27th September 2022)
  *	
  */
 
@@ -28,13 +28,13 @@ metadata {
 		capability "SignalStrength"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 		attribute "mode", "string"
 
 		if (debugMode) {

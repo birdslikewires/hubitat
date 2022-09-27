@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Pendant Driver v1.01 (23rd September 2022)
+ *  AlertMe Pendant Driver v1.02 (27th September 2022)
  *	
  */
 
@@ -26,13 +26,13 @@ metadata {
 		capability "Refresh"
 		capability "SignalStrength"
 		capability "Switch"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 
 		if (debugMode) {
 			command "checkPresence"

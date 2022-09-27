@@ -1,6 +1,6 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.23 (24th September 2022)
+ *  AlertMe Lamp Driver v1.24 (27th September 2022)
  *	
  */
 
@@ -30,6 +30,7 @@ metadata {
 		capability "SignalStrength"
 		capability "Switch"
 		capability "SwitchLevel"
+		capability "VoltageMeasurement"
 
 		command "normalMode"
 		command "rangingMode"
@@ -40,7 +41,6 @@ metadata {
 		command "pause"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Beacon", deviceJoinName: "AlertMe Lamp"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"
