@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.10 (5th July 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.11 (5th October 2022)
  *	
  */
 
@@ -23,13 +23,10 @@ metadata {
 		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "Sensor"
+		capability "VoltageMeasurement"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "number"
-		attribute "batteryVoltageWithUnit", "string"
-		attribute "batteryWithUnit", "string"
 		attribute "illuminanceDirection", "string"
-		attribute "illuminanceWithUnit", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -75,7 +72,6 @@ def configure() {
 	state.rawLux = 0
 	
 	sendEvent(name: "illuminance", value: 0, unit: "lux")
-	sendEvent(name: "illuminanceWithUnit", value: "0 lux")
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 
 	// Set default preferences.
@@ -203,8 +199,7 @@ void processMap(Map map) {
 			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 10
 
 			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-			sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
-			sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
+			sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 			BigDecimal batteryPercentage = 0
 			BigDecimal batteryVoltageScaleMin = 2.1
@@ -222,7 +217,6 @@ void processMap(Map map) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", $batteryLogLevel)
 
 				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 				sendEvent(name: "batteryState", value: "discharging")
 
 			} else {
@@ -236,7 +230,6 @@ void processMap(Map map) {
 				logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 				sendEvent(name: "batteryState", value: "exhausted")
 
 			}
@@ -270,7 +263,6 @@ void processMap(Map map) {
 				logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "debug")
 				sendEvent(name: "illuminance", value: lux, unit: "lux")
 				sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
-				sendEvent(name: "illuminanceWithUnit", value: "${lux} lux")
 
 			} else {
 

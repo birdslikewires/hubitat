@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.05 (21st March 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.06 (5th October 2022)
  *	
  */
 
@@ -23,18 +23,13 @@ metadata {
 		capability "RelativeHumidityMeasurement"
 		capability "Sensor"
 		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		attribute "absoluteHumidity", "number"
-		attribute "absoluteHumidityWithUnit", "string"
 		attribute "batteryState", "string"
 		attribute "batteryVoltage", "number"
-		attribute "batteryVoltageWithUnit", "string"
-		attribute "batteryWithUnit", "string"
-		attribute "humidityWithUnit", "string"
 		attribute "pressureDirection", "string"
 		//attribute "pressurePrevious", "string"
-		attribute "pressureWithUnit", "string"
-		attribute "temperatureWithUnit", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -71,6 +66,8 @@ def installed() {
 
 def configure() {
 
+	int randomSixty
+
 	// Tidy up.
 	unschedule()
 
@@ -84,8 +81,7 @@ def configure() {
 	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
 	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
 
-	// Schedule reporting and presence checking.
-	int randomSixty
+	// Schedule presence checking.
 	int checkEveryMinutes = 10					
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
@@ -197,7 +193,6 @@ void processMap(Map map) {
 
 			logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
 			sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
-			sendEvent(name: "temperatureWithUnit", value: "${temperature} °${temperatureScale}")
 
 		}
 
@@ -225,7 +220,6 @@ void processMap(Map map) {
 		logging("${device} : Pressure : ${pressure} kPa", "info")
 		sendEvent(name: "pressure", value: pressure, unit: "kPa")
 		sendEvent(name: "pressureDirection", value: "${pressureDirection}")
-		sendEvent(name: "pressureWithUnit", value: "${pressure} kPa")
 
 	} else if (map.cluster == "0405") { 
 
@@ -262,8 +256,6 @@ void processMap(Map map) {
 			logging("${device} : Humidity (Absolute) : ${absoluteHumidity} g/m${cubedChar}", "info")
 			sendEvent(name: "humidity", value: humidity, unit: "%")
 			sendEvent(name: "absoluteHumidity", value: absoluteHumidity, unit: "g/m${cubedChar}")
-			sendEvent(name: "humidityWithUnit", value: "${humidity} %")
-			sendEvent(name: "absoluteHumidityWithUnit", value: "${absoluteHumidity} g/m${cubedChar}")
 
 		}
 
@@ -300,8 +292,7 @@ void processMap(Map map) {
 			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 1000
 
 			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-			sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
-			sendEvent(name: "batteryVoltageWithUnit", value: "${batteryVoltage} V")
+			sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 			BigDecimal batteryPercentage = 0
 			BigDecimal batteryVoltageScaleMin = 2.1
@@ -322,7 +313,6 @@ void processMap(Map map) {
 				}
 
 				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 				sendEvent(name: "batteryState", value: "discharging")
 
 			} else {
@@ -336,7 +326,6 @@ void processMap(Map map) {
 				logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryWithUnit", value:"${batteryPercentage} %")
 				sendEvent(name: "batteryState", value: "exhausted")
 
 			}

@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.06 (27th June 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.07 (5th October 2022)
  *	
  */
 
@@ -26,9 +26,9 @@ metadata {
 		capability "ReleasableButton"
 		capability "SwitchLevel"
 		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
+		capability "VoltageMeasurement"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -314,7 +314,7 @@ void processMap(Map map) {
 			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 1000
 
 			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-			sendEvent(name: "batteryVoltage", value: batteryVoltage, unit: "V")
+			sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 			BigDecimal batteryPercentage = 0
 			BigDecimal batteryVoltageScaleMin = 2.1
