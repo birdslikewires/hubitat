@@ -103,7 +103,25 @@ void accelerationInactive() {
 
 void setLevel(BigDecimal level) {
 
- 	setLevel(level,1)
+	setLevel(level,1)
+
+}
+
+
+void setLevel(BigDecimal level, BigDecimal duration) {
+
+	BigDecimal safeLevel = level <= 100 ? level : 100
+	safeLevel = safeLevel < 0 ? 0 : safeLevel
+
+	String hexLevel = percentageToHex(safeLevel.intValue())
+
+	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+	String hexDuration = Integer.toHexString(safeDuration.intValue())
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+
+	sendEvent(name: "level", value: "${safeLevel}")
 
 }
 
