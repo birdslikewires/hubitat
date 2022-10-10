@@ -133,7 +133,7 @@ void xiaomiDeviceStatus(Map map) {
 	if (dataSize > 20) {
 		deviceData = map.value
 	} else {
-		logging("${device} : deviceData : No battery information in this report.", "debug")
+		logging("${device} : deviceData : No device information in this report.", "debug")
 		return
 	}
 	
@@ -158,8 +158,6 @@ void xiaomiDeviceStatus(Map map) {
 
 	if (batteryVoltage >= batteryVoltageScaleMin) {
 
-		state.batteryOkay = true
-
 		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
 		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
@@ -171,20 +169,18 @@ void xiaomiDeviceStatus(Map map) {
 		}
 
 		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		sendEvent(name: "batteryState", value: "discharging")
+		state.battery = "discharging"
 
 	} else {
 
 		// Very low voltages indicate an exhausted battery which requires replacement.
-
-		state.batteryOkay = false
 
 		batteryPercentage = 0
 
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		sendEvent(name: "batteryState", value: "exhausted")
+		state.battery = "exhausted"
 
 	}
 
