@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.01 (10th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.02 (10th October 2022)
  *	
  */
 
@@ -36,11 +36,6 @@ void configure() {
 	// Schedule presence checking.
 	randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Schedule ranging report.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
 
 	// Set device specifics.
 	configureSpecifics()
