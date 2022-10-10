@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.08 (10th October 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.09 (10th October 2022)
  *	
  */
 
@@ -97,6 +97,13 @@ void configureSpecifics() {
 void accelerationInactive() {
 
 	sendEvent(name: "acceleration", value: "inactive", isStateChange: true)
+
+}
+
+
+void setLevel(BigDecimal level) {
+
+ 	setLevel(level,1)
 
 }
 
