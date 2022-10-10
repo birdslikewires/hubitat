@@ -1,15 +1,17 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.07 (5th October 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.08 (10th October 2022)
  *	
  */
 
 
 #include BirdsLikeWires.library
+#include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
+@Field int checkEveryMinutes = 10
 
 
 metadata {
@@ -27,8 +29,6 @@ metadata {
 		capability "SwitchLevel"
 		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
 		capability "VoltageMeasurement"
-
-		attribute "batteryState", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -54,78 +54,42 @@ preferences {
 }
 
 
-def testCommand() {
+void testCommand() {
+
 	logging("${device} : Test Command", "info")
+	
 }
 
 
-def installed() {
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-}
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.xiaomi
 
+	//// THIS IS BROKEN
+	//// For some reason the device model name is not being translated from hex to text by Hubitat on installation.
+	//// This needs to be repaired as these settings won't be properly applied.
 
-def configure() {
-
-	int randomSixty
 	String modelCheck = "${getDeviceDataByName('model')}"
 
-	// Tidy up.
-	unschedule()
-
-	state.clear()
-	state.presenceUpdated = 0
-	
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Set default preferences.
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
-
-	// Schedule presence checking.
-	int checkEveryMinutes = 10					
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Set device specifics.
 	if ("$modelCheck" == "lumi.sensor_switch.aq2") {
+
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r1"
+		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
+
 	} else if ("$modelCheck" == "lumi.remote.b1acn01") {
+
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r2"
+		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
+
 	} else if ("$modelCheck" == "lumi.sensor_switch.aq3" || "$modelCheck" == "lumi.sensor_swit") {
+
 		// There's a weird truncation of the model name here which doesn't occur with the '11LM. I think it's a firmware bug.
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
-		sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
+		sendEvent(name: "numberOfButtons", value: 6, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
+		sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
+
 	}
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-
-	updated()
-
-}
-
-
-void updated() {
-	// Runs when preferences are saved.
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
 
 }
 
@@ -137,48 +101,7 @@ void accelerationInactive() {
 }
 
 
-void parse(String description) {
-
-	// Primary parse routine.
-
-	logging("${device} : Parse : $description", "trace")
-
-	updatePresence()
-
-	Map descriptionMap = null
-
-	if (description.indexOf('encoding: 10') >= 0 || description.indexOf('encoding: 20') >= 0) {
-
-		// Normal encoding should bear some resemblance to the Zigbee Cluster Library Specification
-		descriptionMap = zigbee.parseDescriptionAsMap(description)
-
-	} else {
-
-		// Anything else is specific to Xiaomi, so we'll just slice and dice the string we receive.
-		descriptionMap = description.split(', ').collectEntries {
-			entry -> def pair = entry.split(': ')
-			[(pair.first()): pair.last()]
-		}
-
-	}
-
-	if (descriptionMap) {
-
-		processMap(descriptionMap)
-
-	} else {
-		
-		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-		logging("${device} : Splurge! : ${description}", "warn")
-
-	}
-
-}
-
-
 void processMap(Map map) {
-
-	String[] receivedData = map.data
 
 	if (map.cluster == "0006") { 
 		// Handle button presses for the WXKG11LM 
@@ -255,7 +178,7 @@ void processMap(Map map) {
 
 	} else if (map.cluster == "0000") { 
 
-		def deviceData = ""
+		//def deviceData = ""
 
 		if (map.attrId == "0005") {
 			// Received when pairing and when short-pressing the reset button.
@@ -265,11 +188,12 @@ void processMap(Map map) {
 				logging("${device} : Model data received.", "debug")
 
 			} else if (map.size == "70" || map.size == "88") {
-				// Short reset button presses always contain battery data.
+				// Short reset button presses always contain battery data. <-- hmm, do they? because I'm seeing silly values.
 				// Value size of 70 sent by '11LM, size of 88 by '12LM.
+				//xiaomiDeviceStatus(map) <-- don't do this until confirmed, just read the regular reports.
 
 				// Grab device data triggered by short press of the reset button.
-				deviceData = map.value.split('FF42')[1]
+				//deviceData = map.value.split('FF42')[1]
 
 				// Scrounge more value! It's another button, so as '11LMs can quad-click we'll call this button five.
 				logging("${device} : Trigger : Button 5 Pressed", "info")
@@ -277,90 +201,9 @@ void processMap(Map map) {
 
 			}
 
-		} else if (map.attrId == "FF01") {
-			// Received when reporting in and when the button is pressed more than twice.
-			
-			int dataSize = map.value.size()
-
-			if (dataSize > 20) {
-				// Only the check-in reports contain device data.
-				deviceData = map.value
-
-			} else {
-
-				logging("${device} : deviceData : No device data in this report.", "debug")
-				return
-
-			}
-
 		} else {
 
 			reportToDev(map)
-
-		}
-
-		if ("$deviceData" != "") {
-
-			// Report the battery voltage and calculated percentage.
-			def batteryVoltageHex = "undefined"
-			BigDecimal batteryVoltage = 0
-
-			batteryVoltageHex = deviceData[8..9] + deviceData[6..7]
-			logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
-
-			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
-			logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
-
-			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 1000
-
-			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-			sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
-
-			BigDecimal batteryPercentage = 0
-			BigDecimal batteryVoltageScaleMin = 2.1
-			BigDecimal batteryVoltageScaleMax = 3.0
-
-			if (batteryVoltage >= batteryVoltageScaleMin) {
-
-				state.batteryOkay = true
-
-				batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
-				batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
-				batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
-
-				if (batteryPercentage > 20) {
-					logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
-				} else {
-					logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-				}
-
-				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryState", value: "discharging")
-
-			} else {
-
-				// Very low voltages indicate an exhausted battery which requires replacement.
-
-				state.batteryOkay = false
-
-				batteryPercentage = 0
-
-				logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryState", value: "exhausted")
-
-			}
-
-			// Report the temperature in celsius.
-			// def temperatureValue = "undefined"
-			// temperatureValue = deviceData[14..15]
-			// logging("${device} : temperatureValue : ${temperatureValue}", "trace")
-			// BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
-
-			// logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-			// logging("${device} : Temperature : $temperatureCelsius °C", "info")
-			// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
 
 		}
 
