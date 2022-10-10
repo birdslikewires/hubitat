@@ -1,0 +1,3 @@
+BirdsLikeWires
+xiaomi
+library BirdsLikeWires.xiaomi.groovy
