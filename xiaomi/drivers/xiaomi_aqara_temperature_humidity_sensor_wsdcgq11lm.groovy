@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.08 (10th October 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.09 (11th October 2022)
  *	
  */
 
@@ -29,7 +29,6 @@ metadata {
 		capability "VoltageMeasurement"
 
 		attribute "absoluteHumidity", "number"
-		attribute "batteryState", "string"
 		attribute "pressureDirection", "string"
 		//attribute "pressurePrevious", "string"
 

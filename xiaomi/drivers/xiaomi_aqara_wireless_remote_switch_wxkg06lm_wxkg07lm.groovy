@@ -27,8 +27,6 @@ metadata {
 		capability "ReleasableButton"
 		capability "VoltageMeasurement"
 
-		attribute "batteryState", "string"
-
 		if (debugMode) {
 			command "checkPresence"
 			command "testCommand"
