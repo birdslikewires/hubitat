@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.10 (10th October 2022)
+ *  BirdsLikeWires Library v1.11 (11th October 2022)
  *	
  */
 
@@ -184,11 +184,9 @@ void processBasic(Map map) {
 
 void processConfigurationResponse(Map map) {
 
-	String[] receivedData = map.data
-
 	if (map.command == "07") {
 
-		if (receivedData[0] == "00") {
+		if (map.data[0] == "00") {
 
 			sendEvent(name: "configuration", value: "received", isStateChange: false)
 			logging("${device} : Configuration : Received by device.", "info")
@@ -211,35 +209,33 @@ void processConfigurationResponse(Map map) {
 void processDescriptors(Map map) {
 	// Process the simple descriptors normally received from Zigbee Cluster 8004 into device data values.
 
-	String[] receivedData = map.data
-
-	if (receivedData[1] == "00") {
+	if (map.data[1] == "00") {
 		// Received simple descriptor data.
 
-		//updateDataValue("endpointId", receivedData[5])						// can lead to a weird duplicate
-		updateDataValue("profileId", receivedData[6..7].reverse().join())
+		//updateDataValue("endpointId", map.data[5])						// can lead to a weird duplicate
+		updateDataValue("profileId", map.data[6..7].reverse().join())
 
-		Integer inClusterNum = Integer.parseInt(receivedData[11], 16)
+		Integer inClusterNum = Integer.parseInt(map.data[11], 16)
 		Integer position = 12
 		Integer positionCounter = null
 		String inClusters = ""
 		if (inClusterNum > 0) {
 			(1..inClusterNum).each() {b->
 				positionCounter = position+((b-1)*2)
-				inClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				inClusters += map.data[positionCounter..positionCounter+1].reverse().join()
 				if (b < inClusterNum) {
 					inClusters += ","
 				}
 			}
 		}
 		position += inClusterNum*2
-		Integer outClusterNum = Integer.parseInt(receivedData[position], 16)
+		Integer outClusterNum = Integer.parseInt(map.data[position], 16)
 		position += 1
 		String outClusters = ""
 		if (outClusterNum > 0) {
 			(1..outClusterNum).each() {b->
 				positionCounter = position+((b-1)*2)
-				outClusters += receivedData[positionCounter..positionCounter+1].reverse().join()
+				outClusters += map.data[positionCounter..positionCounter+1].reverse().join()
 				if (b < outClusterNum) {
 					outClusters += ","
 				}
@@ -263,15 +259,13 @@ void processDescriptors(Map map) {
 
 void reportToDev(map) {
 
-	String[] receivedData = map.data
-
-	def receivedDataCount = ""
-	if (receivedData != null) {
-		receivedDataCount = "${receivedData.length} bits of "
+	def dataCount = ""
+	if (map.data != null) {
+		dataCount = "${map.data.length} bits of "
 	}
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${map.data}", "warn")
 	logging("${device} : Splurge! : ${map}", "trace")
 
 }
@@ -523,5 +517,45 @@ private boolean logging(String message, String level) {
 	}
 
 	return didLog
+
+}
+
+
+void filterThis(Map map) {
+	// Everything that hasn't been caught or rejected ends up in this filter.
+
+	if (map.clusterId == "0001") {
+
+		processConfigurationResponse(map)
+
+	} else if (map.clusterId == "0006") {
+
+		logging("${device} : Skipped : Match Descriptor Request", "debug")
+
+	} else if (map.clusterId == "0013") {
+
+		logging("${device} : Skipped : Device Announce Broadcast", "debug")
+
+	} else if (map.clusterId == "0400") {
+
+		processConfigurationResponse(map)
+
+	} else if (map.clusterId == "8004") {
+		
+		processDescriptors(map)
+
+	} else if (map.clusterId == "8005") {
+
+		logging("${device} : Skipped : Active End Point Response", "debug")
+
+	} else if (map.clusterId == "8021") {
+
+		logging("${device} : Skipped : Bind Response", "debug")
+
+	} else {
+
+		reportToDev(map)
+
+	}
 
 }
