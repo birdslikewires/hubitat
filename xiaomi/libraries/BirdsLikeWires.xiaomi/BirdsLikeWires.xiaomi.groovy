@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.05 (11th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.06 (11th October 2022)
  *	
  */
 
@@ -80,19 +80,23 @@ void parse(String description) {
 	updatePresence()
 
 	Map descriptionMap = null
+	String parseType = "Zigbee"
 
-	if (description.indexOf('encoding: 10') >= 0 || description.indexOf('encoding: 20') >= 0) {
+	if (description.indexOf('catchall:') >= 0 || description.indexOf('encoding: 10') >= 0 || description.indexOf('encoding: 20') >= 0 || description.indexOf('encoding: 21') >= 0) {
 
 		// Normal encoding should bear some resemblance to the Zigbee Cluster Library Specification
+		logging("${device} : Parse : Processing against Zigbee cluster specification.", "debug")
 		descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	} else {
 
 		// Anything else is specific to Xiaomi, so we'll just slice and dice the string we receive.
+		logging("${device} : Parse : Processing what we're assuming is Xiaomi structured data.", "debug")
 		descriptionMap = description.split(', ').collectEntries {
 			entry -> def pair = entry.split(': ')
 			[(pair.first()): pair.last()]
 		}
+		parseType = "Xiaomi"
 
 	}
 
@@ -119,8 +123,8 @@ void parse(String description) {
 
 	} else {
 		
-		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-		logging("${device} : Splurge! : ${description}", "warn")
+		logging("${device} : Parse : Failed to parse ${parseType} specification data. Please report these messages to the developer.", "warn")
+		logging("${device} : Parse : Failed Here : ${description}", "warn")
 
 	}
 
@@ -129,31 +133,44 @@ void parse(String description) {
 
 void xiaomiDeviceStatus(Map map) {
 
-	// FF01 - Device Status Cluster
+	// Device Status
 
+	int batteryDivisor = 1
+	String batteryVoltageHex = "undefined"
 	String modelCheck = "${getDeviceDataByName('model')}"
 
-	def deviceData = ""
-	def dataSize = map.value.size()
+	if (modelCheck == "lumi.sen_ill.mgl01") {
+		// The Mijia Smart Light Sensor neatly reports its battery hex values on attrId 0020 of cluster 0001.
 
-	if (dataSize > 20) {
-		deviceData = map.value
+		batteryVoltageHex = map.value
+		batteryDivisor = 10
+
 	} else {
-		logging("${device} : deviceData : No device information in this report.", "debug")
-		return
+		// Everything else mushes it into the status data on attrId FF01 of cluster 0000.
+
+		if (map.value.size > 20) {
+
+			batteryVoltageHex = map.value[8..9] + map.value[6..7]
+			batteryDivisor = 1000
+
+		} else {
+
+			logging("${device} : xiaomiDeviceStatus : No device information in this report.", "debug")
+			return
+
+		}
+
 	}
 	
 	// Report the battery voltage and calculated percentage.
-	def batteryVoltageHex = "undefined"
 	BigDecimal batteryVoltage = 0
 
-	batteryVoltageHex = deviceData[8..9] + deviceData[6..7]
 	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
 
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
 	logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
-	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 1000
+	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryDivisor
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
