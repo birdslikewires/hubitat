@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.04 (11th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.05 (11th October 2022)
  *	
  */
 
