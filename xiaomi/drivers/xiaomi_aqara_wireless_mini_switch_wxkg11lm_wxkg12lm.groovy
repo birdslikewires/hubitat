@@ -1,6 +1,6 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.09 (10th October 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.10 (11th October 2022)
  *	
  */
 
@@ -35,8 +35,8 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LM r1"
-		fingerprint profileId: "0104", inClusters: "0000,0012,0003", outClusters: "0000", manufacturer: "LUMI", model: "lumi.remote.b1acn01", deviceJoinName: "WXKG11LM r2"
+		fingerprint profileId: "0104", inClusters: "0000,FFFF,0006", outClusters: "0000,0004,FFFF", manufacturer: "LUMI", model: "lumi.sensor_switch.aq2", deviceJoinName: "WXKG11LMr1"
+		fingerprint profileId: "0104", inClusters: "0000,0012,0003", outClusters: "0000", manufacturer: "LUMI", model: "lumi.remote.b1acn01", deviceJoinName: "WXKG11LMr2"
 		fingerprint profileId: "0104", inClusters: "0000,0012,0006,0001", outClusters: "0000", manufacturer: "LUMI", model: "lumi.sensor_switch.aq3", deviceJoinName: "WXKG12LM"
 		fingerprint profileId: "0104", inClusters: "0000,0012,0006,0001", outClusters: "0000", manufacturer: "LUMI", model: "lumi.sensor_swit", deviceJoinName: "WXKG12LM"
 
@@ -64,26 +64,27 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
-	//// THIS IS BROKEN
-	//// For some reason the device model name is not being translated from hex to text by Hubitat on installation.
-	//// This needs to be repaired as these settings won't be properly applied.
-
 	String modelCheck = "${getDeviceDataByName('model')}"
 
 	if ("$modelCheck" == "lumi.sensor_switch.aq2") {
+		// This is the WXKG11LM original 2015 model.
 
-		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r1"
+		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LMr1"
 		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
+		device.deleteCurrentState("level")
 
 	} else if ("$modelCheck" == "lumi.remote.b1acn01") {
+		// This is the WXKG11LM revised 2018 model featuring hold and release.
 
-		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LM r2"
+		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LMr2"
 		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
 
 	} else if ("$modelCheck" == "lumi.sensor_switch.aq3" || "$modelCheck" == "lumi.sensor_swit") {
+		// This is the WXKG12LM with gyroscope for shake functionality.
+		// These sacrifice some multi-presses and I've found them less resiliant in poor signal environments. Just my 2p.
+		// There's also a weird truncation of the model name string which doesn't occur with the '11LM. I think it's a firmware bug.
 
-		// There's a weird truncation of the model name here which doesn't occur with the '11LM. I think it's a firmware bug.
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
 		sendEvent(name: "numberOfButtons", value: 6, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
@@ -202,8 +203,6 @@ void processMap(Map map) {
 		}
 
 	} else if (map.cluster == "0000") { 
-
-		//def deviceData = ""
 
 		if (map.attrId == "0005") {
 			// Received when pairing and when short-pressing the reset button.
