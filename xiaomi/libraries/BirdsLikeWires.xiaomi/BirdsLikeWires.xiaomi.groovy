@@ -105,6 +105,10 @@ void parse(String description) {
 			// Device Status Cluster
 			xiaomiDeviceStatus(descriptionMap)
 
+		} else if (descriptionMap.clusterId == "8004") {
+		
+			processDescriptors(descriptionMap)
+
 		} else {
 
 			// Hand back to the driver for processing.
