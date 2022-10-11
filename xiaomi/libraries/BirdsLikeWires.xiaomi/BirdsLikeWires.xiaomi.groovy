@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.03 (11th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.04 (11th October 2022)
  *	
  */
 
@@ -186,17 +186,17 @@ void xiaomiDeviceStatus(Map map) {
 
 	}
 
-	//// On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
-	//// Leaving this here so that we know how to read it in the future, should we wish to.
+	// On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
+	// We may as well throw this out in the log for comedy value as it's rarely reported.
+	// Who knows. We may learn something.
 
-	// Report the temperature in celsius.
-	// def temperatureValue = "undefined"
-	// temperatureValue = deviceData[14..15]
-	// logging("${device} : temperatureValue : ${temperatureValue}", "trace")
-	// BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
+	def temperatureValue = "undefined"
+	temperatureValue = deviceData[14..15]
+	logging("${device} : temperatureValue : ${temperatureValue}", "trace")
 
-	// logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-	// logging("${device} : Temperature : $temperatureCelsius °C", "info")
+	BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
+	logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+	logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
 	// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
 
 }
