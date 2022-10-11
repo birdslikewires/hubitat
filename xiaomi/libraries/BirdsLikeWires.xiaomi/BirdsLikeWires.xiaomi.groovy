@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.02 (10th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.03 (11th October 2022)
  *	
  */
 
@@ -97,6 +97,8 @@ void parse(String description) {
 	}
 
 	if (descriptionMap) {
+
+		logging("${device} : Parse : ${descriptionMap}", "debug")
 
 		if (descriptionMap.cluster == "0000" && descriptionMap.attrId == "FF01") { 
 
