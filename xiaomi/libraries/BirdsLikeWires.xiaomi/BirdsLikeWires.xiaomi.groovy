@@ -40,7 +40,7 @@ void configure() {
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
 	// Set device specifics.
-	updateDataValue("driver", "$version")
+	updateDataValue("driver", "$driverVersion")
 	configureSpecifics()
 
 	// Notify.
@@ -137,9 +137,9 @@ void parse(String description) {
 	String versionCheck = "unknown"
 	versionCheck = "${getDeviceDataByName('driver')}"
 
-	if (versionCheck != version) {
+	if (versionCheck != driverVersion) {
 
-		logging("${device} : Parse : Updating from $versionCheck to $version.", "info")
+		logging("${device} : Parse : Updating from $versionCheck to $driverVersion.", "info")
 		configure()
 
 	}
