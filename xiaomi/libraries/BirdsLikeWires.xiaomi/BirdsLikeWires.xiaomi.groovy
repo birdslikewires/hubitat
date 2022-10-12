@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.09 (12th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.10 (12th October 2022)
  *	
  */
 
@@ -155,7 +155,7 @@ void xiaomiDeviceStatus(Map map) {
 	String modelCheck = "${getDeviceDataByName('model')}"
 	def dataSize = map.value.size()
 
-	logging("${device} : xiaomiDeviceStatus : Received $dataSize character message.", "info")
+	logging("${device} : xiaomiDeviceStatus : Received $dataSize character message.", "debug")
 
 	if (modelCheck == "lumi.sen_ill.mgl01") {
 		// The Mijia Smart Light Sensor neatly reports its battery hex values on attrId 0020 of cluster 0001.
