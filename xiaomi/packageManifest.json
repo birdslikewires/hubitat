@@ -29,7 +29,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor_wsdcgq11lm.groovy",
 			"required": false,
-			"version": "1.10"
+			"version": "1.11"
 		},
 		{
 			"id": "3cb6a1f1-a3e3-4d9d-9688-384151e1cb67",
@@ -45,7 +45,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg06lm_wxkg07lm.groovy",
 			"required": false,
-			"version": "1.09"
+			"version": "1.10"
 		},
 		{
 			"id": "a45a2a70-3a59-49e8-bbf4-f84dd5a3a9f6",

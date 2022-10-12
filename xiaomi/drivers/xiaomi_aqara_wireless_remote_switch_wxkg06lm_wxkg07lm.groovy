@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.09 (12th October 2022)"
+@Field String driverVersion = "v1.10 (12th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -102,13 +102,13 @@ void processMap(Map map) {
 		} else {
 
 			// processBasic(map)
-			reportToDev(map)
+			filterThis(map)
 
 		}
 
 	} else {
 
-		reportToDev(map)
+		filterThis(map)
 
 	}
 
