@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.08 (12th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.09 (12th October 2022)
  *	
  */
 
@@ -140,7 +140,7 @@ void parse(String description) {
 
 	if ("$versionCheck" != "$driverVersion") {
 
-		logging("${device} : Parse : Updating from $versionCheck to $driverVersion.", "info")
+		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
 		configure()
 
 	}
