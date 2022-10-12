@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.49 (12th October 2022)"
+@Field String driverVersion = "v1.50 (13th October 2022)"
 
 
 #include BirdsLikeWires.alertme
@@ -41,11 +41,6 @@ metadata {
 		command "normalMode"
 		command "rangingMode"
 		//command "quietMode"
-
-		attribute "batteryState", "string"
-		attribute "stateMismatch", "boolean"
-		attribute "uptime", "string"
-		attribute "uptimeReadable", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -130,9 +125,9 @@ void processMap(Map map) {
 
 				// Supply failed.
 
-				sendEvent(name: "batteryState", value: "discharging")
-				sendEvent(name: "powerSource", value: "battery")
-				sendEvent(name: "tamper", value: "detected")
+				sendEvent(name: "powerSource", value: "battery", isStateChange: true)
+				sendEvent(name: "tamper", value: "detected", isStateChange: true)
+				state.battery = "discharging"
 				state.supplyPresent = false
 
 				// Whether this is a problem!
@@ -140,12 +135,12 @@ void processMap(Map map) {
 				if (powerStateHex == "02") {
 
 					logging("${device} : Supply : Incoming supply failure with relay open.", "warn")
-					sendEvent(name: "stateMismatch", value: false, isStateChange: true)
+					state.mismatch = true
 
 				} else {
 
 					logging("${device} : Supply : Incoming supply failure with relay closed. CANNOT POWER LOAD!", "warn")
-					sendEvent(name: "stateMismatch", value: true, isStateChange: true)
+					state.mismatch = true
 
 				}
 
@@ -153,12 +148,16 @@ void processMap(Map map) {
 
 				// Supply present.
 
-				state.supplyPresent ?: logging("${device} : Supply : Incoming supply has returned.", "info")
-				state.supplyPresent ?: sendEvent(name: "batteryState", value: "charging")
+				if (state.supplyPresent) {
 
-				sendEvent(name: "stateMismatch", value: false)
+					logging("${device} : Supply : Incoming supply has returned.", "info")
+					state.battery = "charging"
+					
+				}
+
 				sendEvent(name: "powerSource", value: "mains")
 				sendEvent(name: "tamper", value: "clear")
+				state.mismatch = false
 				state.supplyPresent = true
 
 			} else {
@@ -167,13 +166,10 @@ void processMap(Map map) {
 
 				logging("${device} : Supply : Device returning from shutdown, please check batteries!", "warn")
 
-				if (state.batteryOkay) {
-					sendEvent(name: "batteryState", value: "charging")
-				}
-
-				sendEvent(name: "stateMismatch", value: false)
 				sendEvent(name: "powerSource", value: "mains")
 				sendEvent(name: "tamper", value: "clear")
+				state.battery = "charging"
+				state.mismatch = false
 				state.supplyPresent = true
 
 			}
@@ -260,10 +256,10 @@ void processMap(Map map) {
 			newDhmsUptime = millisToDhms(uptimeValue * 1000)
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
-			logging("${device} : Uptime : ${uptimeReadable}", "debug")
+			logging("${device} : Uptime : $uptimeReadable", "debug")
 
-			sendEvent(name: "uptime", value: uptimeValue, unit: "s")
-			sendEvent(name: "uptimeReadable", value: uptimeReadable)
+			state.uptime = "$uptimeValue"
+			state.uptimeReadable = "$uptimeReadable"
 
 		} else {
 
