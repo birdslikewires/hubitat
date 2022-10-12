@@ -1,8 +1,11 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver v1.10 (11th October 2022)
+ *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.11 (12th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -64,6 +67,8 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
+	updateDataValue("encoding", "Xiaomi")
+
 	String modelCheck = "${getDeviceDataByName('model')}"
 
 	if ("$modelCheck" == "lumi.sensor_switch.aq2") {
@@ -80,15 +85,24 @@ void configureSpecifics() {
 		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
 
-	} else if ("$modelCheck" == "lumi.sensor_switch.aq3" || "$modelCheck" == "lumi.sensor_swit") {
+	} else if ("$modelCheck" == "lumi.sensor_switch.aq3") {
 		// This is the WXKG12LM with gyroscope for shake functionality.
 		// These sacrifice some multi-presses and I've found them less resiliant in poor signal environments. Just my 2p.
-		// There's also a weird truncation of the model name string which doesn't occur with the '11LM. I think it's a firmware bug.
 
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
 		sendEvent(name: "numberOfButtons", value: 6, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
 		sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
+
+	} else if ("$modelCheck" == "lumi.sensor_swit") {
+		// There's a weird truncation of the model string which only occurs with the '12LM. I think it's a firmware bug.
+
+		updateDataValue("model", "lumi.sensor_switch.aq3")
+		configureSpecifics()
+
+	} else {
+
+		logging("${device} : configureSpecifics : Model type $modelCheck is not known.", "error")
 
 	}
 
@@ -198,7 +212,7 @@ void processMap(Map map) {
 
 		} else {
 
-			reportToDev(map)
+			filterThis(map)
 
 		}
 
@@ -227,13 +241,13 @@ void processMap(Map map) {
 
 		} else {
 
-			reportToDev(map)
+			filterThis(map)
 
 		}
 
 	} else {
 
-		reportToDev(map)
+		filterThis(map)
 
 	}
 
