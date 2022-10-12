@@ -1,27 +1,28 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library
+ *  BirdsLikeWires Xiaomi Library v1.08 (12th October 2022)
  *	
  */
 
 
-@Field String libraryVersion = "v1.07 (12th October 2022)"
-
-
 library (
+
 	author: "Andrew Davison",
 	category: "zigbee",
 	description: "Library methods used by BirdsLikeWires Xiaomi drivers.",
 	documentationLink: "https://github.com/birdslikewires/hubitat",
 	name: "xiaomi",
 	namespace: "BirdsLikeWires"
+
 )
 
 
 void installed() {
+
 	// Runs after first installation.
 	logging("${device} : Installed", "info")
 	configure()
+
 }
 
 
@@ -137,7 +138,7 @@ void parse(String description) {
 	String versionCheck = "unknown"
 	versionCheck = "${getDeviceDataByName('driver')}"
 
-	if (versionCheck != driverVersion) {
+	if ("$versionCheck" != "$driverVersion") {
 
 		logging("${device} : Parse : Updating from $versionCheck to $driverVersion.", "info")
 		configure()
