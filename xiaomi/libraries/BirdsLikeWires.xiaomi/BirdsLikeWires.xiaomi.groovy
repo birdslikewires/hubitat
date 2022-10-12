@@ -229,7 +229,7 @@ void xiaomiDeviceStatus(Map map) {
 	// We may as well throw this out in the log for comedy value as it's rarely reported.
 	// Who knows. We may learn something.
 
-	//try {
+	try {
 
 		String temperatureValue = "undefined"
 
@@ -239,8 +239,12 @@ void xiaomiDeviceStatus(Map map) {
 		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
-		// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")			// No, don't do that. That would be silly.
 
-	//}
+	} catch (Exception e) {
+
+		return
+
+	}
 
 }
