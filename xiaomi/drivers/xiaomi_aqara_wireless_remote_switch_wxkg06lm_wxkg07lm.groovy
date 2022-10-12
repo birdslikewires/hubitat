@@ -5,14 +5,14 @@
  */
 
 
-@Field String driverVersion = "v1.10 (12th October 2022)"
+@Field String driverVersion = "v1.11 (12th October 2022)"
 
 
 #include BirdsLikeWires.library
 #include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
 @Field int checkEveryMinutes = 10
 
