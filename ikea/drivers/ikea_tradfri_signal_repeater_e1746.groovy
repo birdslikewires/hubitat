@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Tradfri Signal Repeater E1746 Driver v1.01 (6th January 2022)
+ *  IKEA Tradfri Signal Repeater E1746 Driver v1.02 (13th October 2022)
  *	
  */
 
@@ -190,6 +190,10 @@ void processMap(Map map) {
 			reportToDev(map)
 
 		}
+
+	} else if (map.clusterId == "0006") {
+
+		logging("${device} : Skipped : Match Descriptor Request", "debug")
 
 	} else if (map.clusterId == "8004") {
 		
