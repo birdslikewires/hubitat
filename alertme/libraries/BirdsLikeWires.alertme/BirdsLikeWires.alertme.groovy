@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.08 (23rd September 2022)
+ *  BirdsLikeWires AlertMe Library v1.09 (12th October 2022)
  *	
  */
 
@@ -9,19 +9,23 @@ import hubitat.zigbee.clusters.iaszone.ZoneStatus
 
 
 library (
+
 	author: "Andrew Davison",
 	category: "zigbee",
 	description: "Library methods used by BirdsLikeWires AlertMe drivers.",
 	documentationLink: "https://github.com/birdslikewires/hubitat",
 	name: "alertme",
 	namespace: "BirdsLikeWires"
+
 )
 
 
 void installed() {
+
 	// Runs after first installation.
 	logging("${device} : Installed", "info")
 	configure()
+
 }
 
 
@@ -49,6 +53,7 @@ void configure() {
 	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
 
 	// Set device specifics.
+	updateDataValue("driver", "$driverVersion")
 	configureSpecifics()
 
 	// Notify.
@@ -215,10 +220,20 @@ void parse(String description) {
 
 		} else {
 			
-			logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-			logging("${device} : Splurge! : ${description}", "warn")
+			logging("${device} : Parse : Failed to parse AlertMe cluster specification data. Please report these messages to the developer.", "error")
+			logging("${device} : Parse : ${description}", "error")
 
 		}
+
+	}
+
+	String versionCheck = "unknown"
+	versionCheck = "${getDeviceDataByName('driver')}"
+
+	if ("$versionCheck" != "$driverVersion") {
+
+		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
+		configure()
 
 	}
 
@@ -437,27 +452,6 @@ void alertmeDiscovery(Map map) {
 }
 
 
-void alertmeSkip(String clusterId) {
-
-	if ("$clusterId" == "8032") {
-
-		// These clusters are sometimes received when joining new devices to the mesh.
-		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
-		// We don't do anything with this, the mesh re-jigs itself and is a known thing with AlertMe devices.
-		logging("${device} : New join has triggered a routing table reshuffle.", "debug")
-
-	} else {
-
-		// These clusters are sometimes received from the SPG100 and I have no idea why.
-		//   8001 arrives with 12 bytes of data
-		//   8038 arrives with 27 bytes of data
-		logging("${device} : Skipping data received on clusterId ${clusterId}.", "debug")
-
-	}
-
-}
-
-
 void alertmeTamper(Map map) {
 
 	// 00F2 - Tamper Cluster
@@ -491,6 +485,27 @@ void alertmeTamper(Map map) {
 	} else {
 
 		reportToDev(map)
+
+	}
+
+}
+
+
+void alertmeSkip(String clusterId) {
+
+	if ("$clusterId" == "8032") {
+
+		// These clusters are sometimes received when joining new devices to the mesh.
+		//   8032 arrives with 80 bytes of data, probably routing and neighbour information.
+		// We don't do anything with this, the mesh re-jigs itself and is a known thing with AlertMe devices.
+		logging("${device} : New join has triggered a routing table reshuffle.", "debug")
+
+	} else {
+
+		// These clusters are sometimes received from the SPG100 and I have no idea why.
+		//   8001 arrives with 12 bytes of data
+		//   8038 arrives with 27 bytes of data
+		logging("${device} : Skipping data received on clusterId ${clusterId}.", "debug")
 
 	}
 

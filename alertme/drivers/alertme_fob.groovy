@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Fob Driver v1.28 (27th September 2022)
+ *  AlertMe Fob Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.29 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme

@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Button Driver v1.25 (27th September 2022)
+ *  AlertMe Button Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.26 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme

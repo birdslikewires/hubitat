@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Contact Sensor Driver v1.16 (27th September 2022)
+ *  AlertMe Contact Sensor Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.17 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme
@@ -68,7 +71,6 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	// Set device name.
 	device.name = "AlertMe Contact Sensor"
 
 }

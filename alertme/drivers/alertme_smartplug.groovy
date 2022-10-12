@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Smart Plug Driver v1.48 (27th September 2022)
+ *  AlertMe Smart Plug Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.49 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme
@@ -76,7 +79,6 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	// Set device name.
 	device.name = "AlertMe Smart Plug"
 
 	// Enable power control.

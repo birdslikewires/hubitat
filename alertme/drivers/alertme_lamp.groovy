@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Lamp Driver v1.24 (27th September 2022)
+ *  AlertMe Lamp Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.25 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme

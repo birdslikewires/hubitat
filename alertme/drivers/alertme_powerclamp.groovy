@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Power Clamp Driver v1.22 (27th September 2022)
+ *  AlertMe Power Clamp Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.23 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme
@@ -73,7 +76,6 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	// Set device name.
 	device.name = "AlertMe Power Clamp"
 
 	// Enable power control.

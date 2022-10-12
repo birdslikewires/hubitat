@@ -1,8 +1,11 @@
 /*
  * 
- *  AlertMe Pendant Driver v1.02 (27th September 2022)
+ *  AlertMe Pendant Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.03 (12th October 2022)"
 
 
 #include BirdsLikeWires.alertme
