@@ -1,20 +1,19 @@
 /*
  * 
- *  BirdsLikeWires Library
+ *  BirdsLikeWires Library v1.13 (12th October 2022)
  *	
  */
 
 
-@Field String libraryVersion = "v1.12 (12th October 2022)"
-
-
 library (
+
 	author: "Andrew Davison",
 	category: "zigbee",
 	description: "Library methods used by BirdsLikeWires drivers.",
 	documentationLink: "https://github.com/birdslikewires/hubitat",
 	name: "library",
 	namespace: "BirdsLikeWires"
+
 )
 
 
