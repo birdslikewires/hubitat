@@ -1,8 +1,11 @@
 /*
  * 
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver v1.09 (11th October 2022)
+ *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.10 (12th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -63,6 +66,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
+	updateDataValue("encoding", "Xiaomi")
 	device.name = "Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
 

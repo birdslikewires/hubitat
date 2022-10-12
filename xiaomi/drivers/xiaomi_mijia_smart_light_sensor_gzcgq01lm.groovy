@@ -1,16 +1,21 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver v1.11 (5th October 2022)
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver
  *	
  */
 
 
+@Field String driverVersion = "v1.12 (12th October 2022)"
+
+
 #include BirdsLikeWires.library
+#include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 60
-@Field int luxTolerance = 200
+@Field int checkEveryMinutes = 10
+@Field int luxTolerance = 100
 
 
 metadata {
@@ -25,7 +30,6 @@ metadata {
 		capability "Sensor"
 		capability "VoltageMeasurement"
 
-		attribute "batteryState", "string"
 		attribute "illuminanceDirection", "string"
 
 		if (debugMode) {
@@ -50,34 +54,20 @@ preferences {
 }
 
 
-def testCommand() {
+void testCommand() {
+
 	logging("${device} : Test Command", "info")
-}
-
-
-def installed() {
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-}
-
-
-def configure() {
-
-	// Tidy up.
-	unschedule()
-
-	state.clear()
-	state.presenceUpdated = 0
-	state.rawLux = 0
 	
-	sendEvent(name: "illuminance", value: 0, unit: "lux")
-	sendEvent(name: "presence", value: "present", isStateChange: false)
+}
 
-	// Set default preferences.
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
+
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.xiaomi
+
+	updateDataValue("encoding", "Zigbee")
 
 	// Configure device reporting.
+	// Honestly, I'd be amazed if the device is awake to accept these commands, but it doesn't hurt to ask.
 	int reportIntervalMinSeconds = 3
 	int reportIntervalMaxSeconds = reportIntervalMinutes * 60
 
@@ -91,152 +81,28 @@ def configure() {
     cmds += zigbee.configureReporting(0x0400, 0x0000, 0x21, reportIntervalMinSeconds, reportIntervalMaxSeconds, luxTolerance)
 	sendZigbeeCommands(cmds)
  
-	// Schedule presence checking.
- 	int randomSixty
-	int checkEveryMinutes = 10					
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
 	// Set device name.
 	device.name = "Xiaomi Mijia Smart Light Sensor GZCGQ01LM"
 
-	// Notify.
-	sendEvent(name: "configuration", value: "set", isStateChange: false)
-	logging("${device} : Configuration : Hub settings complete.", "info")
+	// Set device data.
 
-	updated()
-
-}
-
-
-void updated() {
-	// Runs when preferences are saved.
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
-
-}
-
-
-void parse(String description) {
-
-	// Primary parse routine.
-
-	updatePresence()
-
-	logging("${device} : parse() : $description", "trace")
-
-	Map descriptionMap = null
-	String parseType = "Zigbee"
-
-	if (description.indexOf('catchall:') >= 0 || description.indexOf('encoding: 10') >= 0 || description.indexOf('encoding: 20') >= 0 || description.indexOf('encoding: 21') >= 0) {
-
-		// Normal encoding should bear some resemblance to the Zigbee Cluster Library Specification
-		logging("${device} : Parse : Processing against Zigbee cluster specification.", "debug")
-		descriptionMap = zigbee.parseDescriptionAsMap(description)
-
-	} else {
-
-		// Anything else is likely specific to Xiaomi, so we'll just slice and dice the string we receive.
-		logging("${device} : Parse : Processing what we're assuming is Xiaomi structured data.", "debug")
-		descriptionMap = description.split(', ').collectEntries {
-			entry -> def pair = entry.split(': ')
-			[(pair.first()): pair.last()]
-		}
-		parseType = "Xiaomi"
-
-	}
-
-	if (descriptionMap) {
-
-		processMap(descriptionMap)
-
-	} else {
-		
-		logging("${device} : Parse : Failed to parse ${parseType} specification data. Please report these messages to the developer.", "warn")
-		logging("${device} : Parse Failed Here : ${description}", "warn")
-
-	}
+	// Set initial lux state.
+	state.rawLux = 0
 
 }
 
 
 void processMap(Map map) {
 
-	logging("${device} : processMap() : ${map}", "trace")
-
-	String receivedValue = map.value != null ? map.value : null
-
-	if (map.cluster == "0000") {
-
-		// processBasic(map)
-		reportToDev(map)
-
-	} else if (map.cluster == "0001") { 
+	if (map.cluster == "0001") { 
 
 		if (map.attrId == "0020") {
 			
-			// Report the battery voltage and calculated percentage.
-			def batteryVoltageHex = "undefined"
-			BigDecimal batteryVoltage = 0
-
-			batteryVoltageHex = map.value
-			logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
-
-			batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
-			logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
-
-			batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / 10
-
-			logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-			sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
-
-			BigDecimal batteryPercentage = 0
-			BigDecimal batteryVoltageScaleMin = 2.1
-			BigDecimal batteryVoltageScaleMax = 3.0
-
-			if (batteryVoltage >= batteryVoltageScaleMin) {
-
-				state.batteryOkay = true
-
-				batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
-				batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
-				batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
-
-				def batteryLogLevel = batteryPercentage > 20 ? "info" : "warn"
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", $batteryLogLevel)
-
-				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryState", value: "discharging")
-
-			} else {
-
-				// Very low voltages indicate an exhausted battery which requires replacement.
-
-				state.batteryOkay = false
-
-				batteryPercentage = 0
-
-				logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-				sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-				sendEvent(name: "batteryState", value: "exhausted")
-
-			}
+			xiaomiDeviceStatus(map)
 
 		} else {
 
-			reportToDev(map)
+			filterThis(map)
 
 		}
 
@@ -244,9 +110,9 @@ void processMap(Map map) {
 
 		// Illuminance data received.
 
-		if (receivedValue != null) {
+		if (map.value != null) {
 
-			Integer lux = Integer.parseInt(receivedValue,16)
+			Integer lux = Integer.parseInt(map.value,16)
 			Integer luxVariance = Math.abs(state.rawLux - lux)
 
 			if (state.rawLux == null || luxVariance > luxTolerance) {
@@ -276,10 +142,6 @@ void processMap(Map map) {
 
 		}
 
-	} else if (map.clusterId == "0001") {
-
-		processConfigurationResponse(map)
-
 	} else if (map.clusterId == "0003") {
 
 		if (map.command == "01") {
@@ -290,37 +152,13 @@ void processMap(Map map) {
 
 		} else {
 
-			reportToDev(map)
+			filterThis(map)
 
 		}
 
-	} else if (map.clusterId == "0006") {
-
-		logging("${device} : Skipped : Match Descriptor Request", "debug")
-
-	} else if (map.clusterId == "0013") {
-
-		logging("${device} : Skipped : Device Announce Broadcast", "debug")
-
-	} else if (map.clusterId == "0400") {
-
-		processConfigurationResponse(map)
-
-	} else if (map.clusterId == "8004") {
-		
-		processDescriptors(map)
-
-	} else if (map.clusterId == "8005") {
-
-		logging("${device} : Skipped : Active End Point Response", "debug")
-
-	} else if (map.clusterId == "8021") {
-
-		logging("${device} : Skipped : Bind Response", "debug")
-
 	} else {
 
-		reportToDev(map)
+		filterThis(map)
 
 	}
 

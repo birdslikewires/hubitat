@@ -1,15 +1,18 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver v1.08 (11th October 2022)
+ *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.09 (12th October 2022)"
 
 
 #include BirdsLikeWires.library
 #include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
-@Field boolean debugMode = false
+@Field boolean debugMode = true
 @Field int reportIntervalMinutes = 50
 @Field int checkEveryMinutes = 10
 
@@ -57,8 +60,12 @@ void testCommand() {
 
 
 void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.xiaomi
 
-	String deviceModel = getDeviceDataByName('model')
+	updateDataValue("encoding", "Xiaomi")
+
+	String deviceModel = ""
+	deviceModel = "${getDeviceDataByName('model')}"
 	deviceModel = (deviceModel.indexOf('lumi.remote.b186acn02') >= 0) ? "WXKG06LM" : "WXKG07LM"
 	device.name = "Xiaomi Aqara Wireless Remote Switch $deviceModel"
 
