@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.13 (12th October 2022)
+ *  BirdsLikeWires Library v1.14 (12th October 2022)
  *	
  */
 
@@ -532,6 +532,10 @@ void filterThis(Map map) {
 	} else if (map.clusterId == "8021") {
 
 		logging("${device} : Skipped : Bind Response", "debug")
+
+	} else if (map.cluster == null && map.clusterId == null) {
+
+		logging("${device} : Skipped : Empty Message", "debug")
 
 	} else {
 
