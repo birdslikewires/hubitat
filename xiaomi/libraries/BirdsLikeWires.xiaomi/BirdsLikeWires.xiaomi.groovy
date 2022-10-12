@@ -1,9 +1,11 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.06 (11th October 2022)
+ *  BirdsLikeWires Xiaomi Library
  *	
  */
 
+
+@Field String libraryVersion = "v1.07 (12th October 2022)"
 
 
 library (
@@ -38,6 +40,7 @@ void configure() {
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
 
 	// Set device specifics.
+	updateDataValue("driver", "$version")
 	configureSpecifics()
 
 	// Notify.
@@ -79,26 +82,34 @@ void parse(String description) {
 
 	updatePresence()
 
+	String encodingCheck = "unknown"
+	encodingCheck = "${getDeviceDataByName('encoding')}"
+
 	Map descriptionMap = null
-	String parseType = "Zigbee"
 
-	if (description.indexOf('catchall:') >= 0 || description.indexOf('encoding: 10') >= 0 || description.indexOf('encoding: 20') >= 0 || description.indexOf('encoding: 21') >= 0) {
+	if (encodingCheck == "Xiaomi") {
 
-		// Normal encoding should bear some resemblance to the Zigbee Cluster Library Specification
-		logging("${device} : Parse : Processing against Zigbee cluster specification.", "debug")
-		descriptionMap = zigbee.parseDescriptionAsMap(description)
-
-	} else {
-
-		// Anything else is specific to Xiaomi, so we'll just slice and dice the string we receive.
-		logging("${device} : Parse : Processing what we're assuming is Xiaomi structured data.", "debug")
+		// Most Xiaomi devices don't follow the spec, so we slice-and-dice the string we receive.
 		descriptionMap = description.split(', ').collectEntries {
 			entry -> def pair = entry.split(': ')
 			[(pair.first()): pair.last()]
 		}
-		parseType = "Xiaomi"
+
+	} else if (encodingCheck == "Zigbee") {
+
+		// These devices appear to follow the Zigbee Cluster Library Specification
+		descriptionMap = zigbee.parseDescriptionAsMap(description)
+
+	} else {
+
+		logging("${device} : Parse : Cannot parse message, encoding type is $encodingCheck.", "error")
+		logging("${device} : Parse : Attempting to configure device.", "info")
+		configure()
+		return
 
 	}
+
+	logging("${device} : Parse : Interpreting against $encodingCheck cluster specification.", "debug")
 
 	if (descriptionMap) {
 
@@ -109,22 +120,27 @@ void parse(String description) {
 			// Device Status Cluster
 			xiaomiDeviceStatus(descriptionMap)
 
-		} else if (descriptionMap.clusterId == "8004") {
-		
-			processDescriptors(descriptionMap)
-
 		} else {
 
 			// Hand back to the driver for processing.
-			// Only clusters with content unique to a device should be passed back.
 			processMap(descriptionMap)
 
 		}
 
 	} else {
 		
-		logging("${device} : Parse : Failed to parse ${parseType} specification data. Please report these messages to the developer.", "warn")
-		logging("${device} : Parse : Failed Here : ${description}", "warn")
+		logging("${device} : Parse : Failed to parse $encodingCheck cluster specification data. Please report these messages to the developer.", "error")
+		logging("${device} : Parse : ${description}", "error")
+
+	}
+
+	String versionCheck = "unknown"
+	versionCheck = "${getDeviceDataByName('driver')}"
+
+	if (versionCheck != version) {
+
+		logging("${device} : Parse : Updating from $versionCheck to $version.", "info")
+		configure()
 
 	}
 
@@ -133,11 +149,12 @@ void parse(String description) {
 
 void xiaomiDeviceStatus(Map map) {
 
-	// Device Status
-
 	int batteryDivisor = 1
 	String batteryVoltageHex = "undefined"
 	String modelCheck = "${getDeviceDataByName('model')}"
+	def dataSize = map.value.size()
+
+	logging("${device} : xiaomiDeviceStatus : Received $dataSize character message.", "info")
 
 	if (modelCheck == "lumi.sen_ill.mgl01") {
 		// The Mijia Smart Light Sensor neatly reports its battery hex values on attrId 0020 of cluster 0001.
@@ -148,14 +165,14 @@ void xiaomiDeviceStatus(Map map) {
 	} else {
 		// Everything else mushes it into the status data on attrId FF01 of cluster 0000.
 
-		if (map.value.size > 20) {
+		if (dataSize > 20) {
 
 			batteryVoltageHex = map.value[8..9] + map.value[6..7]
 			batteryDivisor = 1000
 
 		} else {
 
-			logging("${device} : xiaomiDeviceStatus : No device information in this report.", "debug")
+			logging("${device} : xiaomiDeviceStatus : No device information in this $dataSize character message.", "debug")
 			return
 
 		}
@@ -168,7 +185,7 @@ void xiaomiDeviceStatus(Map map) {
 	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
 
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
-	logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
+	logging("${device} : batteryVoltage raw value : ${batteryVoltage}", "debug")
 
 	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryDivisor
 
@@ -211,20 +228,18 @@ void xiaomiDeviceStatus(Map map) {
 	// We may as well throw this out in the log for comedy value as it's rarely reported.
 	// Who knows. We may learn something.
 
-	def temperatureValue = "undefined"
-	temperatureValue = deviceData[14..15]
-	logging("${device} : temperatureValue : ${temperatureValue}", "trace")
+	//try {
 
-	BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
-	logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-	logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
-	// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		String temperatureValue = "undefined"
 
-}
+		temperatureValue = map.value[14..15]
+		logging("${device} : temperatureValue : ${temperatureValue}", "trace")
 
+		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
+		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
+		logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
+		// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
 
-void xiaomiSkip(String clusterId) {
-
-	logging("${device} : Skipping data received on clusterId ${clusterId}.", "debug")
+	//}
 
 }

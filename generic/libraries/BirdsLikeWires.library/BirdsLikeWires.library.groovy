@@ -1,8 +1,11 @@
 /*
  * 
- *  BirdsLikeWires Library v1.11 (11th October 2022)
+ *  BirdsLikeWires Library
  *	
  */
+
+
+@Field String libraryVersion = "v1.12 (12th October 2022)"
 
 
 library (
@@ -129,27 +132,6 @@ void checkPresence() {
 		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
-
-	////
-	//// Not ready to go on this yet.
-	//// There's no way to apply a configuration upon driver change OR a driver update, which can leave devices with
-	//// incorrect settings and scheduled jobs which have become orphaned. This is my easy solution, just reapply the
-	//// configuration each day - but I need to be sure all my drivers are applying only a working config and not
-	//// resetting important device states. So here this stays for now.
-	////
-
-	// Reapply our configuration each day.
-	// if (state.configUpdated) {
-
-	// 	long millisElapsed = millisNow - state.configUpdated
-	// 	(millisElapsed > 86400000) ?: configure()
-
-	// } else {
-
-	// 	state.configUpdated = millisNow
-	// 	configure()
-
-	// }
 
 }
 
