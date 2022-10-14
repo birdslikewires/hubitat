@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.14 (12th October 2022)
+ *  BirdsLikeWires Library v1.15 (14th October 2022)
  *	
  */
 
@@ -238,6 +238,54 @@ void processDescriptors(Map map) {
 }
 
 
+void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecimal batteryVoltageScaleMin, BigDecimal batteryVoltageScaleMax) {
+
+	// Report the battery voltage and calculated percentage.
+	BigDecimal batteryVoltage = 0
+
+	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
+
+	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
+	logging("${device} : batteryVoltage raw value : ${batteryVoltage}", "debug")
+
+	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryVoltageDivisor
+
+	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
+	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
+
+	BigDecimal batteryPercentage = 0
+
+	if (batteryVoltage >= batteryVoltageScaleMin) {
+
+		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
+		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
+		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
+
+		if (batteryPercentage > 20) {
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
+		} else {
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+		}
+
+		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+		state.battery = "discharging"
+
+	} else {
+
+		// Very low voltages indicate an exhausted battery which requires replacement.
+
+		batteryPercentage = 0
+
+		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+		state.battery = "exhausted"
+
+	}
+
+}
+
+
 void reportToDev(map) {
 
 	def dataCount = ""
@@ -411,15 +459,6 @@ private String percentageToHex(Integer pc) {
 }
 
 
-private Integer hexToPercentage(String hex) {
-
-	String safeHex = hex.take(2)
-    Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
-	return pc / 2.55
-
-}
-
-
 private BigDecimal hexToBigDecimal(String hex) {
 
     int d = Integer.parseInt(hex, 16) << 21 >> 21
@@ -433,6 +472,28 @@ private String hexToBinary(String thisByte, Integer size = 8) {
 	String binaryValue = new BigInteger(thisByte, 16).toString(2);
 	return String.format("%${size}s", binaryValue).replace(' ', '0')
 	
+}
+
+
+private Integer hexToPercentage(String hex) {
+
+	String safeHex = hex.take(2)
+    Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
+	return pc / 2.55
+
+}
+
+
+private String hexToText(String hex) {
+
+	String text = ""
+	int pos = 0
+	while(pos < hex.length() - 1) {
+		text = text + (char)Integer.parseInt(hex.substring(pos, pos + 2), 16)
+		pos += 2
+	}
+	return text.trim()
+
 }
 
 

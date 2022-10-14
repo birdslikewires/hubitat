@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.10 (12th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.11 (14th October 2022)
  *	
  */
 
@@ -180,50 +180,7 @@ void xiaomiDeviceStatus(Map map) {
 
 	}
 	
-	// Report the battery voltage and calculated percentage.
-	BigDecimal batteryVoltage = 0
-
-	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
-
-	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
-	logging("${device} : batteryVoltage raw value : ${batteryVoltage}", "debug")
-
-	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryDivisor
-
-	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
-
-	BigDecimal batteryPercentage = 0
-	BigDecimal batteryVoltageScaleMin = 2.1
-	BigDecimal batteryVoltageScaleMax = 3.0
-
-	if (batteryVoltage >= batteryVoltageScaleMin) {
-
-		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
-		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
-		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
-
-		if (batteryPercentage > 20) {
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
-		} else {
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		}
-
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "discharging"
-
-	} else {
-
-		// Very low voltages indicate an exhausted battery which requires replacement.
-
-		batteryPercentage = 0
-
-		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
-		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "exhausted"
-
-	}
+	reportBattery(batteryVoltageHex, batteryDivisor, 2.1, 3.0)
 
 	// On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
 	// We may as well throw this out in the log for comedy value as it's rarely reported.
