@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (12th October 2022)"
+@Field String driverVersion = "v1.12 (17th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -60,7 +60,7 @@ preferences {
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-	
+
 }
 
 
@@ -95,14 +95,34 @@ void configureSpecifics() {
 		sendEvent(name: "acceleration", value: "inactive", isStateChange: false)
 
 	} else if ("$modelCheck" == "lumi.sensor_swit") {
-		// There's a weird truncation of the model string which only occurs with the '12LM. I think it's a firmware bug.
+		// There's a weird truncation of the model string which only occurs with the '12LM. It looks like a firmware bug.
 
 		updateDataValue("model", "lumi.sensor_switch.aq3")
 		configureSpecifics()
 
 	} else {
 
-		logging("${device} : configureSpecifics : Model type $modelCheck is not known.", "error")
+		logging("${device} : Model '$modelCheck' is not known.", "warn")
+
+		if (modelCheck.indexOf('FF42') >= 0) {
+			// We may have a raw hex message in here. Mine looked like this:
+			// 166C756D692E73656E736F725F7377697463682E61713201FF421A0121BD0B03281C0421A81305214C02062406000000000A2108C6
+
+			modelCheck = modelCheck.split('FF42')[0]
+			String extractedModel = hexToText("$modelCheck")
+
+			if (extractedModel.indexOf('lumi.sensor_switch') >= 0) {
+
+				updateDataValue("model", "$extractedModel")
+				logging("${device} : Found and updated model name to '$extractedModel'.", "info")
+
+			} else {
+
+				logging("${device} : Extracted '$extractedModel' but this is an unknown device to this driver. Please report to developer.", "warn")
+
+			}
+
+		}
 
 	}
 
