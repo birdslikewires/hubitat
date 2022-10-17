@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (12th October 2022)"
+@Field String driverVersion = "v1.12 (17th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -64,10 +64,78 @@ void configureSpecifics() {
 
 	updateDataValue("encoding", "Xiaomi")
 
-	String deviceModel = ""
-	deviceModel = "${getDeviceDataByName('model')}"
-	deviceModel = (deviceModel.indexOf('lumi.remote.b186acn02') >= 0) ? "WXKG06LM" : "WXKG07LM"
-	device.name = "Xiaomi Aqara Wireless Remote Switch $deviceModel"
+	String modelCheck = "${getDeviceDataByName('model')}"
+
+	if (modelCheck.indexOf('lumi.remote.b186acn02') >= 0) {
+		// This is the WXKG06LM single key device.
+
+		device.name = "Xiaomi Aqara Wireless Remote Switch WXKG06LM"
+		updateDataValue("name", "WXKG06LM")
+		sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
+
+	} else if (modelCheck.indexOf('lumi.remote.b286acn02') >= 0) {
+		// This is the WXKG07LM double key device.
+
+		device.name = "Xiaomi Aqara Wireless Remote Switch WXKG07LM"
+		updateDataValue("name", "WXKG07LM")
+		sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
+
+	} else {
+
+		logging("${device} : Model '$modelCheck' is not known.", "warn")
+
+	}
+
+}
+
+
+void deviceDetails(int buttonNumber) {
+
+	String deviceName = "${getDeviceDataByName('name')}"
+
+	if (deviceName == "null") {
+		// We know that device details are incomplete.
+
+		String modelCheck = "${getDeviceDataByName('model')}"
+
+		if (modelCheck == "null") {
+			// If both are null then configureSpecifics() will never fix this. Intervene!
+
+			if (buttonNumber > 1) {
+				// More than one button can only be an '07LM.
+
+				updateDataValue("manufacturer", "LUMI")
+				updateDataValue("model", "lumi.remote.b286acn02")
+				configureSpecifics()
+
+			} else {
+				// This could be either model. Until we know more we assume it's an '06LM.
+
+				updateDataValue("manufacturer", "LUMI")
+				updateDataValue("model", "lumi.remote.b186acn02")
+				configureSpecifics()
+
+			}
+
+		}
+
+	} else {
+		// We have a device name already.
+
+		if (deviceName.indexOf('WXKG06LM') >= 0) {
+			// But is it correct?
+
+			if (buttonNumber > 1) {
+				// Not if we're getting these messages from a single button device!
+
+				updateDataValue("model", "lumi.remote.b286acn02")
+				configureSpecifics()
+
+			}
+
+		}
+
+	}
 
 }
 
@@ -77,7 +145,10 @@ void processMap(Map map) {
 	if (map.cluster == "0012") {
 		// Handle the button presses with a debounce.
 
-		debouncePress(map)
+		int buttonNumber = debouncePress(map)
+
+		// Now work out if our details are correct.
+		deviceDetails(buttonNumber)
 
 	} else if (map.cluster == "0000") {
 
@@ -93,7 +164,9 @@ void processMap(Map map) {
 			// Answers on a postcard, please! ;)
 
 			// In the interim, we can use this as an "automated release" seeing as these devices don't support real "released" events.
-			// It's a little odd that you can therefore have a held button that's never released, but hey, this is a bonus feature. 
+			// It's a little odd that you can therefore have a held button that's never released, but hey, this is a bonus feature.
+
+			// Essentially, this gives us a press, a hold and then a "long hold" which we report as "released".
 
 			int heldButton = device.currentState("held").value.toInteger()
 			sendEvent(name: "released", value: heldButton, isStateChange: true)
@@ -116,7 +189,7 @@ void processMap(Map map) {
 
 
 @Field static Boolean isParsing = false
-void debouncePress(Map map) {
+int debouncePress(Map map) {
 
 	if (isParsing) return
 	isParsing = true
@@ -142,5 +215,7 @@ void debouncePress(Map map) {
 
 	pauseExecution 200
 	isParsing = false
+
+	return buttonNumber
 
 }

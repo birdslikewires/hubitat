@@ -107,6 +107,8 @@ void configureSpecifics() {
 		if (modelCheck.indexOf('FF42') >= 0) {
 			// We may have a raw hex message in here. Mine looked like this:
 			// 166C756D692E73656E736F725F7377697463682E61713201FF421A0121BD0B03281C0421A81305214C02062406000000000A2108C6
+			
+			// If this is a common thing we should move this to the Xiaomi library, but I've only ever seen it on these mini switches.
 
 			modelCheck = modelCheck.split('FF42')[0]
 			String extractedModel = hexToText("$modelCheck")
