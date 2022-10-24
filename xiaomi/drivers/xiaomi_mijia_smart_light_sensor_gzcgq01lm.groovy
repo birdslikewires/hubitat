@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.12 (12th October 2022)"
+@Field String driverVersion = "v1.13 (24th October 2022)"
 
 
 #include BirdsLikeWires.library
@@ -29,8 +29,6 @@ metadata {
 		capability "PushableButton"
 		capability "Sensor"
 		capability "VoltageMeasurement"
-
-		attribute "illuminanceDirection", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -64,6 +62,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
+	sendEvent(name: "illuminance", value: 0, unit: "lux", isStateChange: false)
 	updateDataValue("encoding", "Zigbee")
 
 	// Configure device reporting.
@@ -128,7 +127,7 @@ void processMap(Map map) {
 
 				logging("${device} : Lux : ${illuminanceDirectionLog} from ${lastLux} to ${lux} lux.", "debug")
 				sendEvent(name: "illuminance", value: lux, unit: "lux")
-				sendEvent(name: "illuminanceDirection", value: "${illuminanceDirection}")
+				state.illuminanceDirection = illuminanceDirection
 
 			} else {
 
