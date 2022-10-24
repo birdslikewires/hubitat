@@ -53,7 +53,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor_gzcgq01lm.groovy",
 			"required": false,
-			"version": "1.12"
+			"version": "1.13"
 		}
 	]
 }
