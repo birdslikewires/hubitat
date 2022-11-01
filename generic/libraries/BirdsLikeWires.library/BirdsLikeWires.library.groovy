@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.15 (14th October 2022)
+ *  BirdsLikeWires Library v1.16 (1st November 2022)
  *	
  */
 
@@ -330,7 +330,7 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 			logging("${device} : Creating child device $device.id-$endpoint", "debug")
 
-			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type} ${endpoint}", label: "${type} ${endpoint}", isComponent: false])
+			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${endpoint}", isComponent: false])
 
 			if (type.indexOf('Switch') >= 0) {
 
