@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.16 (1st November 2022)
+ *  BirdsLikeWires Library v1.17 (8th November 2022)
  *	
  */
 
@@ -260,6 +260,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
 		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
+		batteryPercentage = batteryPercentage < 0 ? 0 : batteryPercentage
 
 		if (batteryPercentage > 20) {
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")

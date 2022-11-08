@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.11 (14th October 2022)
+ *  BirdsLikeWires Xiaomi Library v1.12 (8th November 2022)
  *	
  */
 
@@ -180,7 +180,7 @@ void xiaomiDeviceStatus(Map map) {
 
 	}
 	
-	reportBattery(batteryVoltageHex, batteryDivisor, 2.1, 3.0)
+	reportBattery(batteryVoltageHex, batteryDivisor, 2.8, 3.0)
 
 	// On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
 	// We may as well throw this out in the log for comedy value as it's rarely reported.
