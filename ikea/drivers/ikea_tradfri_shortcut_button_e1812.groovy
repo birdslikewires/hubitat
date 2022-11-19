@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Tradfri Shortcut Button E1812 Driver v1.10 (7th February 2022)
+ *  IKEA Tradfri Shortcut Button E1812 Driver v1.11 (19th November 2022)
  *	
  */
 
@@ -34,8 +34,9 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "IKEA Tradfri Shortcut Button", application: "21"
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000,FC7C", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "IKEA Tradfri Shortcut Button", application: "21"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000,FC7C", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI open/close remote", deviceJoinName: "IKEA Tradfri Open/Close Remote"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000", outClusters: "0003,0004,0006,0008,0019,0102,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "IKEA Tradfri Shortcut Button"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,0020,1000,FC7C", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "TRADFRI SHORTCUT Button", deviceJoinName: "IKEA Tradfri Shortcut Button"
 
 	}
 
@@ -271,6 +272,7 @@ void processMap(Map map) {
 		logging("${device} : Skipped : Power Cluster with no data.", "debug")
 
 	} else if (map.clusterId == "0006") { 
+		// Tap and double-tap from the E1812
 
 		if (receivedData.length == 0) {
 
@@ -283,8 +285,23 @@ void processMap(Map map) {
 		}
 
 	} else if (map.clusterId == "0008") {
+		// Hold and release from the E1812
 
 		if (map.command == "05" || map.command == "07") {
+
+			parsePress(map)
+
+		} else {
+
+			reportToDev(map)
+
+		}
+
+	} else if (map.clusterId == "0102") {
+		// Taps and releases from the E1766 (maybe others).
+		// I don't have one, so I can't test in person.
+
+		if (map.command == "00" || map.command == "01" || map.command == "02") {
 
 			parsePress(map)
 
@@ -358,6 +375,30 @@ def parsePress(Map map) {
 
 			logging("${device} : Trigger : Button Released", "info")
 			sendEvent(name: "released", value: 1, isStateChange: true)
+
+		} else {
+
+			reportToDev(map)
+
+		}
+
+	} else if (map.clusterId == "0102") {
+
+		if (map.command == "00") {
+
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			logging("${device} : Trigger : Button 1 (Top) Pressed", "info")
+
+		} else if (map.command == "01") {
+
+			sendEvent(name: "pushed", value: 2, isStateChange: true)
+			logging("${device} : Trigger : Button 2 (Bottom) Pressed", "info")
+
+		} else if (map.command == "02") {
+
+			int whichButton = device.currentState("pushed").value
+			sendEvent(name: "released", value: whichButton, isStateChange: true)
+			logging("${device} : Trigger : Button $whichButton Released", "info")
 
 		} else {
 
