@@ -13,7 +13,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Tradfri Shortcut Button E1812", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy") {
+	definition (name: "IKEA Tradfri Buttons E1766 / E1812", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
