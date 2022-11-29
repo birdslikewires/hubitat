@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Tradfri Shortcut Button E1812 Driver v1.11 (19th November 2022)
+ *  IKEA Tradfri Buttons E1766 / E1812 Driver v1.11 (29th November 2022)
  *	
  */
 
@@ -387,16 +387,16 @@ def parsePress(Map map) {
 		if (map.command == "00") {
 
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			logging("${device} : Trigger : Button 1 (Top) Pressed", "info")
+			logging("${device} : Trigger : Button 1 Pressed", "info")
 
 		} else if (map.command == "01") {
 
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Trigger : Button 2 (Bottom) Pressed", "info")
+			logging("${device} : Trigger : Button 2 Pressed", "info")
 
 		} else if (map.command == "02") {
 
-			int whichButton = device.currentState("pushed").value
+			int whichButton = device.currentState("pushed").value.toInteger()
 			sendEvent(name: "released", value: whichButton, isStateChange: true)
 			logging("${device} : Trigger : Button $whichButton Released", "info")
 
