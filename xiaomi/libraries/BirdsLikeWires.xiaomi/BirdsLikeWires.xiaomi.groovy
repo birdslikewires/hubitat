@@ -61,8 +61,8 @@ void updated() {
 	unschedule(traceLogOff)
 
 	if (!debugMode) {
-//		runIn(2400,debugLogOff)
-//		runIn(1200,traceLogOff)
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
 	}
 
 	logging("${device} : Preferences Updated", "info")
