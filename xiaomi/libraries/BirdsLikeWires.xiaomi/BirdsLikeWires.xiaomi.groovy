@@ -61,8 +61,8 @@ void updated() {
 	unschedule(traceLogOff)
 
 	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
+//		runIn(2400,debugLogOff)
+//		runIn(1200,traceLogOff)
 	}
 
 	logging("${device} : Preferences Updated", "info")
@@ -182,26 +182,29 @@ void xiaomiDeviceStatus(Map map) {
 	
 	reportBattery(batteryVoltageHex, batteryDivisor, 2.8, 3.0)
 
-	// On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
-	// We may as well throw this out in the log for comedy value as it's rarely reported.
-	// Who knows. We may learn something.
+    try {
 
-	try {
+        if (modelCheck == "lumi.weather") {
+            // decode sensor values, which are part of the checkin message
+            parseCheckinMessageSpecifics(map.value)
+        } else {
+            // On some devices (buttons for one) there's a wildly inaccurate temperature sensor.
+            // We may as well throw this out in the log for comedy value as it's rarely reported.
+            // Who knows. We may learn something.
 
-		String temperatureValue = "undefined"
+            String temperatureValue = "undefined"
+            temperatureValue = map.value[14..15]
+            BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
+            
+            logging("${device} : temperatureValue : ${temperatureValue}", "trace")
+            logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 
-		temperatureValue = map.value[14..15]
-		logging("${device} : temperatureValue : ${temperatureValue}", "trace")
+            logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
+            // sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")			// No, don't do that. That would be silly.
+        }
+    } catch (Exception e) {
 
-		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue)
-		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-		logging("${device} : Inaccurate Temperature : $temperatureCelsius °C", "info")
-		// sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")			// No, don't do that. That would be silly.
+        return
 
-	} catch (Exception e) {
-
-		return
-
-	}
-
+    }
 }
