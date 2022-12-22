@@ -252,37 +252,37 @@ def parseCheckinMessageSpecifics(hexString) {
 			def dataDebug2 = "dataType 0x${Integer.toHexString(dataType)}, dataLength $dataLength, dataPayload $dataPayload"
 			switch (dataTag) {
 				case 0x01:  // Battery voltage
-					logging("$dataDebug1 (battery), $dataDebug2","debug")
+					logging("$dataDebug1 (battery), $dataDebug2","trace")
                                         //reportBattery(dataPayload, 1000, 2.8, 3.0) // already done in parent call xiaomiDeviceStatus()
 					break
 				case 0x05:  // RSSI dB
 					def convertedPayload = Integer.parseInt(dataPayload,16)
-					logging("$dataDebug1 (RSSI dB), $dataDebug2 ($convertedPayload)","debug")
+					logging("$dataDebug1 (RSSI dB), $dataDebug2 ($convertedPayload)","trace")
 					state.RSSI = convertedPayload
 					break
 				case 0x06:  // LQI
 					def convertedPayload = Integer.parseInt(dataPayload,16)
-					logging("$dataDebug1 (LQI), $dataDebug2 ($convertedPayload)","debug")
+					logging("$dataDebug1 (LQI), $dataDebug2 ($convertedPayload)","trace")
 					state.LQI = convertedPayload
 					break
 				case 0x64:  // Temperature in Celcius
-					logging("$dataDebug1 (temperature), $dataDebug2","debug")
+					logging("$dataDebug1 (temperature), $dataDebug2","trace")
 					processTemperature(dataPayload)
 					break
 				case 0x65:  // Relative humidity
-					logging("$dataDebug1 (humidity), $dataDebug2","debug")
+					logging("$dataDebug1 (humidity), $dataDebug2","trace")
 					processHumidity(dataPayload)
 					break
 				case 0x66:  // Atmospheric pressure
-					logging("$dataDebug1 (pressure), $dataDebug2","debug")
+					logging("$dataDebug1 (pressure), $dataDebug2","trace")
 					processPressure(dataPayload)
 					break
 				case 0x0A:  // ZigBee parent DNI (device network identifier)
-					logging("$dataDebug1 (ZigBee parent DNI), $dataDebug2","debug")
+					logging("$dataDebug1 (ZigBee parent DNI), $dataDebug2","trace")
 					state.zigbeeParentDNI = dataPayload
 					break
 				default:
-					logging("$dataDebug1 (unknown), $dataDebug2","debug")
+					logging("$dataDebug1 (unknown), $dataDebug2","trace")
 			}
 		}
 	}
