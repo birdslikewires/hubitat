@@ -211,7 +211,8 @@ void processMap(Map map) {
 }
 
 
-// TODO attribution to veeceeoh's driver + github ref
+// Adapted from WSDCGQ11LM driver from veeceeoh (https://raw.githubusercontent.com/veeceeoh/xiaomi-hubitat/master/devicedrivers/xiaomi-temperature-humidity-sensor-hubitat.src/xiaomi-temperature-humidity-sensor-hubitat.groovy)
+//
 // Reverses order of bytes in hex string
 def reverseHexString(hexString) {
 	def reversed = ""
@@ -222,7 +223,8 @@ def reverseHexString(hexString) {
 }
 
 
-// TODO attribution to veeceeoh's driver + github ref
+// Adapted from WSDCGQ11LM driver from veeceeoh (https://raw.githubusercontent.com/veeceeoh/xiaomi-hubitat/master/devicedrivers/xiaomi-temperature-humidity-sensor-hubitat.src/xiaomi-temperature-humidity-sensor-hubitat.groovy)
+//
 // Parse checkin message from lumi.weather device (WSDCGQ11LM) which contains
 // a full set of sensor readings.
 def parseCheckinMessageSpecifics(hexString) {
@@ -251,7 +253,7 @@ def parseCheckinMessageSpecifics(hexString) {
 			switch (dataTag) {
 				case 0x01:  // Battery voltage
 					logging("$dataDebug1 (battery), $dataDebug2","debug")
-                	//reportBattery(dataPayload, 1000, 2.8, 3.0) // already done in parent call xiaomiDeviceStatus()
+                                        //reportBattery(dataPayload, 1000, 2.8, 3.0) // already done in parent call xiaomiDeviceStatus()
 					break
 				case 0x05:  // RSSI dB
 					def convertedPayload = Integer.parseInt(dataPayload,16)
