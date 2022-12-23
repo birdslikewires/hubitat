@@ -98,11 +98,13 @@ void processTemperature(temperatureFlippedHex) {
 }
 
 
-void processPressure(pressureFlippedHex) {
+void processPressure(pressureFlippedHex,checkin=false) {
 
     BigDecimal pressure = hexStrToSignedInt(pressureFlippedHex)
+    if (checkin) {
+        pressure = pressure / 100
+    }
     pressure = pressure.setScale(1, BigDecimal.ROUND_HALF_UP) / 10
-
     BigDecimal lastPressure = device.currentState("pressure") ? device.currentState("pressure").value.toBigDecimal() : 0
 
     ////////// WORK TO DO - RECORD PREVIOUS PRESSURE AS LASTPRESSURE IF PRESSURE HAS CHANGED OR SOMETHING - TOO TIRED!
@@ -253,7 +255,7 @@ def parseCheckinMessageSpecifics(hexString) {
 			switch (dataTag) {
 				case 0x01:  // Battery voltage
 					logging("$dataDebug1 (battery), $dataDebug2","trace")
-                                        //reportBattery(dataPayload, 1000, 2.8, 3.0) // already done in parent call xiaomiDeviceStatus()
+                    //reportBattery(dataPayload, 1000, 2.8, 3.0) // already done in parent call xiaomiDeviceStatus()
 					break
 				case 0x05:  // RSSI dB
 					def convertedPayload = Integer.parseInt(dataPayload,16)
@@ -275,7 +277,7 @@ def parseCheckinMessageSpecifics(hexString) {
 					break
 				case 0x66:  // Atmospheric pressure
 					logging("$dataDebug1 (pressure), $dataDebug2","trace")
-					processPressure(dataPayload)
+					processPressure(dataPayload,true)
 					break
 				case 0x0A:  // ZigBee parent DNI (device network identifier)
 					logging("$dataDebug1 (ZigBee parent DNI), $dataDebug2","trace")
@@ -287,4 +289,3 @@ def parseCheckinMessageSpecifics(hexString) {
 		}
 	}
 }
-
