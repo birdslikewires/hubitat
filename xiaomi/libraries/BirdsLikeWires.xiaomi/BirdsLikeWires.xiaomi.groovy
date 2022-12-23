@@ -155,6 +155,7 @@ void xiaomiDeviceStatus(Map map) {
 	String modelCheck = "${getDeviceDataByName('model')}"
 	def dataSize = map.value.size()
 
+        logging("${device} check-in message.", "info")
 	logging("${device} : xiaomiDeviceStatus : Received $dataSize character message.", "debug")
 
 	if (modelCheck == "lumi.sen_ill.mgl01") {
