@@ -170,6 +170,7 @@ void processMap(Map map) {
 				state.mismatch = false
 				state.supplyPresent = true
 				enablePowerControl()
+				runIn(30,enablePowerControl)
 
 			}
 
