@@ -169,8 +169,7 @@ void processMap(Map map) {
 				state.battery = "charging"
 				state.mismatch = false
 				state.supplyPresent = true
-				enablePowerControl()
-				runIn(30,enablePowerControl)
+				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 
 			}
 
