@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.50 (13th October 2022)"
+@Field String driverVersion = "v1.51 (21st February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -75,9 +75,7 @@ void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
 	device.name = "AlertMe Smart Plug"
-
-	// Enable power control.
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])
+	enablePowerControl()
 
 }
 
@@ -150,7 +148,7 @@ void processMap(Map map) {
 
 				if (state.supplyPresent) {
 
-					logging("${device} : Supply : Incoming supply has returned.", "info")
+					logging("${device} : Supply : incoming mains supply : present", "debug")
 					state.battery = "charging"
 					
 				}
@@ -167,10 +165,11 @@ void processMap(Map map) {
 				logging("${device} : Supply : Device returning from shutdown, please check batteries!", "warn")
 
 				sendEvent(name: "powerSource", value: "mains")
-				sendEvent(name: "tamper", value: "clear")
+				sendEvent(name: "tamper", value: "clear", isStateChange: true)
 				state.battery = "charging"
 				state.mismatch = false
 				state.supplyPresent = true
+				enablePowerControl()
 
 			}
 

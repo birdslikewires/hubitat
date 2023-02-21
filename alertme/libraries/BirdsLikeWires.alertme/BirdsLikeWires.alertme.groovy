@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.10 (13th October 2022)
+ *  BirdsLikeWires AlertMe Library v1.11 (21st February 2022)
  *	
  */
 
@@ -142,21 +142,28 @@ void quietMode() {
 }
 
 
+void enablePowerControl() {
+
+	logging("${device} : enabling power control", "debug")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])
+
+}
+
+
 void refresh() {
 
 	logging("${device} : Refreshing", "info")
 
 	String modelCheck = "${getDeviceDataByName('model')}"
 
-	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
-
 	if ("${modelCheck}" == "SmartPlug") {
 
-		cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")    // power control operating mode nudge
-
+		enablePowerControl()
+		
 	}
 
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
 	sendZigbeeCommands(cmds)
 
 }
