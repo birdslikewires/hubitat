@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.11 (21st February 2022)
+ *  BirdsLikeWires AlertMe Library v1.12 (21st February 2022)
  *	
  */
 
@@ -408,9 +408,9 @@ void alertmeDiscovery(Map map) {
 		} else if (map.data[1] == "00") {
 
 			// This is the ranging report received when the smart plug reboots.
-			// After rebooting a refresh is required to bring back remote control.
+			// After rebooting power control must be re-enabled.
 			logging("${device} : reboot ranging report received", "debug")
-			refresh()
+			enablePowerControl()
 
 		} else {
 
