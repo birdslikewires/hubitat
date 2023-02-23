@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.12 (21st February 2022)
+ *  BirdsLikeWires AlertMe Library v1.13 (22nd February 2023)
  *	
  */
 
@@ -63,25 +63,6 @@ void configure() {
 	updated()
 	rangingMode()
 	
-}
-
-
-void updated() {
-	// Runs when preferences are saved.
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
-
 }
 
 
