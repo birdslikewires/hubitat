@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.29 (12th October 2022)"
+@Field String driverVersion = "v1.30 (27th February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -87,6 +87,14 @@ void configureSpecifics() {
 		state.lastHomeRelease = 0
 
 	}
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

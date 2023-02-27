@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.51 (21st February 2023)"
+@Field String driverVersion = "v1.52 (27th February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -76,6 +76,14 @@ void configureSpecifics() {
 
 	device.name = "AlertMe Smart Plug"
 	enablePowerControl()
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

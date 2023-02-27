@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (12th October 2022)"
+@Field String driverVersion = "v1.18 (27th February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -72,6 +72,14 @@ void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
 	device.name = "AlertMe Contact Sensor"
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

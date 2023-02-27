@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.23 (12th October 2022)"
+@Field String driverVersion = "v1.24 (27th February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -80,6 +80,14 @@ void configureSpecifics() {
 
 	// Enable power control.
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

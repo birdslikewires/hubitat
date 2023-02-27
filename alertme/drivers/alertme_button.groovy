@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.26 (12th October 2022)"
+@Field String driverVersion = "v1.27 (27th February 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -70,6 +70,14 @@ void configureSpecifics() {
 
 	device.name = "AlertMe Button"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	return
 
 }
 
