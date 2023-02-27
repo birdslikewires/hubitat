@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.04 (15th July 2022)
+ *  Hildebrand Glow MQTT Driver v1.05 (27th February 2023)
  *	
  */
 
@@ -116,19 +116,10 @@ void configure() {
 }
 
 
-void updated() {
-	// Runs when preferences are saved.
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
 
 	disconnect()
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
 
 	// In case cloud support is added, which I am presently too tired to be thinking about.
 	if (settings?.cloudActive) {
@@ -145,9 +136,6 @@ void updated() {
 
 	schedule("0/10 * * * * ? *", mqttConnect)
 
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
 	configure()
 
 }

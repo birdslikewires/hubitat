@@ -1,11 +1,11 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM Driver
+ *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM / GZCGQ11LM Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.13 (24th October 2022)"
+@Field String driverVersion = "v1.14 (27th February 2023)"
 
 
 #include BirdsLikeWires.library
@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Mijia Smart Light Sensor GZCGQ01LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor_gzcgq01lm.groovy") {
+	definition (name: "Xiaomi Mijia Smart Light Sensor GZCGQ01LM / GZCGQ11LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor_gzcgq01lm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -37,6 +37,7 @@ metadata {
 
 		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM"
 		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "XIAOMI", model: "lumi.sen_ill.mgl01", deviceJoinName: "GZCGQ01LM"
+		fingerprint profileId: "0104", inClusters: "0000,0400,0003,0001", outClusters: "0003", manufacturer: "LUMI", model: "lumi.sen_ill.agl01", deviceJoinName: "GZCGQ11LM"
 
 	}
 
@@ -87,6 +88,14 @@ void configureSpecifics() {
 
 	// Set initial lux state.
 	state.rawLux = 0
+
+}
+
+
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

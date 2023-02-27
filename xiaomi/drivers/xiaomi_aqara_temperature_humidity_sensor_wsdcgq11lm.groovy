@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (12th October 2022)"
+@Field String driverVersion = "v1.12 (27th February 2023)"
 
 
 #include BirdsLikeWires.library
@@ -69,6 +69,14 @@ void configureSpecifics() {
 	updateDataValue("encoding", "Xiaomi")
 	device.name = "Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
+
+}
+
+
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
+
+	return
 
 }
 

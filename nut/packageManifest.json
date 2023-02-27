@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.01"
 		},
 		{
 			"id": "8e03b3c8-85a3-44d6-b0e7-11a6e6a4335d",

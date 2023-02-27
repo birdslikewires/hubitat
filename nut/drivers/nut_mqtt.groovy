@@ -1,6 +1,6 @@
 /*
  * 
- *  Network UPS Tools MQTT Driver v1.00 (1st November 2022)
+ *  Network UPS Tools MQTT Driver v1.01 (27th February 2023)
  *	
  */
 
@@ -103,28 +103,16 @@ void configure() {
 }
 
 
-void updated() {
-	// Runs when preferences are saved.
+void updateSpecifics() {
+	// Called by library updated() method.
 
 	disconnect()
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
 
 	state.mqttBroker = settings?.mqttBroker
 	state.mqttTopic = "ups/#"
 
 	schedule("0/10 * * * * ? *", mqttConnect)
 
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
 	configure()
 
 }
