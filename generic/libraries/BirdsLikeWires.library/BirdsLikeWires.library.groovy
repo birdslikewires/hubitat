@@ -26,6 +26,33 @@ void sendZigbeeCommands(List<String> cmds) {
 }
 
 
+void configure() {
+
+	int randomSixty
+
+	// Tidy up.
+	unschedule()
+	state.clear()
+	state.presenceUpdated = 0
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	// Schedule presence checking.
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+
+	// Set device specifics.
+	updateDataValue("driver", "$driverVersion")
+	configureSpecifics()
+
+	// Notify.
+	sendEvent(name: "configuration", value: "complete", isStateChange: false)
+	logging("${device} : Configuration complete.", "info")
+
+	updated()
+	
+}
+
+
 void updated() {
 	// Runs when preferences are saved.
 

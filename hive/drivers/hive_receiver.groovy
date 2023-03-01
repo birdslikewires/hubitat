@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (25th February 2023)"
+@Field String driverVersion = "v1.00 (28th February 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -65,12 +65,11 @@ def testCommand() {
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
 	//sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
+	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029))	// ThermostatRunningState
 
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029))	
+	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, 29))
 
 	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x001C, [destEndpoint:0x06]))	
-
-
 	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
 
 }
@@ -85,33 +84,6 @@ void installed() {
 }
 
 
-void configure() {
-
-	int randomSixty
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Schedule presence checking.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Set device specifics.
-	updateDataValue("driver", "$driverVersion")
-	configureSpecifics()
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-
-	updated()
-	
-}
-
-
 void configureSpecifics() {
 	// Called by general configure() method
 
@@ -122,7 +94,7 @@ void configureSpecifics() {
 	// Reporting
 	//  These had to be constructed manually as configureReporting seemed to ignore the [destEndpoint:0x06] additional parameter.
 	//  NOTE! Though the water (endpoint 0x06) configuration is reported as successful, the behaviour doesn't match heating (endpoint 0x05).
-	//        On early firmware some values were reported correctly, but on the latest firmware
+	//        On early firmware some values were reported correctly, but on the latest firmware this doesn't appear to be the case.
 	sendZigbeeCommands([
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 8000",				// OccupiedHeatingSetpoint
@@ -207,16 +179,53 @@ void emergencyHeat() {
 
 
 void heat() {
+
+	setHeatingSetpoint("19.0")
+
+}
+
+
+void heat(String temperature) {
 	// Manual mode.
 
+	temperature = temperature.replace(".","")
+
+	int temperatureInt = temperature.toInteger()
+
+	logging("${device} : Heating Setpoint : Setting ${temperature}degC", "info")
+
 	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)	// TemperatureSetpointHoldDuration
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x076C) // OccupiedHeatingSetpoint (19degC)
+	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)				// SystemMode
+	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)				// TemperatureSetpointHold
+	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)				// TemperatureSetpointHoldDuration
+	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt) 	// OccupiedHeatingSetpoint
 	sendZigbeeCommands(cmds)
 
 	runIn(3,getThermostatMode)
+
+}
+
+
+void setHeatingSetpoint(BigDecimal temperature) {
+
+	// Convert from degF.
+	String temperatureScale = location.temperatureScale
+	if (temperatureScale == "F") {
+		temperature = (temperature / 1.8) - 32
+	}
+	
+	(temperature < 5) ? temperature = 1 : temperature		// Anything lower than 5degC is frost protect mode.
+	(temperature > 32) ? temperature = 32 : temperature		// Anything higher than 32degC is not supported.
+
+	// System works in 0.5degC steps.
+	temperature = temperature * 2
+	temperature = temperature.setScale(0, BigDecimal.ROUND_HALF_UP)
+	temperature = temperature / 2
+	temperature = temperature.setScale(2, BigDecimal.ROUND_UP)
+
+	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperature}", "debug")
+
+	heat(temperature.toString())
 
 }
 
@@ -241,7 +250,6 @@ void getHoldState() {
 	sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0023))
 
 }
-
 
 
 void getThermostatMode() {
@@ -278,42 +286,45 @@ void setThermostatMode(thermostatmode) {
 
 }
 
-def waterScheduleResume() {
+//// Dual channel receiver is a work in progress as despite being IDENTICAL in operation to heat mode, just without the temperature setting,
+//// water mode does not appear to properly respond to bind and reporting requests. The receiver replies with success, just doesn't do it.
 
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
+// def waterScheduleResume() {
 
-}
+// 	ArrayList<String> cmds = []
+// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
+// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
+// 	sendZigbeeCommands( cmds )  
 
-def waterOn() {
+// }
 
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
+// def waterOn() {
 
-}
+// 	ArrayList<String> cmds = []
+// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
+// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
+// 	sendZigbeeCommands( cmds )  
 
-def waterOff() {
+// }
 
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x00, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
+// def waterOff() {
 
-}
+// 	ArrayList<String> cmds = []
+// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x00, [destEndpoint: 0x06])	// SystemMode
+// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
+// 	sendZigbeeCommands( cmds )  
 
-def waterBoost() {
+// }
 
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x001E)	// TemperatureSetpointHoldDuration (30 mins)
-	sendZigbeeCommands( cmds )  
+// def waterBoost() {
 
-}
+// 	ArrayList<String> cmds = []
+// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x06])	// SystemMode
+// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
+// 	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x001E)	// TemperatureSetpointHoldDuration (30 mins)
+// 	sendZigbeeCommands( cmds )  
+
+// }
 
 
 def setThermostatDateAndTime() {
@@ -392,7 +403,7 @@ void processMap(Map map) {
 
 			BigDecimal temperature = hexStrToSignedInt(map.value)
 			temperature = temperature / 100
-			temperature = temperature.setScale(1, BigDecimal.ROUND_HALF_UP)
+			temperature = temperature.setScale(1, BigDecimal.ROUND_DOWN)  // They seem to round down for the stat display.
 
 			logging("${device} : ${temperatureType} : ${temperature} from hex value ${map.value} ", "debug")
 
@@ -507,7 +518,6 @@ void processMap(Map map) {
 
 		} else {
 
-			logging("${device} : Don't know this one.", "debug")
 			filterThis(map)
 
 		}
@@ -519,4 +529,3 @@ void processMap(Map map) {
 	}
 	
 }
-

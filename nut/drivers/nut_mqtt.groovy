@@ -1,6 +1,6 @@
 /*
  * 
- *  Network UPS Tools MQTT Driver v1.01 (27th February 2023)
+ *  Network UPS Tools MQTT Driver v1.02 (1st March 2023)
  *	
  */
 
@@ -10,6 +10,7 @@ import groovy.transform.Field
 
 @Field boolean debugMode = true
 @Field int reportIntervalMinutes = 1
+@Field int checkEveryMinutes = 1
 
 
 metadata {
@@ -21,8 +22,6 @@ metadata {
 		command "disconnect"
 
 		if (debugMode) {
-
-			capability "Initialize"
 
 			command "checkPresence"
 			command "testCommand"
@@ -55,51 +54,19 @@ void testCommand() {
 
 
 void installed() {
+
 	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
 
-	// Set default preferences.
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+}
 
-	// Set device name.
+
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.library
+
 	device.name = "Network UPS Tools MQTT"
 
-	logging("${device} : Installed", "info")
-
-	initialize()
-
-}
-
-
-void initialize() {
-
-	int randomSixty
-	String modelCheck = "${getDeviceDataByName('model')}"
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.presenceUpdated = 0	
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Schedule presence checking.
-	int checkEveryMinutes = 1
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	sendEvent(name: "initialisation", value: "complete", isStateChange: false)
-	logging("${device} : Initialised", "info")
-
-}
-
-
-void configure() {
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-	
 }
 
 

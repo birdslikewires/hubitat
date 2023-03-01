@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.13 (22nd February 2023)
+ *  BirdsLikeWires AlertMe Library v1.14 (1st March 2023)
  *	
  */
 
@@ -26,43 +26,6 @@ void installed() {
 	logging("${device} : Installed", "info")
 	configure()
 
-}
-
-
-void configure() {
-
-	int randomSixty
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.operatingMode = "normal"
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Remove empty device details.
-	removeDataValue("application")
-
-	// Schedule presence checking.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Schedule ranging report.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
-
-	// Set device specifics.
-	updateDataValue("driver", "$driverVersion")
-	configureSpecifics()
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-
-	updated()
-	rangingMode()
-	
 }
 
 
