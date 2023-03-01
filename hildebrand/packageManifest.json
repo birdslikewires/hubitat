@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_mqtt.groovy",
 			"required": true,
-			"version": "1.05"
+			"version": "1.06"
 		},
 		{
 			"id": "9290d4d8-6217-42fa-855b-fb39be0a491f",
