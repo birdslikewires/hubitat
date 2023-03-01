@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (28th February 2023)"
+@Field String driverVersion = "v1.00 (1st March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -39,8 +39,6 @@ metadata {
 			command "testCommand"
 		}
 
-		command "getHoldState"
-
 		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2", application: "87"
 
 	}
@@ -67,7 +65,7 @@ def testCommand() {
 	//sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
 	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029))	// ThermostatRunningState
 
-	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, 29))
+	//sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, 29))
 
 	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x001C, [destEndpoint:0x06]))	
 	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
@@ -136,6 +134,7 @@ void updateSpecifics() {
 
 void refresh() {
 
+	getThermostatMode()
 	logging("${device} : Refreshed", "info")
 
 }
@@ -166,11 +165,17 @@ void cool() {
 void emergencyHeat() {
 	// Boost mode. For now we just crank it up to 32degC for 30 minutes, but this could be configurable.
 
+	logging("${device} : Heating Boost : This feature has not been implemented yet. Please boost from the thermostat.", "warn")
+
+	return
+
+	int boostTime = 30
+
 	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05)	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 30)	// TemperatureSetpointHoldDuration (30 mins)
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0C80) // OccupiedHeatingSetpoint (32degC)
+	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05)		// SystemMode
+	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)		// TemperatureSetpointHold
+	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0C80) 	// OccupiedHeatingSetpoint (32degC)
+	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, boostTime)	// TemperatureSetpointHoldDuration (30 mins)
 	sendZigbeeCommands(cmds)
 
 	runIn(3,getThermostatMode)
@@ -179,8 +184,11 @@ void emergencyHeat() {
 
 
 void heat() {
+	// Manual mode.
 
-	setHeatingSetpoint("19.0")
+	// With no setpoint specified we have to assume the user wants the current temperature to continue indefinitely.
+	String currentSetpoint = device.currentState("heatingSetpoint") ? device.currentState("heatingSetpoint").value : "19.0"
+	heat("$currentSetpoint")
 
 }
 
@@ -424,7 +432,6 @@ void processMap(Map map) {
 				sendZigbeeCommands(cmds)
 
 			}
-
 
 		} else if (map.attrId == "001C") {
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (22nd February 2023)"
+@Field String driverVersion = "v1.00 (1st March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -23,11 +23,6 @@ metadata {
 		capability "Configuration"
 		capability "PresenceSensor"
 		capability "Refresh"
-		// capability "TemperatureMeasurement"
-		// capability "ThermostatHeatingSetpoint"
-		// capability "ThermostatMode"
-		// capability "ThermostatOperatingState"
-		// capability "ThermostatSetpoint"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -69,12 +64,12 @@ def testCommand() {
 	
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))
 
-		sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))	//Read LocalTemperature
-		sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
-		sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
-		sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
+		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))	//Read LocalTemperature
+		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
+		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
+		// sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
 
-
+	//sendZigbeeCommands(zigbee.configureReporting(CLUSTER_BATTERY_LEVEL, 0x0021, DataType.UINT8, 1, 10, 0x01))
 
 	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
 
@@ -90,33 +85,6 @@ void installed() {
 }
 
 
-void configure() {
-
-	int randomSixty
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Schedule presence checking.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Set device specifics.
-	updateDataValue("driver", "$driverVersion")
-	configureSpecifics()
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-
-	updated()
-	
-}
-
-
 void configureSpecifics() {
 	// Called by library configure() method.
 
@@ -124,7 +92,11 @@ void configureSpecifics() {
 	device.name = "Hive Thermostat ${modelCheck}"
 
 	// Configure reporting
-	sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x0000, 0x29, 10, 60, 50))		// Report temperature - min every 10s, max every 60s, change of 50.
+	ArrayList<String> cmds = []
+	cmds += zigbee.configureReporting(0x0402, 0x0000, 0x29, 10, 60, 50)										// TemperatureMeasurement
+	//cmds += zigbee.configureReporting(0x0000, 0x0021, DataType.UINT8, 600, 21600, 0x01)		// Battery
+	cmds += zigbee.configureReporting(0x0000, 0x0021, DataType.UINT8, 10, 60, 0x01)			// Battery
+	sendZigbeeCommands(cmds)  
 
 }
 
@@ -144,106 +116,6 @@ void refresh() {
 }
 
 
-def heatingOff() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x00)	// SystemMode to off
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)	// TemperatureSetpointHold 
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)	// TemperatureSetpointHoldDuration
-	sendZigbeeCommands( cmds )     
-
-}
-
-def heatingManual() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)	// TemperatureSetpointHoldDuration
-	//cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x076C) // OccupiedHeatingSetpoint (19degC)
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0960) // OccupiedHeatingSetpoint (24degC)
-	sendZigbeeCommands( cmds )     
-
-}
-
-def heatingScheduleResume() {
-
-	ArrayList<String> cmds = []
-
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00)	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )   
-
-}
-
-def heatingBoost() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05)	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x001E)	// TemperatureSetpointHoldDuration (30 mins)
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0898) // OccupiedHeatingSetpoint (22degC)
-	sendZigbeeCommands( cmds )  
-
-}
-
-def waterScheduleResume() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
-
-}
-
-def waterOn() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
-
-}
-
-def waterOff() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x00, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	sendZigbeeCommands( cmds )  
-
-}
-
-def waterBoost() {
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x06])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x001E)	// TemperatureSetpointHoldDuration (30 mins)
-	sendZigbeeCommands( cmds )  
-
-}
-
-
-def setThermostatDateAndTime() {
-
-	int zigbeeEpochTime = now()/1000-946684800
-
-	String zigbeeHexTime = zigbee.convertToHexString(zigbeeEpochTime,8)
-	String zigbeeHexTimeReversed =
-		new StringBuilder(8)
-			.append(zigbeeHexTime, 6, 8)
-			.append(zigbeeHexTime, 4, 6)
-			.append(zigbeeHexTime, 2, 4)
-			.append(zigbeeHexTime, 0, 2)
-			.toString();
-
-	logging("${device} : zigbeeEpochTime = $zigbeeEpochTime | zigbeeHexTime = $zigbeeHexTime | zigbeeHexTimeReversed = $zigbeeHexTimeReversed", "info")
-
-	sendZigbeeCommands(["he wattr 0x${device.deviceNetworkId} 0x0005 0x000A 0x0000 0x00E2 {$zigbeeHexTimeReversed}"])
-
-}
-
 
 void parse(String description) {
 
@@ -255,12 +127,33 @@ void parse(String description) {
 
 	if (descriptionMap) {
 
-		processMap(descriptionMap)
+		try {
+
+			processMap(descriptionMap)
+
+		} catch (Exception e) {
+
+			// Slice-and-dice the string we receive.
+			descriptionMap = description.split(', ').collectEntries {
+				entry -> def pair = entry.split(': ')
+				[(pair.first()): pair.last()]
+			}
+
+			try {
+
+				processMap(descriptionMap)
+
+			} catch (Exception ee) {
+
+				reportToDev(descriptionMap)
+
+			}
+
+		}
 
 	} else {
 		
-		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-		logging("${device} : Splurge! : ${description}", "warn")
+		reportToDev(descriptionMap)
 
 	}
 
@@ -270,37 +163,34 @@ void parse(String description) {
 void processMap(Map map) {
 
 	if (map.cluster == "0201") {
-
 		// Thermostat Cluster
 
-		if (map.attrId == "0000") {
+		// Ssssh. Apparantly, I'm not really a thermostat. :)
+		return
 
-			// Received temperature data.
+	} else if (map.cluster == "0402") {
+		// Temperature Measurement Cluster
+
+			if (map.attrId == "0000") {
+			// Temperature
 
 			BigDecimal temperature = hexStrToSignedInt(map.value)
-			temperature = temperature.setScale(2, BigDecimal.ROUND_HALF_UP) / 100
+			temperature = temperature / 100
+			temperature = temperature.setScale(1, BigDecimal.ROUND_DOWN)  // They seem to round down for the stat display.
 
-			logging("${device} : temperature : ${temperature} from hex value ${map.value} ", "trace")
+			logging("${device} : Temperature : ${temperature} from hex value ${map.value} ", "debug")
 
 			String temperatureScale = location.temperatureScale
 			if (temperatureScale == "F") {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			if (temperature > 200 || temperature < -200) {
-
-				logging("${device} : Temperature : Value of ${temperature}°${temperatureScale} is unusual. Watch out for batteries failing on this device.", "warn")
-
-			} else {
-
-				logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
-				sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
-
-			}
+			logging("${device} : temperature : ${temperature} °${temperatureScale}", "info")
+			sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
 
 		} else {
 
-			logging("${device} : Don't know this one.", "debug")
+			filterThis(map)
 
 		}
 
