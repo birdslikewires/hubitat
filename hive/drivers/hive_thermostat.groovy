@@ -5,13 +5,13 @@
  */
 
 
-@Field String driverVersion = "v1.00 (1st March 2023)"
+@Field String driverVersion = "v0.50 (1st March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
-@Field int reportIntervalMinutes = 10
+@Field boolean debugMode = false
+@Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
 
@@ -23,6 +23,8 @@ metadata {
 		capability "Configuration"
 		capability "PresenceSensor"
 		capability "Refresh"
+		capability "TemperatureMeasurement"
+		capability "VoltageMeasurement"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -45,33 +47,9 @@ preferences {
 }
 
 
-def testCommand() {
+void testCommand() {
 
 	logging("${device} : Test Command", "info")
-
-	// THERMOSTAT_SYSTEM_CONFIG is an optional attribute. It we add other thermostats we need to determine if they support this and behave accordingly.
-	// sendZigbeeCommands( zigbee.readAttribute(THERMOSTAT_CLUSTER, THERMOSTAT_SYSTEM_CONFIG),
-	// 		zigbee.readAttribute(FAN_CONTROL_CLUSTER, FAN_MODE_SEQUENCE),
-	// 		zigbee.readAttribute(THERMOSTAT_CLUSTER, LOCAL_TEMPERATURE),
-	// 		zigbee.readAttribute(THERMOSTAT_CLUSTER, COOLING_SETPOINT),
-	// 		zigbee.readAttribute(THERMOSTAT_CLUSTER, HEATING_SETPOINT),
-	// 		zigbee.readAttribute(THERMOSTAT_CLUSTER, THERMOSTAT_MODE),
-	// 		zigbee.readAttribute(THERMOSTAT_CLUSTER, THERMOSTAT_RUNNING_STATE),
-	// 		zigbee.readAttribute(FAN_CONTROL_CLUSTER, FAN_MODE),
-	// 		zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, BATTERY_ALARM_STATE) )
-
-	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0400))
-	
-	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))
-
-		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))	//Read LocalTemperature
-		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
-		// sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
-		// sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
-
-	//sendZigbeeCommands(zigbee.configureReporting(CLUSTER_BATTERY_LEVEL, 0x0021, DataType.UINT8, 1, 10, 0x01))
-
-	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
 
 }
 
@@ -93,9 +71,8 @@ void configureSpecifics() {
 
 	// Configure reporting
 	ArrayList<String> cmds = []
-	cmds += zigbee.configureReporting(0x0402, 0x0000, 0x29, 10, 60, 50)										// TemperatureMeasurement
-	//cmds += zigbee.configureReporting(0x0000, 0x0021, DataType.UINT8, 600, 21600, 0x01)		// Battery
-	cmds += zigbee.configureReporting(0x0000, 0x0021, DataType.UINT8, 10, 60, 0x01)			// Battery
+	cmds += zigbee.configureReporting(0x0402, 0x0000, 0x29, 10, 60, 50)						// TemperatureMeasurement every minute
+	cmds += zigbee.configureReporting(0x0001, 0x0020, DataType.UINT8, 10, 600, 0x01)		// Battery (DataType.UINT8 = 0x20) every ten minutes
 	sendZigbeeCommands(cmds)  
 
 }
@@ -162,11 +139,12 @@ void parse(String description) {
 
 void processMap(Map map) {
 
-	if (map.cluster == "0201") {
-		// Thermostat Cluster
+	if (map.cluster == "0001") {
+		// Power Configuration Cluster
 
-		// Ssssh. Apparantly, I'm not really a thermostat. :)
-		return
+		logging("${device} : battery!", "info")
+
+		reportBattery("${map.value}", 10, 4.8, 6.0)
 
 	} else if (map.cluster == "0402") {
 		// Temperature Measurement Cluster
@@ -201,4 +179,3 @@ void processMap(Map map) {
 	}
 	
 }
-

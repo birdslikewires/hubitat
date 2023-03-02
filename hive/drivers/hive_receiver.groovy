@@ -5,12 +5,12 @@
  */
 
 
-@Field String driverVersion = "v1.00 (1st March 2023)"
+@Field String driverVersion = "v0.50 (1st March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
@@ -117,8 +117,7 @@ void configureSpecifics() {
 	])
 
 	ArrayList<String> cmds = []
-	cmds += zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 43200)		// Temperature Reporting
-	//cmds += zigbee.readAttribute(0x0201, 0x0029, [destEndpoint:0x06])
+	cmds += zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 60)		// Temperature Reporting
 	sendZigbeeCommands(cmds)
 
 }
@@ -174,8 +173,8 @@ void emergencyHeat() {
 	ArrayList<String> cmds = []
 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05)		// SystemMode
 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)		// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0C80) 	// OccupiedHeatingSetpoint (32degC)
 	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, boostTime)	// TemperatureSetpointHoldDuration (30 mins)
+	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0C80) 	// OccupiedHeatingSetpoint (32degC)
 	sendZigbeeCommands(cmds)
 
 	runIn(3,getThermostatMode)
@@ -400,6 +399,12 @@ void parse(String description) {
 
 
 void processMap(Map map) {
+
+	if (map.endpoint == "06") {
+
+		logging("${device} : WATER! : We have a water reading!", "debug")
+
+	}
 
 	if (map.cluster == "0201") {
 		// Thermostat Cluster

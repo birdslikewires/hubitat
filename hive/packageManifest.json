@@ -1,0 +1,36 @@
+{
+	"packageName": "Hive Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.2.8",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hive",
+	"dateReleased": "2023-03-02",
+	"bundles": [
+		{
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",
+			"name": "Hive Receiver",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
+			"required": false,
+			"version": "0.05"
+		},
+		{
+			"id": "c2435505-88a7-4d60-b969-b363d192da95",
+			"name": "Hive Thermostat",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/hive_thermostat.groovy",
+			"required": false,
+			"version": "0.05"
+		}
+	]
+}
