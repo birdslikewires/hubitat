@@ -28,7 +28,7 @@
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
 			"name": "Hive Thermostat",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/hive_thermostat.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
 			"required": false,
 			"version": "0.05"
 		}
