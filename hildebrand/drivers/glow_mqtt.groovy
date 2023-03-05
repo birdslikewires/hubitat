@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.06 (1st March 2023)
+ *  Hildebrand Glow MQTT Driver v1.07 (5th March 2023)
  *	
  */
 
@@ -338,50 +338,6 @@ void parse(String description) {
 	} else {
 
 		state.parseCounter = parseCount
-
-	}
-
-}
-
-void mqttConnect() {
-
-	try {
-
-		def mqttInt = interfaces.mqtt
-
-		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "debug")
-			return
-		}
-
-		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
-			return
-		}
-
-		String clientID = "hubitat-" + device.deviceNetworkId
-		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
-		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
-		pauseExecution(500)
-		mqttInt.subscribe(state.mqttTopic)
-
-	} catch (Exception e) {
-
-		logging("${device} : MQTT : ${e.message}", "error")
-
-	}
-
-} 
-
-void mqttClientStatus(String status) {
-
-	if (status.indexOf('Connection succeeded') >= 0) {
-
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "debug")
-
-	} else {
-
-		logging("${device} : MQTT : ${status}", "error")
 
 	}
 
