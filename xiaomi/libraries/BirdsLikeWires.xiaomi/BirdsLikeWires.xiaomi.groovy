@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.14 (1st March 2023)
+ *  BirdsLikeWires Xiaomi Library v1.15 (5th March 2023)
  *	
  */
 
@@ -15,15 +15,6 @@ library (
 	namespace: "BirdsLikeWires"
 
 )
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-
-}
 
 
 void refresh() {

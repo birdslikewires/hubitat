@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.14 (1st March 2023)
+ *  BirdsLikeWires AlertMe Library v1.15 (5th March 2023)
  *	
  */
 
@@ -20,16 +20,7 @@ library (
 )
 
 
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-
-}
-
-
-def lockedMode() {
+void lockedMode() {
 	// Disables the local power button on a SmartPlug.
 
 	// Locked mode is not as useful as it might first appear. Though it disables the local power button on

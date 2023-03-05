@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.20 (5th March 2023)
+ *  BirdsLikeWires Library v1.21 (5th March 2023)
  *	
  */
 
@@ -22,6 +22,15 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+void installed() {
+
+	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
 
 }
 

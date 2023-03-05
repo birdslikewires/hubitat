@@ -1,7 +1,7 @@
 {
 	"packageName": "Aurora Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
-	"minimumHEVersion": "2.2.1",
+	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/aurora",
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "1.03"
 		}
 	]
 }
