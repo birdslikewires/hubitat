@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.21 (5th March 2023)
+ *  BirdsLikeWires Library v1.22 (5th March 2023)
  *	
  */
 
@@ -109,32 +109,6 @@ void release(buttonId) {
 	sendEvent(name:"released", value: buttonId, isStateChange:true)
 	
 }
-
-//////////////// So, this may well be different for different lamps and dimmers, so... possibly not for here, 
-
-// void setLevel(BigDecimal level) {
-
-// 	setLevel(level,1)
-
-// }
-
-
-// void setLevel(BigDecimal level, BigDecimal duration) {
-
-// 	BigDecimal safeLevel = level <= 100 ? level : 100
-// 	safeLevel = safeLevel < 0 ? 0 : safeLevel
-
-// 	String hexLevel = percentageToHex(safeLevel.intValue())
-
-// 	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-// 	String hexDuration = Integer.toHexString(safeDuration.intValue())
-
-// 	String pluralisor = duration == 1 ? "" : "s"
-// 	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
-
-// 	sendEvent(name: "level", value: "${safeLevel}")
-
-// }
 
 
 void updatePresence() {
