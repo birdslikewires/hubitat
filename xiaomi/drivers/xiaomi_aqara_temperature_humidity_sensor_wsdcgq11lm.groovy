@@ -80,92 +80,6 @@ void updateSpecifics() {
 }
 
 
-void processTemperature(temperatureFlippedHex) {
-
-    BigDecimal temperature = hexStrToSignedInt(temperatureFlippedHex)
-    temperature = temperature.setScale(2, BigDecimal.ROUND_HALF_UP) / 100
-
-    logging("${device} : temperature : ${temperature} from hex value ${temperatureFlippedHex}", "trace")
-
-    String temperatureScale = location.temperatureScale
-    if (temperatureScale == "F") {
-        temperature = (temperature * 1.8) + 32
-    }
-
-    if (temperature > 200 || temperature < -200) {
-
-        logging("${device} : Temperature : Value of ${temperature}°${temperatureScale} is unusual. Watch out for batteries failing on this device.", "warn")
-
-    } else {
-
-        logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
-        sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
-
-    }
-}
-
-
-void processPressure(pressureFlippedHex,checkin=false) {
-
-    BigDecimal pressure = hexStrToSignedInt(pressureFlippedHex)
-    if (checkin) {
-        pressure = pressure / 100
-    }
-    pressure = pressure.setScale(1, BigDecimal.ROUND_HALF_UP) / 10
-    BigDecimal lastPressure = device.currentState("pressure") ? device.currentState("pressure").value.toBigDecimal() : 0
-
-    ////////// WORK TO DO - RECORD PREVIOUS PRESSURE AS LASTPRESSURE IF PRESSURE HAS CHANGED OR SOMETHING - TOO TIRED!
-
-    // BigDecimal pressurePrevious = device.currentState("pressurePrevious").value.toBigDecimal()
-    // if (pressurePrevious != null && pressure != lastPressure) {
-    // 	endEvent(name: "pressurePrevious", value: lastPressure, unit: "kPa")
-    // } else if
-
-    String pressureDirection = pressure > lastPressure ? "rising" : "falling"
-
-    logging("${device} : pressure : ${pressure} from hex value ${pressureFlippedHex}", "trace")
-    logging("${device} : Pressure : ${pressure} kPa", "info")
-    sendEvent(name: "pressure", value: pressure, unit: "kPa")
-    sendEvent(name: "pressureDirection", value: "${pressureDirection}")
-}
-
-
-void processHumidity(humidityFlippedHex) {
-
-    BigDecimal humidity = hexStrToSignedInt(humidityFlippedHex)
-    humidity = humidity.setScale(2, BigDecimal.ROUND_HALF_UP) / 100
-
-    logging("${device} : humidity : ${humidity} from hex value ${humidityFlippedHex}", "trace")
-
-    BigDecimal lastTemperature = device.currentState("temperature") ? device.currentState("temperature").value.toBigDecimal() : 0
-
-    String temperatureScale = location.temperatureScale
-    if (temperatureScale == "F") {
-        lastTemperature = (lastTemperature - 32) / 1.8
-    }
-
-    BigDecimal numerator = (6.112 * Math.exp((17.67 * lastTemperature) / (lastTemperature + 243.5)) * humidity * 2.1674)
-    BigDecimal denominator = lastTemperature + 273.15
-    BigDecimal absoluteHumidity = numerator / denominator
-    absoluteHumidity = absoluteHumidity.setScale(1, BigDecimal.ROUND_HALF_UP)
-
-    String cubedChar = String.valueOf((char)(179))
-
-    if (humidity > 100 || humidity < 0) {
-
-        logging("${device} : Humidity : Value of ${humidity} is out of bounds. Watch out for batteries failing on this device.", "warn")
-
-    } else {
-
-        logging("${device} : Humidity (Relative) : ${humidity} %", "info")
-        logging("${device} : Humidity (Absolute) : ${absoluteHumidity} g/m${cubedChar}", "info")
-        sendEvent(name: "humidity", value: humidity, unit: "%")
-        sendEvent(name: "absoluteHumidity", value: absoluteHumidity, unit: "g/m${cubedChar}")
-
-    }
-}
-
-
 void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
@@ -220,10 +134,96 @@ void processMap(Map map) {
 }
 
 
+private void processTemperature(temperatureFlippedHex) {
+
+    BigDecimal temperature = hexStrToSignedInt(temperatureFlippedHex)
+    temperature = temperature.setScale(2, BigDecimal.ROUND_HALF_UP) / 100
+
+    logging("${device} : temperature : ${temperature} from hex value ${temperatureFlippedHex}", "trace")
+
+    String temperatureScale = location.temperatureScale
+    if (temperatureScale == "F") {
+        temperature = (temperature * 1.8) + 32
+    }
+
+    if (temperature > 200 || temperature < -200) {
+
+        logging("${device} : Temperature : Value of ${temperature}°${temperatureScale} is unusual. Watch out for batteries failing on this device.", "warn")
+
+    } else {
+
+        logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
+        sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
+
+    }
+}
+
+
+private void processPressure(pressureFlippedHex,checkin=false) {
+
+    BigDecimal pressure = hexStrToSignedInt(pressureFlippedHex)
+    if (checkin) {
+        pressure = pressure / 100
+    }
+    pressure = pressure.setScale(1, BigDecimal.ROUND_HALF_UP) / 10
+    BigDecimal lastPressure = device.currentState("pressure") ? device.currentState("pressure").value.toBigDecimal() : 0
+
+    ////////// WORK TO DO - RECORD PREVIOUS PRESSURE AS LASTPRESSURE IF PRESSURE HAS CHANGED OR SOMETHING - TOO TIRED!
+
+    // BigDecimal pressurePrevious = device.currentState("pressurePrevious").value.toBigDecimal()
+    // if (pressurePrevious != null && pressure != lastPressure) {
+    // 	endEvent(name: "pressurePrevious", value: lastPressure, unit: "kPa")
+    // } else if
+
+    String pressureDirection = pressure > lastPressure ? "rising" : "falling"
+
+    logging("${device} : pressure : ${pressure} from hex value ${pressureFlippedHex}", "trace")
+    logging("${device} : Pressure : ${pressure} kPa", "info")
+    sendEvent(name: "pressure", value: pressure, unit: "kPa")
+    sendEvent(name: "pressureDirection", value: "${pressureDirection}")
+}
+
+
+private void processHumidity(humidityFlippedHex) {
+
+    BigDecimal humidity = hexStrToSignedInt(humidityFlippedHex)
+    humidity = humidity.setScale(2, BigDecimal.ROUND_HALF_UP) / 100
+
+    logging("${device} : humidity : ${humidity} from hex value ${humidityFlippedHex}", "trace")
+
+    BigDecimal lastTemperature = device.currentState("temperature") ? device.currentState("temperature").value.toBigDecimal() : 0
+
+    String temperatureScale = location.temperatureScale
+    if (temperatureScale == "F") {
+        lastTemperature = (lastTemperature - 32) / 1.8
+    }
+
+    BigDecimal numerator = (6.112 * Math.exp((17.67 * lastTemperature) / (lastTemperature + 243.5)) * humidity * 2.1674)
+    BigDecimal denominator = lastTemperature + 273.15
+    BigDecimal absoluteHumidity = numerator / denominator
+    absoluteHumidity = absoluteHumidity.setScale(1, BigDecimal.ROUND_HALF_UP)
+
+    String cubedChar = String.valueOf((char)(179))
+
+    if (humidity > 100 || humidity < 0) {
+
+        logging("${device} : Humidity : Value of ${humidity} is out of bounds. Watch out for batteries failing on this device.", "warn")
+
+    } else {
+
+        logging("${device} : Humidity (Relative) : ${humidity} %", "info")
+        logging("${device} : Humidity (Absolute) : ${absoluteHumidity} g/m${cubedChar}", "info")
+        sendEvent(name: "humidity", value: humidity, unit: "%")
+        sendEvent(name: "absoluteHumidity", value: absoluteHumidity, unit: "g/m${cubedChar}")
+
+    }
+}
+
+
 // Adapted from WSDCGQ11LM driver from veeceeoh (https://raw.githubusercontent.com/veeceeoh/xiaomi-hubitat/master/devicedrivers/xiaomi-temperature-humidity-sensor-hubitat.src/xiaomi-temperature-humidity-sensor-hubitat.groovy)
 //
 // Reverses order of bytes in hex string
-def reverseHexString(hexString) {
+private def reverseHexString(hexString) {
 	def reversed = ""
 	for (int i = hexString.length(); i > 0; i -= 2) {
 		reversed += hexString.substring(i - 2, i )
@@ -236,6 +236,9 @@ def reverseHexString(hexString) {
 //
 // Parse checkin message from lumi.weather device (WSDCGQ11LM) which contains
 // a full set of sensor readings.
+//
+// called from xiaomiDeviceStatus in xiaomi library
+//
 def parseCheckinMessageSpecifics(hexString) {
 	logging("Received check-in message","debug")
 	def result
