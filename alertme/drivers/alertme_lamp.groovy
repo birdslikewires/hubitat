@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.25 (12th October 2022)"
+@Field String driverVersion = "v1.27 (1st March 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -85,6 +85,21 @@ void configureSpecifics() {
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 01 00 01 00 00 00 00 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 01 01} {0xC216}")
 	sendZigbeeCommands(cmds)
+
+	state.operatingMode = "normal"
+
+	// Schedule ranging report.
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	rangingMode()
 
 }
 

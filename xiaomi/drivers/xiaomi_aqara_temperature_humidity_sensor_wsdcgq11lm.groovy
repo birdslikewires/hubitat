@@ -1,11 +1,11 @@
 /*
- * 
+ *
  *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver
- *	
+ *
  */
 
 
-@Field String driverVersion = "v1.11 (12th October 2022)"
+@Field String driverVersion = "v1.13 (1st March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -48,18 +48,18 @@ metadata {
 
 
 preferences {
-	
+
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
-	
+
 }
 
 
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-	
+
 }
 
 
@@ -70,6 +70,13 @@ void configureSpecifics() {
 	device.name = "Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
 
+}
+
+
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
+
+	return
 }
 
 
@@ -112,7 +119,7 @@ void processPressure(pressureFlippedHex,checkin=false) {
     // BigDecimal pressurePrevious = device.currentState("pressurePrevious").value.toBigDecimal()
     // if (pressurePrevious != null && pressure != lastPressure) {
     // 	endEvent(name: "pressurePrevious", value: lastPressure, unit: "kPa")
-    // } else if 
+    // } else if
 
     String pressureDirection = pressure > lastPressure ? "rising" : "falling"
 
@@ -165,7 +172,7 @@ void processMap(Map map) {
 
 	String[] receivedValue = map.value
 
-	if (map.cluster == "0402") { 
+	if (map.cluster == "0402") {
 
 		// Received temperature data.
         String[] temperatureHex = receivedValue[2..3] + receivedValue[0..1]
@@ -173,7 +180,7 @@ void processMap(Map map) {
         logging("${device} : processMap() : temperature ${temperatureFlippedHex}", "trace")
         processTemperature(temperatureFlippedHex)
 
-	} else if (map.cluster == "0403") { 
+	} else if (map.cluster == "0403") {
 
 		// Received pressure data.
         String[] pressureHex = receivedValue[2..3] + receivedValue[0..1]
@@ -181,14 +188,14 @@ void processMap(Map map) {
         logging("${device} : processMap() : pressure ${pressureFlippedHex}", "trace")
         processPressure(pressureFlippedHex)
 
-	} else if (map.cluster == "0405") { 
+	} else if (map.cluster == "0405") {
 
 		// Received humidity data.
         String[] humidityHex = receivedValue[2..3] + receivedValue[0..1]
         String humidityFlippedHex = humidityHex.join()
         logging("${device} : processMap() : humidity ${humidityFlippedHex}", "trace")
         processHumidity(humidityFlippedHex)
-        
+
 	} else if (map.cluster == "0000") {
 
 		if (map.attrId == "0005") {

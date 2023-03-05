@@ -1,11 +1,11 @@
 {
-	"packageName": "Generic Drivers from BirdsLikeWires",
+	"packageName": "Hive Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/generic",
-	"dateReleased": "2020-12-21",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hive",
+	"dateReleased": "2023-03-02",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
@@ -17,20 +17,20 @@
 	],
 	"drivers": [
 		{
-			"id": "27b466da-e169-4270-9e1a-29a5173f9883",
-			"name": "Splurge Driver",
+			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",
+			"name": "Hive Receiver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/splurge.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
 			"required": false,
-			"version": "1.03"
+			"version": "0.05"
 		},
 		{
-			"id": "bb0231d6-9f1c-41dd-99e4-403bdcf37a39",
-			"name": "Virtual Switchable Presence",
+			"id": "c2435505-88a7-4d60-b969-b363d192da95",
+			"name": "Hive Thermostat",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/drivers/virtual_switchable_presence.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "0.05"
 		}
 	]
 }

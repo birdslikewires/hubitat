@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.04 (15th July 2022)
+ *  Hildebrand Glow MQTT Driver v1.08 (5th March 2023)
  *	
  */
 
@@ -10,6 +10,7 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
+@Field int checkEveryMinutes = 1
 @Field int occasionalUpdateMinutes = 10
 
 
@@ -23,8 +24,6 @@ metadata {
 		command "disconnect"
 
 		if (debugMode) {
-
-			capability "Initialize"
 
 			command "checkPresence"
 			command "testCommand"
@@ -52,52 +51,27 @@ preferences {
 
 
 void testCommand() {
+
 	logging("${device} : Test Command", "info")
+
 }
 
 
 void installed() {
+
 	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
 
-	// Set default preferences.
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+}
 
-	// Set device name.
+
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.library
+
 	device.name = "Hildebrand Glow"
 
-	logging("${device} : Installed", "info")
-
-	initialize()
-
-}
-
-
-void initialize() {
-
-	int randomSixty
-	String modelCheck = "${getDeviceDataByName('model')}"
-
-	// Tidy up.
-	unschedule()
-	state.clear()
 	state.occasionalUpdated = 0
-	state.presenceUpdated = 0	
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Schedule presence checking.
-	int checkEveryMinutes = 1
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	sendEvent(name: "initialisation", value: "complete", isStateChange: false)
-	logging("${device} : Initialised", "info")
-
-}
-
-
-void configure() {
 
 	removeDataValue("firmware")
 	removeDataValue("mac")
@@ -109,28 +83,14 @@ void configure() {
 	fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Electricity")
 	fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Gas")
 
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-	
 }
 
 
-void updated() {
-	// Runs when preferences are saved.
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
 
 	disconnect()
 
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	// In case cloud support is added, which I am presently too tired to be thinking about.
 	if (settings?.cloudActive) {
 		state.mqttBroker = "glowmqtt.energyhive.com"
 		state.mqttTopic = settings?.cloudId ? "SMART/HILD/${cloudId}" : ""
@@ -144,11 +104,6 @@ void updated() {
 	state.parseCounter = 0				// We update some variables only every occasionalUpdateMinutes, so we must count our parse() passes.
 
 	schedule("0/10 * * * * ? *", mqttConnect)
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
-	configure()
 
 }
 
@@ -380,50 +335,6 @@ void parse(String description) {
 	} else {
 
 		state.parseCounter = parseCount
-
-	}
-
-}
-
-void mqttConnect() {
-
-	try {
-
-		def mqttInt = interfaces.mqtt
-
-		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "debug")
-			return
-		}
-
-		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
-			return
-		}
-
-		String clientID = "hubitat-" + device.deviceNetworkId
-		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
-		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
-		pauseExecution(500)
-		mqttInt.subscribe(state.mqttTopic)
-
-	} catch (Exception e) {
-
-		logging("${device} : MQTT : ${e.message}", "error")
-
-	}
-
-} 
-
-void mqttClientStatus(String status) {
-
-	if (status.indexOf('Connection succeeded') >= 0) {
-
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "debug")
-
-	} else {
-
-		logging("${device} : MQTT : ${status}", "error")
 
 	}
 

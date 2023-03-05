@@ -1,6 +1,6 @@
 /*
  * 
- *  Network UPS Tools MQTT Driver v1.00 (1st November 2022)
+ *  Network UPS Tools MQTT Driver v1.03 (5th March 2023)
  *	
  */
 
@@ -8,8 +8,9 @@
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
+@Field int checkEveryMinutes = 1
 
 
 metadata {
@@ -21,8 +22,6 @@ metadata {
 		command "disconnect"
 
 		if (debugMode) {
-
-			capability "Initialize"
 
 			command "checkPresence"
 			command "testCommand"
@@ -55,77 +54,31 @@ void testCommand() {
 
 
 void installed() {
+
 	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
 
-	// Set default preferences.
-	device.updateSetting("infoLogging", [value: "true", type: "bool"])
-	device.updateSetting("debugLogging", [value: "${debugMode}", type: "bool"])
-	device.updateSetting("traceLogging", [value: "${debugMode}", type: "bool"])
+}
 
-	// Set device name.
+
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.library
+
 	device.name = "Network UPS Tools MQTT"
 
-	logging("${device} : Installed", "info")
-
-	initialize()
-
 }
 
 
-void initialize() {
-
-	int randomSixty
-	String modelCheck = "${getDeviceDataByName('model')}"
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.presenceUpdated = 0	
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Schedule presence checking.
-	int checkEveryMinutes = 1
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	sendEvent(name: "initialisation", value: "complete", isStateChange: false)
-	logging("${device} : Initialised", "info")
-
-}
-
-
-void configure() {
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-	
-}
-
-
-void updated() {
-	// Runs when preferences are saved.
+void updateSpecifics() {
+	// Called by library updated() method.
 
 	disconnect()
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
 
 	state.mqttBroker = settings?.mqttBroker
 	state.mqttTopic = "ups/#"
 
 	schedule("0/10 * * * * ? *", mqttConnect)
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
-	configure()
 
 }
 
@@ -184,52 +137,6 @@ void parse(String description) {
 	} catch (Exception e) {
 
 		logging("${device} : Parse : ${e.message}", "error")
-
-	}
-
-}
-
-
-void mqttConnect() {
-
-	try {
-
-		def mqttInt = interfaces.mqtt
-
-		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
-			return
-		}
-
-		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
-			return
-		}
-
-		String clientID = "hubitat-" + device.deviceNetworkId
-		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
-		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
-		pauseExecution(500)
-		mqttInt.subscribe(state.mqttTopic)
-
-	} catch (Exception e) {
-
-		logging("${device} : MQTT : ${e.message}", "error")
-
-	}
-
-} 
-
-
-void mqttClientStatus(String status) {
-
-	if (status.indexOf('Connection succeeded') >= 0) {
-
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
-
-	} else {
-
-		logging("${device} : MQTT : ${status}", "error")
 
 	}
 

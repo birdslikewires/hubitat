@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (12th October 2022)"
+@Field String driverVersion = "v1.19 (1st March 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -72,6 +72,21 @@ void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
 	device.name = "AlertMe Contact Sensor"
+
+	state.operatingMode = "normal"
+
+	// Schedule ranging report.
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
+
+}
+
+
+void updateSpecifics() {
+	// Called by library updated() method in BirdsLikeWires.library
+
+	rangingMode()
 
 }
 

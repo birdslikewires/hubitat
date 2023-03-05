@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.10 (13th October 2022)
+ *  BirdsLikeWires AlertMe Library v1.14 (1st March 2023)
  *	
  */
 
@@ -25,62 +25,6 @@ void installed() {
 	// Runs after first installation.
 	logging("${device} : Installed", "info")
 	configure()
-
-}
-
-
-void configure() {
-
-	int randomSixty
-
-	// Tidy up.
-	unschedule()
-	state.clear()
-	state.operatingMode = "normal"
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
-
-	// Remove empty device details.
-	removeDataValue("application")
-
-	// Schedule presence checking.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Schedule ranging report.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
-
-	// Set device specifics.
-	updateDataValue("driver", "$driverVersion")
-	configureSpecifics()
-
-	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
-
-	updated()
-	rangingMode()
-	
-}
-
-
-void updated() {
-	// Runs when preferences are saved.
-
-	unschedule(infoLogOff)
-	unschedule(debugLogOff)
-	unschedule(traceLogOff)
-
-	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
-	}
-
-	logging("${device} : Preferences Updated", "info")
-
-	loggingStatus()
 
 }
 
@@ -142,21 +86,28 @@ void quietMode() {
 }
 
 
+void enablePowerControl() {
+
+	logging("${device} : enabling power control", "debug")
+	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}"])
+
+}
+
+
 void refresh() {
 
 	logging("${device} : Refreshing", "info")
 
 	String modelCheck = "${getDeviceDataByName('model')}"
 
-	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
-
 	if ("${modelCheck}" == "SmartPlug") {
 
-		cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")    // power control operating mode nudge
-
+		enablePowerControl()
+		
 	}
 
+	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F6 {11 00 FC 01} {0xC216}")    // version information request
 	sendZigbeeCommands(cmds)
 
 }
@@ -401,9 +352,9 @@ void alertmeDiscovery(Map map) {
 		} else if (map.data[1] == "00") {
 
 			// This is the ranging report received when the smart plug reboots.
-			// After rebooting a refresh is required to bring back remote control.
+			// After rebooting power control must be re-enabled.
 			logging("${device} : reboot ranging report received", "debug")
-			refresh()
+			enablePowerControl()
 
 		} else {
 

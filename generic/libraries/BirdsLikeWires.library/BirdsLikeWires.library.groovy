@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.17 (8th November 2022)
+ *  BirdsLikeWires Library v1.20 (5th March 2023)
  *	
  */
 
@@ -22,6 +22,54 @@ void sendZigbeeCommands(List<String> cmds) {
 
     logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
     sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
+
+}
+
+
+void configure() {
+
+	int randomSixty
+
+	// Tidy up.
+	unschedule()
+	state.clear()
+	state.presenceUpdated = 0
+	sendEvent(name: "presence", value: "present", isStateChange: false)
+
+	// Schedule presence checking.
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+
+	// Set device specifics.
+	updateDataValue("driver", "$driverVersion")
+	configureSpecifics()
+
+	// Notify.
+	sendEvent(name: "configuration", value: "complete", isStateChange: false)
+	logging("${device} : Configuration complete.", "info")
+
+	updated()
+	
+}
+
+
+void updated() {
+	// Runs when preferences are saved.
+
+	unschedule(infoLogOff)
+	unschedule(debugLogOff)
+	unschedule(traceLogOff)
+
+	if (!debugMode) {
+		runIn(2400,debugLogOff)
+		runIn(1200,traceLogOff)
+	}
+
+	updateSpecifics()
+
+	logging("${device} : Preferences Updated", "info")
+
+	loggingStatus()
 
 }
 
@@ -131,6 +179,22 @@ void checkPresence() {
 		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
+
+}
+
+
+void requestBasic() {
+	// Request application value, manufacturer, model name, software build and simple descriptor data.
+
+	sendZigbeeCommands([
+
+		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0001 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0004 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0005 {}",
+		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}",
+		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
+
+	])
 
 }
 
@@ -583,6 +647,10 @@ void filterThis(Map map) {
 
 		processConfigurationResponse(map)
 
+	} else if (map.cluster == "8001" || map.clusterId == "8001") {
+
+		logging("${device} : Skipped : Network Address Response", "debug")
+
 	} else if (map.clusterId == "8004") {
 		
 		processDescriptors(map)
@@ -595,13 +663,75 @@ void filterThis(Map map) {
 
 		logging("${device} : Skipped : Bind Response", "debug")
 
+	} else if (map.cluster == "8032" || map.clusterId == "8032") {
+
+		logging("${device} : Skipped : Routing Response", "debug")
+
+	} else if (map.cluster == "8034" || map.clusterId == "8034") {
+
+		logging("${device} : Skipped : Leave Response", "debug")
+
+	} else if (map.cluster == "8038" || map.clusterId == "8038") {
+
+		logging("${device} : Skipped : Network Update", "debug")
+
 	} else if (map.cluster == null && map.clusterId == null) {
 
 		logging("${device} : Skipped : Empty Message", "debug")
 
+	} else if (map.cluster == "0000") {
+
+		processBasic(map)
+
 	} else {
 
 		reportToDev(map)
+
+	}
+
+}
+
+
+void mqttConnect() {
+
+	try {
+
+		def mqttInt = interfaces.mqtt
+
+		if (mqttInt.isConnected()) {
+			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+			return
+		}
+
+		if (state.mqttTopic == "") {
+			logging("${device} : MQTT : Topic is not set.", "error")
+			return
+		}
+
+		String clientID = "hubitat-" + device.deviceNetworkId
+		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
+		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
+		pauseExecution(500)
+		mqttInt.subscribe(state.mqttTopic)
+
+	} catch (Exception e) {
+
+		logging("${device} : MQTT : ${e.message}", "error")
+
+	}
+
+} 
+
+
+void mqttClientStatus(String status) {
+
+	if (status.indexOf('Connection succeeded') >= 0) {
+
+		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+
+	} else {
+
+		logging("${device} : MQTT : ${status}", "error")
 
 	}
 

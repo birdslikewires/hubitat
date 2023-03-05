@@ -1,7 +1,7 @@
 {
 	"packageName": "Network UPS Tools MQTT Driver from BirdsLikeWires",
 	"author": "Andrew Davison",
-	"minimumHEVersion": "2.2.1",
+	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/generic",
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.03"
 		},
 		{
 			"id": "8e03b3c8-85a3-44d6-b0e7-11a6e6a4335d",
