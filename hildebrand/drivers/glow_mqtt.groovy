@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.07 (5th March 2023)
+ *  Hildebrand Glow MQTT Driver v1.08 (5th March 2023)
  *	
  */
 
@@ -91,7 +91,6 @@ void updateSpecifics() {
 
 	disconnect()
 
-	// In case cloud support is added, which I am presently too tired to be thinking about.
 	if (settings?.cloudActive) {
 		state.mqttBroker = "glowmqtt.energyhive.com"
 		state.mqttTopic = settings?.cloudId ? "SMART/HILD/${cloudId}" : ""
@@ -105,8 +104,6 @@ void updateSpecifics() {
 	state.parseCounter = 0				// We update some variables only every occasionalUpdateMinutes, so we must count our parse() passes.
 
 	schedule("0/10 * * * * ? *", mqttConnect)
-
-	configure()
 
 }
 
