@@ -1,6 +1,6 @@
 /*
  * 
- *  Network UPS Tools MQTT Driver v1.02 (1st March 2023)
+ *  Network UPS Tools MQTT Driver v1.03 (5th March 2023)
  *	
  */
 
@@ -80,8 +80,6 @@ void updateSpecifics() {
 
 	schedule("0/10 * * * * ? *", mqttConnect)
 
-	configure()
-
 }
 
 
@@ -139,52 +137,6 @@ void parse(String description) {
 	} catch (Exception e) {
 
 		logging("${device} : Parse : ${e.message}", "error")
-
-	}
-
-}
-
-
-void mqttConnect() {
-
-	try {
-
-		def mqttInt = interfaces.mqtt
-
-		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
-			return
-		}
-
-		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
-			return
-		}
-
-		String clientID = "hubitat-" + device.deviceNetworkId
-		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
-		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
-		pauseExecution(500)
-		mqttInt.subscribe(state.mqttTopic)
-
-	} catch (Exception e) {
-
-		logging("${device} : MQTT : ${e.message}", "error")
-
-	}
-
-} 
-
-
-void mqttClientStatus(String status) {
-
-	if (status.indexOf('Connection succeeded') >= 0) {
-
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
-
-	} else {
-
-		logging("${device} : MQTT : ${status}", "error")
 
 	}
 
