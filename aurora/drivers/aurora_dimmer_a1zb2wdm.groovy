@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (5th March 2023)"
+@Field String driverVersion = "v1.04 (5th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -13,7 +13,7 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 10
-@Field int checkEveryMinutes = 2
+@Field int checkEveryMinutes = 4
 
 
 metadata {
@@ -64,6 +64,12 @@ void testCommand() {
 void configureSpecifics() {
 
 	device.name = "Aurora Dimmer AU-A1ZB2WDM"
+
+	int reportDelay = reportIntervalMinutes * 60
+
+	ArrayList<String> cmds = []
+	cmds += zigbee.configureReporting(0x0006, 0x0000, 0x10, 0, reportDelay)		// report 
+	sendZigbeeCommands(cmds)
 
 }
 
@@ -239,13 +245,13 @@ void processMap(map) {
 
 			int currentLevel = hexToPercentage("${map.value}")
 			sendEvent(name: "level", value: "${currentLevel}")
-			logging("${device} : Level : ${currentLevel}", "debug")
+			logging("${device} : Level : ${currentLevel}", "info")
 
 		} else if (map.command == "0B") {
 
 			// Status
 
-			logging("${device} : Fade Beginning", "debug")
+			logging("${device} : fading", "debug")
 
 		} else {
 
