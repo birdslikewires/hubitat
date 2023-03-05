@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.22 (5th March 2023)
+ *  BirdsLikeWires Library v1.23 (5th March 2023)
  *	
  */
 
@@ -160,6 +160,21 @@ void checkPresence() {
 	} else {
 
 		logging("${device} : Presence : Waiting for first presence report.", "warn")
+
+	}
+
+}
+
+
+void checkDriver() {
+
+	String versionCheck = "unknown"
+	versionCheck = "${getDeviceDataByName('driver')}"
+
+	if ("$versionCheck" != "$driverVersion") {
+
+		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
+		configure()
 
 	}
 

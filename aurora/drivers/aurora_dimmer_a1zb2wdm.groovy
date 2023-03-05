@@ -164,6 +164,7 @@ void checkLevel() {
 void parse(String description) {
 
 	updatePresence()
+	checkDriver()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 

@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.15 (5th March 2023)
+ *  BirdsLikeWires Xiaomi Library v1.16 (5th March 2023)
  *	
  */
 
@@ -27,6 +27,7 @@ void refresh() {
 void parse(String description) {
 
 	updatePresence()
+	checkDriver()
 
 	String encodingCheck = "unknown"
 	encodingCheck = "${getDeviceDataByName('encoding')}"
@@ -77,16 +78,6 @@ void parse(String description) {
 		
 		logging("${device} : Parse : Failed to parse $encodingCheck cluster specification data. Please report these messages to the developer.", "error")
 		logging("${device} : Parse : ${description}", "error")
-
-	}
-
-	String versionCheck = "unknown"
-	versionCheck = "${getDeviceDataByName('driver')}"
-
-	if ("$versionCheck" != "$driverVersion") {
-
-		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
-		configure()
 
 	}
 
