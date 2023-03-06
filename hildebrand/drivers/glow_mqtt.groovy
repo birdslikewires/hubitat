@@ -1,8 +1,11 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.08 (5th March 2023)
+ *  Hildebrand Glow MQTT Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.09 (6th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -53,15 +56,6 @@ preferences {
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-
-}
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
 
 }
 
@@ -128,13 +122,14 @@ void uninstalled() {
 
 void parse(String description) {
 
+	updatePresence()
+	checkDriver()
+
 	// The parse is expected to run state.parsePasses number of times.
 	Integer parseMax = state.parsePasses
 	Integer parseCount = state.parseCounter + 1
 
 	logging("${device} : Parse (Pass $parseCount/$parseMax) : $description", "trace")
-
-	updatePresence()
 
 	// Some values should only be updated every occasionalUpdateMinutes to reduce chatter and hub load.
 	Boolean updateOccasional = false
