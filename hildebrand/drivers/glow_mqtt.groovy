@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.09 (6th March 2023)"
+@Field String driverVersion = "v1.10 (6th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -221,14 +221,23 @@ void parse(String description) {
 
 			} else if (msg.topic.indexOf('electricitymeter') >= 0) {
 
+				BigDecimal cumulativeExport = json.electricitymeter.energy.export.cumulative
+				String cumulativeExportUnits = json.electricitymeter.energy.export.units
+				eleMeter.parse([[name:"export", value:cumulativeExport, unit: "${cumulativeExportUnits}"]])
+
 				BigDecimal cumulative = json.electricitymeter.energy.import.cumulative
-				eleMeter.parse([[name:"energy", value:cumulative]])
+				String cumulativeUnits = json.electricitymeter.energy.import.units
+				eleMeter.parse([[name:"energy", value:cumulative, unit: "${cumulativeUnits}"]])
 
 				BigDecimal power = json.electricitymeter.power.value * 1000
 				power = power.intValue()
-				eleMeter.parse([[name:"power", value:power]])
+				eleMeter.parse([[name:"power", value:power, unit: "W"]])
 
 				if (updateOccasional) {
+
+					eleMeter.setState([[name:"energyUnit", value:"${cumulativeUnits}"]])
+					eleMeter.setState([[name:"exportUnit", value:"${cumulativeExportUnits}"]])
+					eleMeter.setState([[name:"powerUnit", value:"W"]])
 
 					BigDecimal day = json.electricitymeter.energy.import.day
 					BigDecimal week = json.electricitymeter.energy.import.week
@@ -240,10 +249,6 @@ void parse(String description) {
 
 					String mpan = json.electricitymeter.energy.import.mpan
 					eleMeter.setState([[name:"mpan", value:mpan]])
-
-					String units = json.electricitymeter.energy.import.units
-					eleMeter.setState([[name:"energyUnit", value:"${units}"]])
-					eleMeter.setState([[name:"powerUnit", value:"W"]]) 			// This is a fixed value but just in case it's easier to find here.
 
 					BigDecimal unitrate = json.electricitymeter.energy.import.price.unitrate
 					BigDecimal unitratePence = unitrate * 100
@@ -264,10 +269,9 @@ void parse(String description) {
 
 			} else if (msg.topic.indexOf('gasmeter') >= 0) {
 
-				// Gas meters only send data every 30 minutes via the electricity meter, so there's no point being verbose.
-				// It is expected that cumulative energy will soon be sent in cubic meters and the power value will be removed.
 
 				if (updateOccasional) {
+					// Gas meters only send data every 30 minutes via the electricity meter, so there's no point being verbose.
 
 					BigDecimal volume = json.gasmeter.energy.import.cumulativevol
 					gasMeter.parse([[name:"volume", value:volume]])
