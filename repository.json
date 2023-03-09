@@ -40,6 +40,7 @@
       "name": "General Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
+        "MQTT",
         "Tools & Utilities",
         "Zigbee"
       ],
