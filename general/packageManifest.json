@@ -17,20 +17,12 @@
 	],
 	"drivers": [
 		{
-			"id": "27b466da-e169-4270-9e1a-29a5173f9883",
-			"name": "Splurge Driver",
-			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/splurge.groovy",
-			"required": false,
-			"version": "1.03"
-		},
-		{
 			"id": "bb0231d6-9f1c-41dd-99e4-403bdcf37a39",
 			"name": "Virtual Switchable Presence",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/virtual_switchable_presence.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "1.04"
 		}
 	]
 }
