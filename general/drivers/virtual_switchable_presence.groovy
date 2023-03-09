@@ -1,6 +1,6 @@
 /*
  * 
- *  Virtual Switchable Presence v1.02 (20th March 2022)
+ *  Virtual Switchable Presence v1.03 (5th December 2022)
  *	
  */
 
@@ -18,15 +18,6 @@ metadata {
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
-		
-		attribute "absent", "integer"
-		attribute "absentCounter", "string"
-		attribute "absentDate", "integer"
-		attribute "absentTime", "string"
-		attribute "present", "integer"
-		attribute "presentCounter", "string"
-		attribute "presentDate", "integer"
-		attribute "presentTime", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -64,9 +55,6 @@ def configure() {
 	unschedule()
 
 	long millisNow = new Date().time
-
-	sendEvent(name: "absent", value: 0, isStateChange: false)
-	sendEvent(name: "present", value: millisNow, isStateChange: false)
 
 	sendEvent(name: "presence", value: "present", isStateChange: false)
 	sendEvent(name: "switch", value: "on", isStateChange: false)
@@ -146,13 +134,13 @@ void statusChanged(String status) {
 
 	if (status.indexOf('absent') >= 0) {
 
-		sendEvent(name: "absent", value: millisNow)
-		sendEvent(name: "absentDate", value: dateNow)
+		state.absent = millisNow
+		state.absentDate = dateNow
 		
 	} else {
 
-		sendEvent(name: "present", value: millisNow)
-		sendEvent(name: "presentDate", value: dateNow)
+		state.present = millisNow
+		state.presentDate = dateNow
 
 	}
 
@@ -174,8 +162,8 @@ void updateDurations(long millisNow) {
 			newDhmsUptime = millisToDhms(durationAbsent)
 			String timeAbsent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
-			sendEvent(name: "absentCounter", value: durationAbsent)
-			sendEvent(name: "absentTime", value: timeAbsent)
+			state.absentCounter = durationAbsent
+			state.absentTime = timeAbsent
 
 		} else {
 
@@ -186,8 +174,8 @@ void updateDurations(long millisNow) {
 			newDhmsUptime = millisToDhms(durationPresent)
 			String timePresent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
-			sendEvent(name: "presentCounter", value: durationPresent)
-			sendEvent(name: "presentTime", value: timePresent)
+			state.presentCounter = durationPresent
+			state.presentTime = timePresent
 
 		}
 

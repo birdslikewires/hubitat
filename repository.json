@@ -37,14 +37,14 @@
     },
     {
       "id": "071ec430-411e-4321-886a-5785d0b29e4c",
-      "name": "Generic Drivers from BirdsLikeWires",
+      "name": "General Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
         "Tools & Utilities",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/packageManifest.json",
-      "description": "Generic utility drivers for platform exploration."
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/packageManifest.json",
+      "description": "General purpose drivers."
     },
     {
       "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
