@@ -1,11 +1,11 @@
 /*
  * 
- *  Xiaomi Mijia Smart Light Sensor GZCGQ01LM / GZCGQ11LM Driver
+ *  Xiaomi Mijia Smart Light Sensor Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.15 (1st March 2023)"
+@Field String driverVersion = "v1.16 (10th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Mijia Smart Light Sensor GZCGQ01LM / GZCGQ11LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor_gzcgq01lm.groovy") {
+	definition (name: "Xiaomi Mijia Smart Light Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

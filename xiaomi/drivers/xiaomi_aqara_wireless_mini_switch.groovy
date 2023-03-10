@@ -1,11 +1,11 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM Driver
+ *  Xiaomi Aqara Wireless Mini Switch Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.14 (1st March 2023)"
+@Field String driverVersion = "v1.15 (10th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch_wxkg11lm_wxkg12lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Mini Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy") {
 
 		capability "AccelerationSensor"
 		capability "Battery"

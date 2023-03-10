@@ -1,11 +1,11 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver
+ *  Xiaomi Aqara Wireless Remote Switch Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.14 (1st March 2023)"
+@Field String driverVersion = "v1.15 (10th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg06lm_wxkg07lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Remote Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
