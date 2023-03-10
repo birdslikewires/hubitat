@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.23 (5th March 2023)
+ *  BirdsLikeWires Library v1.24 (10th March 2023)
  *	
  */
 
@@ -560,6 +560,30 @@ private String hexToText(String hex) {
 }
 
 
+private String capitaliseFirstLetters(String input) {
+
+    if (input == null || input.isEmpty()) return input
+
+    String[] words = input.split("\\s+")
+    StringBuilder output = new StringBuilder(input.length())
+
+    for (String word : words) {
+
+        output.append(Character.toUpperCase(word.charAt(0)))
+
+        if (word.length() > 1) {
+            output.append(word.substring(1))
+        }
+
+        output.append(" ")
+
+    }
+
+    return output.toString().trim()
+
+}
+
+
 void loggingStatus() {
 
 	log.info  "${device} :  Info Logging : ${infoLogging == true}"
@@ -697,12 +721,12 @@ void mqttConnect() {
 		def mqttInt = interfaces.mqtt
 
 		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+			logging("${device} : mqttConnect : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
 			return
 		}
 
 		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
+			logging("${device} : mqttConnect : Topic is not set.", "error")
 			return
 		}
 
@@ -714,7 +738,15 @@ void mqttConnect() {
 
 	} catch (Exception e) {
 
-		logging("${device} : MQTT : ${e.message}", "error")
+		if (state.mqttBroker == null) {
+
+			logging("${device} : mqttConnect : No broker configured.", "warn")
+
+		} else {
+
+			logging("${device} : mqttConnect : ${e.message}", "error")
+
+		}
 
 	}
 
@@ -725,11 +757,11 @@ void mqttClientStatus(String status) {
 
 	if (status.indexOf('Connection succeeded') >= 0) {
 
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+		logging("${device} : mqttClientStatus : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
 
 	} else {
 
-		logging("${device} : MQTT : ${status}", "error")
+		logging("${device} : mqttClientStatus : ${status}", "error")
 
 	}
 
