@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.24 (10th March 2023)
+ *  BirdsLikeWires Library v1.25 (11th March 2023)
  *	
  */
 
@@ -76,7 +76,7 @@ void updated() {
 
 	updateSpecifics()
 
-	logging("${device} : Preferences Updated", "info")
+	logging("${device} : Preferences updated.", "info")
 
 	loggingStatus()
 
@@ -310,7 +310,8 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
 	logging("${device} : batteryVoltage raw value : ${batteryVoltage}", "debug")
 
-	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryVoltageDivisor
+	batteryVoltage = batteryVoltage / batteryVoltageDivisor
+	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
@@ -383,7 +384,7 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
 	// Type will determine the driver to use.
-	// Endpoint is any identifier unique to the parent.
+	// Endpoint is any unique identifier.
 
 	def childDevice = getChildDevice("${device.id}-${endpoint}")
 
@@ -395,12 +396,12 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${endpoint}", isComponent: false])
 
-			if (type.indexOf('Switch') >= 0) {
+			// if (type.indexOf('Switch') >= 0) {
 
-				// Presume a switch to be off until told otherwise.
-				childDevice.parse([[name: "switch", value: 'off']])
+			// 	// Presume a switch to be off until told otherwise.
+			// 	childDevice.parse([[name: "switch", value: 'off']])
 
-			}
+			// }
 
 			//childDevice.updateSetting("txtEnable", false)
 

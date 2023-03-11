@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.15 (10th March 2023)"
+@Field String driverVersion = "v1.16 (11th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -67,13 +67,14 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
-	updateDataValue("encoding", "Xiaomi")
-
 	String modelCheck = "${getDeviceDataByName('model')}"
+
+	// Devices with models starting "lumi" are directly connected.
 
 	if ("$modelCheck" == "lumi.sensor_switch.aq2") {
 		// This is the WXKG11LM original 2015 model.
 
+		updateDataValue("encoding", "Xiaomi")
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LMr1"
 		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
 		device.deleteCurrentState("level")
@@ -81,14 +82,15 @@ void configureSpecifics() {
 	} else if ("$modelCheck" == "lumi.remote.b1acn01") {
 		// This is the WXKG11LM revised 2018 model featuring hold and release.
 
+		updateDataValue("encoding", "Xiaomi")
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG11LMr2"
 		sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
 
 	} else if ("$modelCheck" == "lumi.sensor_switch.aq3") {
 		// This is the WXKG12LM with gyroscope for shake functionality.
-		// These sacrifice some multi-presses and I've found them less resiliant in poor signal environments. Just my 2p.
 
+		updateDataValue("encoding", "Xiaomi")
 		device.name = "Xiaomi Aqara Wireless Mini Switch WXKG12LM"
 		sendEvent(name: "numberOfButtons", value: 6, isStateChange: false)
 		sendEvent(name: "level", value: 0, isStateChange: false)
@@ -102,9 +104,16 @@ void configureSpecifics() {
 
 	} else {
 
-		logging("${device} : Model '$modelCheck' is not known.", "warn")
+		String encodingCheck = "${getDeviceDataByName('encoding')}"
 
-		if (modelCheck.indexOf('FF42') >= 0) {
+		if (encodingCheck.indexOf('MQTT') >= 0) {
+			// If this is an MQTT device everything is already configured. Just tidy up.
+
+			removeDataValue("isComponent")
+			removeDataValue("label")
+			removeDataValue("name")
+
+		} else if (modelCheck.indexOf('FF42') >= 0) {
 			// We may have a raw hex message in here. Mine looked like this:
 			// 166C756D692E73656E736F725F7377697463682E61713201FF421A0121BD0B03281C0421A81305214C02062406000000000A2108C6
 			
@@ -116,13 +125,18 @@ void configureSpecifics() {
 			if (extractedModel.indexOf('lumi.sensor_switch') >= 0) {
 
 				updateDataValue("model", "$extractedModel")
-				logging("${device} : Found and updated model name to '$extractedModel'.", "info")
+				logging("${device} : Updated model name to '$extractedModel'.", "info")
+				configureSpecifics()
 
 			} else {
 
 				logging("${device} : Extracted '$extractedModel' but this is an unknown device to this driver. Please report to developer.", "warn")
 
 			}
+
+		} else {
+
+			logging("${device} : Model '$modelCheck' is not known.", "warn")
 
 		}
 
@@ -142,6 +156,29 @@ void updateSpecifics() {
 void accelerationInactive() {
 
 	sendEvent(name: "acceleration", value: "inactive", isStateChange: true)
+
+}
+
+
+void levelChange(int multiplier) {
+	// Work out the level we should report based upon the hold duration.
+
+	long millisHeld = now() - state.changeLevelStart
+	if (millisHeld > 6000) {
+		millisHeld = 0				// In case we don't receive a 'released' message.
+	}
+
+	BigInteger levelChange = 0
+	levelChange = millisHeld / 6000 * multiplier
+	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
+	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
+
+	BigDecimal secondsHeld = millisHeld / 1000
+	secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
+
+	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
+
+	setLevel(levelChange)
 
 }
 
@@ -197,10 +234,10 @@ void processMap(Map map) {
 
 		} else if (map.value == "0200") {
 
-			logging("${device} : Trigger : Button Double Tapped", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 			logging("${device} : Trigger : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
+			logging("${device} : Trigger : Button Double Tapped", "info")
+			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 
 		} else if (map.value == "0000" || map.value == "1000") {
 
@@ -214,24 +251,7 @@ void processMap(Map map) {
 			logging("${device} : Trigger : Button Released", "info")
 			sendEvent(name: "released", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 4, isStateChange: true)
-
-			// Now work out the level we should report based upon the hold duration.
-
-			long millisHeld = now() - state.changeLevelStart
-			if (millisHeld > 6000) {
-				millisHeld = 0				// In case we don't receive a 'released' message.
-			}
-
-			BigInteger levelChange = 0
-			levelChange = millisHeld / 6000 * 140
-			// That multiplier above is arbitrary - it was 100, but has been increased to account for the delay in detecting hold mode.
-
-			BigDecimal secondsHeld = millisHeld / 1000
-			secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
-
-			logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
-
-			setLevel(levelChange)
+			levelChange(140)
 
 		} else if (map.value == "1200") {
 
@@ -280,5 +300,107 @@ void processMap(Map map) {
 		filterThis(map)
 
 	}
+
+}
+
+
+void processMQTT(def json) {
+
+	// Process the action first!
+	if (json.action) debounceAction("${json.action}")
+
+	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+
+	BigDecimal batteryVoltage = new BigDecimal(json.voltage)
+	batteryVoltage = batteryVoltage / 1000
+	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
+	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")	
+
+	switch("${json.device.model}") {
+
+		case "WXKG11LM":
+			sendEvent(name: "numberOfButtons", value: 4, isStateChange: false)
+			break
+
+		case "WXKG12LM":
+			sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
+			break
+
+	}
+
+	String deviceName = "Xiaomi Aqara Wireless Mini Switch ${json.device.model}"
+	if ("${device.name}" != "$deviceName") device.name = "$deviceName"
+	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+
+	updateDataValue("encoding", "MQTT")
+	updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	updateDataValue("model", "${json.device.model}")
+
+	logging("${device} : parseMQTT : ${json}", "debug")
+
+	updatePresence()
+	checkDriver()
+
+}
+
+
+@Field static Boolean debounceActionParsing = false
+void debounceAction(String action) {
+
+	if (debounceActionParsing) {
+		logging("${device} : parseMQTT : DEBOUNCED", "debug")
+		return
+	}
+	debounceActionParsing = true
+
+	switch(action) {
+
+		case "single":
+			logging("${device} : Trigger : Button 1 Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			break
+
+		case "double":
+			logging("${device} : Trigger : Button 2 Pressed", "info")
+			sendEvent(name: "pushed", value: 2, isStateChange: true)
+			logging("${device} : Trigger : Button Double Tapped", "info")
+			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			break
+
+		case "triple":
+			logging("${device} : Trigger : Button 3 Pressed", "info")
+			sendEvent(name: "pushed", value: 3, isStateChange: true)
+			break
+
+		case "quadruple":
+			logging("${device} : Trigger : Button 4 Pressed", "info")
+			sendEvent(name: "pushed", value: 4, isStateChange: true)
+			break
+
+		case "hold":
+			state.changeLevelStart = now()
+			logging("${device} : Trigger : Button Held", "info")
+			sendEvent(name: "held", value: 1, isStateChange: true)
+			sendEvent(name: "pushed", value: 3, isStateChange: true)
+			break
+
+		case "release":
+			logging("${device} : Trigger : Button Released", "info")
+			sendEvent(name: "released", value: 1, isStateChange: true)
+			sendEvent(name: "pushed", value: 4, isStateChange: true)
+			levelChange(160)
+			break
+
+		case "shake":
+			logging("${device} : Trigger : Button Shaken", "info")
+			sendEvent(name: "acceleration", value: "active", isStateChange: true)
+			sendEvent(name: "pushed", value: 5, isStateChange: true)
+			runIn(4,accelerationInactive)
+			break
+
+	}
+
+	pauseExecution 200
+	debounceActionParsing = false
 
 }
