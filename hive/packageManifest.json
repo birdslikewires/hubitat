@@ -5,13 +5,13 @@
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hive",
-	"dateReleased": "2023-03-02",
+	"dateReleased": "2023-03-11",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"location": "https://github.com/birdslikewires/hubitat/raw/master/general/libraries/library.zip",
 			"required": true
 		}
 	],
