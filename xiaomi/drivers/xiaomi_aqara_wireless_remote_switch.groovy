@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.16 (11th March 2023)"
+@Field String driverVersion = "v1.17 (11th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -93,7 +93,7 @@ void configureSpecifics() {
 
 		} else {
 
-			logging("${device} : Model '$modelCheck' is not known.", "warn")
+			logging("${device} : Model '$modelCheck' is not known.", "debug")
 
 		}
 
@@ -293,16 +293,19 @@ void debounceAction(String action) {
 
 	switch(action) {
 
+		case "single":
 		case "single_left":
 			logging("${device} : Trigger : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 			break
 
+		case "double":
 		case "double_left":
 			logging("${device} : Trigger : Button 1 Double Pressed", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 			break
 
+		case "hold":
 		case "hold_left":
 			logging("${device} : Trigger : Button 1 Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)

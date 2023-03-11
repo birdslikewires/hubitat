@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.16 (11th March 2023)"
+@Field String driverVersion = "v1.17 (11th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -136,7 +136,7 @@ void configureSpecifics() {
 
 		} else {
 
-			logging("${device} : Model '$modelCheck' is not known.", "warn")
+			logging("${device} : Model '$modelCheck' is not known.", "debug")
 
 		}
 
