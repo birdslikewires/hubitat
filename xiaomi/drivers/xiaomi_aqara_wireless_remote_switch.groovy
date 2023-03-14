@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (11th March 2023)"
+@Field String driverVersion = "v1.18 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -191,7 +191,7 @@ void processMap(Map map) {
 
 			int heldButton = device.currentState("held").value.toInteger()
 			sendEvent(name: "released", value: heldButton, isStateChange: true)
-			logging("${device} : Trigger : Button ${heldButton} Autoreleased", "info")
+			logging("${device} : Action : Button ${heldButton} Autoreleased", "info")
 
 		} else {
 
@@ -219,17 +219,17 @@ int debouncePress(Map map) {
 
 	if (map.value == "0100") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+		logging("${device} : Action : Button ${buttonNumber} Pressed", "info")
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 	} else if (map.value == "0200") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Double Pressed", "info")
+		logging("${device} : Action : Button ${buttonNumber} Double Pressed", "info")
 		sendEvent(name: "doubleTapped", value: buttonNumber, isStateChange: true)
 
 	} else if (map.value == "0000") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Held", "info")
+		logging("${device} : Action : Button ${buttonNumber} Held", "info")
 		sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 
 	}
@@ -295,50 +295,54 @@ void debounceAction(String action) {
 
 		case "single":
 		case "single_left":
-			logging("${device} : Trigger : Button 1 Pressed", "info")
+			logging("${device} : Action : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 			break
 
 		case "double":
 		case "double_left":
-			logging("${device} : Trigger : Button 1 Double Pressed", "info")
+			logging("${device} : Action : Button 1 Double Pressed", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 			break
 
 		case "hold":
 		case "hold_left":
-			logging("${device} : Trigger : Button 1 Held", "info")
+			logging("${device} : Action : Button 1 Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			break
 
 		case "single_right":
-			logging("${device} : Trigger : Button 2 Pressed", "info")
+			logging("${device} : Action : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
 			break
 
 		case "double_right":
-			logging("${device} : Trigger : Button 2 Double Pressed", "info")
+			logging("${device} : Action : Button 2 Double Pressed", "info")
 			sendEvent(name: "doubleTapped", value: 2, isStateChange: true)
 			break
 
 		case "hold_right":
-			logging("${device} : Trigger : Button 2 Held", "info")
+			logging("${device} : Action : Button 2 Held", "info")
 			sendEvent(name: "held", value: 2, isStateChange: true)
 			break
 
 		case "single_both":
-			logging("${device} : Trigger : Button 3 Pressed", "info")
+			logging("${device} : Action : Button 3 Pressed", "info")
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
 			break
 
 		case "double_both":
-			logging("${device} : Trigger : Button 1 Double Pressed", "info")
+			logging("${device} : Action : Button 1 Double Pressed", "info")
 			sendEvent(name: "doubleTapped", value: 3, isStateChange: true)
 			break
 
 		case "hold_both":
-			logging("${device} : Trigger : Button 1 Held", "info")
+			logging("${device} : Action : Button 1 Held", "info")
 			sendEvent(name: "held", value: 3, isStateChange: true)
+			break
+
+		default:
+			logging("${device} : Action : '$action' is an unknown action.", "info")
 			break
 
 	}

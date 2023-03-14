@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (11th March 2023)"
+@Field String driverVersion = "v1.18 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -160,54 +160,6 @@ void accelerationInactive() {
 }
 
 
-void levelChange(int multiplier) {
-	// Work out the level we should report based upon the hold duration.
-
-	long millisHeld = now() - state.changeLevelStart
-	if (millisHeld > 6000) {
-		millisHeld = 0				// In case we don't receive a 'released' message.
-	}
-
-	BigInteger levelChange = 0
-	levelChange = millisHeld / 6000 * multiplier
-	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
-	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
-
-	BigDecimal secondsHeld = millisHeld / 1000
-	secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
-
-	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
-
-	setLevel(levelChange)
-
-}
-
-
-void setLevel(BigDecimal level) {
-
-	setLevel(level,1)
-
-}
-
-
-void setLevel(BigDecimal level, BigDecimal duration) {
-
-	BigDecimal safeLevel = level <= 100 ? level : 100
-	safeLevel = safeLevel < 0 ? 0 : safeLevel
-
-	String hexLevel = percentageToHex(safeLevel.intValue())
-
-	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-	String hexDuration = Integer.toHexString(safeDuration.intValue())
-
-	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
-
-	sendEvent(name: "level", value: "${safeLevel}")
-
-}
-
-
 void processMap(Map map) {
 
 	if (map.cluster == "0006") { 
@@ -217,11 +169,11 @@ void processMap(Map map) {
 		buttonNumber = buttonNumber == 0 ? 1 : buttonNumber
 
 		if (buttonNumber == 2) {
-			logging("${device} : Trigger : Button Double Tapped", "info")
+			logging("${device} : Action : Button Double Tapped", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 		}
 
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+		logging("${device} : Action : Button ${buttonNumber} Pressed", "info")
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 	} else if (map.cluster == "0012") { 
@@ -229,33 +181,33 @@ void processMap(Map map) {
 
 		if (map.value == "0100") {
 
-			logging("${device} : Trigger : Button 1 Pressed", "info")
+			logging("${device} : Action : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 
 		} else if (map.value == "0200") {
 
-			logging("${device} : Trigger : Button 2 Pressed", "info")
+			logging("${device} : Action : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Trigger : Button Double Tapped", "info")
+			logging("${device} : Action : Button Double Tapped", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 
 		} else if (map.value == "0000" || map.value == "1000") {
 
 			state.changeLevelStart = now()
-			logging("${device} : Trigger : Button Held", "info")
+			logging("${device} : Action : Button Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
 
 		} else if (map.value == "1100" || map.value == "FF00") {
 
-			logging("${device} : Trigger : Button Released", "info")
+			logging("${device} : Action : Button Released", "info")
 			sendEvent(name: "released", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 4, isStateChange: true)
 			levelChange(140)
 
 		} else if (map.value == "1200") {
 
-			logging("${device} : Trigger : Button Shaken", "info")
+			logging("${device} : Action : Button Shaken", "info")
 			sendEvent(name: "acceleration", value: "active", isStateChange: true)
 			sendEvent(name: "pushed", value: 6, isStateChange: true)
 			runIn(4,accelerationInactive)
@@ -284,7 +236,7 @@ void processMap(Map map) {
 				//deviceData = map.value.split('FF42')[1]
 
 				// Scrounge more value! It's another button, so as '11LMs can quad-click we'll call this button five.
-				logging("${device} : Trigger : Button 5 Pressed", "info")
+				logging("${device} : Action : Button 5 Pressed", "info")
 				sendEvent(name: "pushed", value: 5, isStateChange: true)
 
 			}
@@ -356,46 +308,50 @@ void debounceAction(String action) {
 	switch(action) {
 
 		case "single":
-			logging("${device} : Trigger : Button 1 Pressed", "info")
+			logging("${device} : Action : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 			break
 
 		case "double":
-			logging("${device} : Trigger : Button 2 Pressed", "info")
+			logging("${device} : Action : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Trigger : Button Double Tapped", "info")
+			logging("${device} : Action : Button Double Tapped", "info")
 			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
 			break
 
 		case "triple":
-			logging("${device} : Trigger : Button 3 Pressed", "info")
+			logging("${device} : Action : Button 3 Pressed", "info")
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
 			break
 
 		case "quadruple":
-			logging("${device} : Trigger : Button 4 Pressed", "info")
+			logging("${device} : Action : Button 4 Pressed", "info")
 			sendEvent(name: "pushed", value: 4, isStateChange: true)
 			break
 
 		case "hold":
 			state.changeLevelStart = now()
-			logging("${device} : Trigger : Button Held", "info")
+			logging("${device} : Action : Button Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
 			break
 
 		case "release":
-			logging("${device} : Trigger : Button Released", "info")
+			logging("${device} : Action : Button Released", "info")
 			sendEvent(name: "released", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 4, isStateChange: true)
 			levelChange(160)
 			break
 
 		case "shake":
-			logging("${device} : Trigger : Button Shaken", "info")
+			logging("${device} : Action : Button Shaken", "info")
 			sendEvent(name: "acceleration", value: "active", isStateChange: true)
 			sendEvent(name: "pushed", value: 5, isStateChange: true)
 			runIn(4,accelerationInactive)
+			break
+
+		default:
+			logging("${device} : Action : '$action' is an unknown action.", "info")
 			break
 
 	}
