@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (9th March 2023)"
+@Field String driverVersion = "v1.01 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -120,6 +120,11 @@ void parse(String description) {
 			// Here we determine which driver to use based upon the model.
 			switch("${json.device.model}") {
 
+				case "E1766":
+				case "E1812":
+					device = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
+					break
+
 				case "WXKG06LM":
 				case "WXKG07LM":
 					device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
@@ -130,6 +135,10 @@ void parse(String description) {
 					device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
 					break
 
+				default:		
+					logging("Zigbee2MQTT : No known driver for the ${json.device.model} from ${json.device.manufacturerName}.", "warn")
+					return
+
 			}
 
 			// Hand off the payload.
@@ -139,7 +148,7 @@ void parse(String description) {
 
 	} catch (Exception e) {
 
-		logging("${device} : Parse : ${e.message}", "error")
+		logging("${device} : ${e.message}.", "error")
 
 	}
 
