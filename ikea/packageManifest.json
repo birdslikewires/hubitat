@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
-			"version": "1.13"
+			"version": "1.14"
 		},
 		{
 			"id": "5f306d7c-655c-41bb-a11d-76456da40b9f",

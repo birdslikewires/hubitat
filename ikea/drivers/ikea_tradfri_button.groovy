@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.13 (14th March 2023)"
+@Field String driverVersion = "v1.14 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -312,7 +312,7 @@ void debounceAction(String action) {
 			break
 
 		case "open":
-			state.changeLevelStart = now()
+			state.levelChangeStart = now()
 			logging("${device} : Action : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 			break
@@ -329,7 +329,7 @@ void debounceAction(String action) {
 			break
 
 		case "brightness_move_up":
-			state.changeLevelStart = now()
+			state.levelChangeStart = now()
 			logging("${device} : Action : Button 1 Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			break

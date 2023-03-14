@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.18 (14th March 2023)"
+@Field String driverVersion = "v1.19 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -193,7 +193,7 @@ void processMap(Map map) {
 
 		} else if (map.value == "0000" || map.value == "1000") {
 
-			state.changeLevelStart = now()
+			state.levelChangeStart = now()
 			logging("${device} : Action : Button Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
@@ -330,7 +330,7 @@ void debounceAction(String action) {
 			break
 
 		case "hold":
-			state.changeLevelStart = now()
+			state.levelChangeStart = now()
 			logging("${device} : Action : Button Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
