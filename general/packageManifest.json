@@ -23,6 +23,14 @@
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/virtual_switchable_presence.groovy",
 			"required": false,
 			"version": "1.04"
+		},
+		{
+			"id": "82f074bf-3c7e-4867-86f6-f4028a06eebc",
+			"name": "Zigbee2MQTT",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/zigbee2mqtt.groovy",
+			"required": false,
+			"version": "1.01"
 		}
 	]
 }

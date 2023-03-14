@@ -45,7 +45,7 @@
         "Zigbee"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/packageManifest.json",
-      "description": "General purpose drivers."
+      "description": "Utility drivers, including Zigbee2MQTT integration."
     },
     {
       "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
