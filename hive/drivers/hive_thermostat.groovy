@@ -5,12 +5,12 @@
  */
 
 
-@Field String driverVersion = "v0.50 (1st March 2023)"
+@Field String driverVersion = "v0.51 (6th March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
+@Field boolean debugMode = true
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
@@ -50,15 +50,6 @@ preferences {
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-
-}
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
 
 }
 
