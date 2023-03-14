@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (5th March 2023)"
+@Field String driverVersion = "v1.06 (14th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -136,6 +136,7 @@ void setLevel(BigDecimal level) {
 void setLevel(BigDecimal level, BigDecimal duration) {
 
 	BigDecimal safeLevel = level <= 98 ? level : 100
+	safeLevel = safeLevel < 0 ? 0 : safeLevel
 	String hexLevel = percentageToHex(safeLevel.intValue())
 
 	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
