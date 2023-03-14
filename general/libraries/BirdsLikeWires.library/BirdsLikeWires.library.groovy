@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.25 (11th March 2023)
+ *  BirdsLikeWires Library v1.26 (14th March 2023)
  *	
  */
 
@@ -108,6 +108,54 @@ void release(buttonId) {
 	
 	sendEvent(name:"released", value: buttonId, isStateChange:true)
 	
+}
+
+
+void levelChange(int multiplier) {
+	// Work out the level we should report based upon a hold duration.
+
+	long millisHeld = now() - state.changeLevelStart
+	if (millisHeld > 6000) {
+		millisHeld = 0				// In case we don't receive a 'released' message.
+	}
+
+	BigInteger levelChange = 0
+	levelChange = millisHeld / 6000 * multiplier
+	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
+	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
+
+	BigDecimal secondsHeld = millisHeld / 1000
+	secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
+
+	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
+
+	setLevel(levelChange)
+
+}
+
+
+void setLevel(BigDecimal level) {
+
+	setLevel(level,1)
+
+}
+
+
+void setLevel(BigDecimal level, BigDecimal duration) {
+
+	BigDecimal safeLevel = level <= 100 ? level : 100
+	safeLevel = safeLevel < 0 ? 0 : safeLevel
+
+	String hexLevel = percentageToHex(safeLevel.intValue())
+
+	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
+	String hexDuration = Integer.toHexString(safeDuration.intValue())
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+
+	sendEvent(name: "level", value: "${safeLevel}")
+
 }
 
 
@@ -301,8 +349,14 @@ void processDescriptors(Map map) {
 
 
 void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecimal batteryVoltageScaleMin, BigDecimal batteryVoltageScaleMax) {
-
 	// Report the battery voltage and calculated percentage.
+
+	if ($batteryVoltageHex == "") {
+		// Ignore empty nonsense.
+		logging("${device} : batteryVoltageHex : skipping anomolous reading.", "debug")
+		return
+	}
+
 	BigDecimal batteryVoltage = 0
 
 	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
