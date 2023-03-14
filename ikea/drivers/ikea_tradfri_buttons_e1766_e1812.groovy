@@ -1,6 +1,6 @@
 /*
  * 
- *  IKEA Tradfri Buttons Driver
+ *  IKEA Tradfri Button Driver
  *	
  */
 
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Tradfri Buttons", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button_e1812.groovy") {
+	definition (name: "IKEA Tradfri Button", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -26,13 +26,10 @@ metadata {
 		capability "HoldableButton"
 		capability "PresenceSensor"
 		capability "PushableButton"
-		capability "Refresh"
 		capability "ReleasableButton"
+		capability "SwitchLevel"
 
 		attribute "batteryState", "string"
-		attribute "batteryVoltage", "string"
-		attribute "batteryVoltageWithUnit", "string"
-		attribute "batteryWithUnit", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -78,13 +75,20 @@ void configureSpecifics() {
 }
 
 
-void refresh() {
-	
-	// Battery status can be requested if command is sent within about 3 seconds of an actuation.
-	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020))
-	logging("${device} : Refreshed", "info")
+void updateSpecifics() {
+
+	return
 
 }
+
+
+// void refresh() {
+	
+// 	// Battery status can be requested if command is sent within about 3 seconds of an actuation.
+// 	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020))
+// 	logging("${device} : Refreshed", "info")
+
+// }
 
 
 
@@ -137,7 +141,7 @@ void processMap(Map map) {
 
 		if (receivedData.length == 0) {
 
-			processPress(map)
+			debouncePress(map)
 
 		} else {
 
@@ -150,7 +154,7 @@ void processMap(Map map) {
 
 		if (map.command == "05" || map.command == "07") {
 
-			processPress(map)
+			debouncePress(map)
 
 		} else {
 
@@ -164,7 +168,7 @@ void processMap(Map map) {
 
 		if (map.command == "00" || map.command == "01" || map.command == "02") {
 
-			processPress(map)
+			debouncePress(map)
 
 		} else {
 
@@ -182,7 +186,7 @@ void processMap(Map map) {
 
 
 @Field static Boolean isParsing = false
-def processPress(Map map) {
+def debouncePress(Map map) {
 
 	if (isParsing) return
 	isParsing = true
@@ -191,12 +195,12 @@ def processPress(Map map) {
 
 		if (map.command == "01") {
 
-			logging("${device} : Trigger : Button Pressed", "info")
+			logging("${device} : Action : Button Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 
 		} else if (map.command == "00") {
 
-			logging("${device} : Trigger : Button Double-Pressed", "info")
+			logging("${device} : Action : Button Double-Pressed", "info")
 			sendEvent(name:"doubleTapped", value: 1, isStateChange:true)
 
 		}
@@ -205,12 +209,12 @@ def processPress(Map map) {
 
 		if (map.command == "05") {
 
-			logging("${device} : Trigger : Button Held", "info")
+			logging("${device} : Action : Button Held", "info")
 			sendEvent(name: "held", value: 1, isStateChange: true)
 
 		} else if (map.command == "07") {
 
-			logging("${device} : Trigger : Button Released", "info")
+			logging("${device} : Action : Button Released", "info")
 			sendEvent(name: "released", value: 1, isStateChange: true)
 
 		} else {
@@ -224,18 +228,18 @@ def processPress(Map map) {
 		if (map.command == "00") {
 
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			logging("${device} : Trigger : Button 1 Pressed", "info")
+			logging("${device} : Action : Button 1 Pressed", "info")
 
 		} else if (map.command == "01") {
 
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Trigger : Button 2 Pressed", "info")
+			logging("${device} : Action : Button 2 Pressed", "info")
 
 		} else if (map.command == "02") {
 
 			int whichButton = device.currentState("pushed").value.toInteger()
 			sendEvent(name: "released", value: whichButton, isStateChange: true)
-			logging("${device} : Trigger : Button $whichButton Released", "info")
+			logging("${device} : Action : Button $whichButton Released", "info")
 
 		} else {
 
@@ -247,5 +251,102 @@ def processPress(Map map) {
 
 	pauseExecution 200
 	isParsing = false
+
+}
+
+
+void processMQTT(def json) {
+
+	// Process the action first!
+	if (json.action) debounceAction("${json.action}")
+
+	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+
+	switch("${json.device.model}") {
+
+		case "E1766":
+			sendEvent(name: "numberOfButtons", value: 2, isStateChange: false)
+			break
+
+		case "E1812":
+			sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
+			break
+
+	}
+
+	String deviceName = "IKEA Tradfri Button ${json.device.model}"
+	if ("${device.name}" != "$deviceName") device.name = "$deviceName"
+	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+
+	updateDataValue("encoding", "MQTT")
+	updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	updateDataValue("model", "${json.device.model}")
+
+	logging("${device} : parseMQTT : ${json}", "debug")
+
+	updatePresence()
+	checkDriver()
+
+}
+
+
+@Field static Boolean debounceActionParsing = false
+void debounceAction(String action) {
+
+	if (debounceActionParsing) {
+		logging("${device} : parseMQTT : DEBOUNCED", "debug")
+		return
+	}
+	debounceActionParsing = true
+
+	switch(action) {
+
+		case "on":
+			logging("${device} : Action : Button 1 Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			break
+
+		case "off":
+			logging("${device} : Action : Button 1 Double Pressed", "info")
+			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			break
+
+		case "open":
+			state.changeLevelStart = now()
+			logging("${device} : Action : Button 1 Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			break
+
+		case "close":
+			logging("${device} : Action : Button 2 Pressed", "info")
+			sendEvent(name: "pushed", value: 2, isStateChange: true)
+			break
+
+		case "stop":
+			logging("${device} : Action : Button 1 Released", "info")
+			sendEvent(name: "released", value: 1, isStateChange: true)
+			levelChange(140)
+			break
+
+		case "brightness_move_up":
+			state.changeLevelStart = now()
+			logging("${device} : Action : Button 1 Held", "info")
+			sendEvent(name: "held", value: 1, isStateChange: true)
+			break
+
+		case "brightness_stop":
+			logging("${device} : Action : Button 1 Released", "info")
+			sendEvent(name: "released", value: 1, isStateChange: true)
+			levelChange(180)
+			break
+
+		default:
+			logging("${device} : Action : Type '$action' is an unknown action.", "warn")
+			break
+
+	}
+
+	pauseExecution 200
+	debounceActionParsing = false
 
 }
