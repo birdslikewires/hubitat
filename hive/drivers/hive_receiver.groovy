@@ -5,12 +5,12 @@
  */
 
 
-@Field String driverVersion = "v0.50 (1st March 2023)"
+@Field String driverVersion = "v0.51 (12th March 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
+@Field boolean debugMode = true
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
@@ -30,16 +30,15 @@ metadata {
 		capability "ThermostatSetpoint"
 
 		attribute "heatingBoostRemaining", "number"
-		//attribute "waterBoostRemaining", "number"
-		//attribute "waterstatMode", "string"
-		//attribute "waterstatOperatingState", "string"
 
 		if (debugMode) {
 			command "checkPresence"
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2", application: "87"
+		command "getThermostatMode"
+
+		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2"
 
 	}
 
@@ -59,6 +58,20 @@ def testCommand() {
 
 	logging("${device} : Test Command", "info")
 
+	//sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0024, 0x21, 30, [sourceEndpoint:0x09]))	// TemperatureSetpointHoldDuration
+
+	sendZigbeeCommands([
+			"he wattr 0x${device.deviceNetworkId} 0x06 0x0201 0x0024 0x21 {1E}"
+	])
+
+
+	// ArrayList<String> cmds = []
+
+	// cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x1E, [destEndpoint: 0x06])
+	// //cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 65535)		
+	// sendZigbeeCommands(cmds)
+
+
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))	//Read LocalTemperature
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
 	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
@@ -69,15 +82,6 @@ def testCommand() {
 
 	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x001C, [destEndpoint:0x06]))	
 	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
-
-}
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
 
 }
 
@@ -95,7 +99,7 @@ void configureSpecifics() {
 	//        On early firmware some values were reported correctly, but on the latest firmware this doesn't appear to be the case.
 	sendZigbeeCommands([
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 8000",				// OccupiedHeatingSetpoint
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 2000",				// OccupiedHeatingSetpoint
 
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",				// SystemMode (Heating)
@@ -104,15 +108,15 @@ void configureSpecifics() {
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",				// TemperatureSetpointHoldDuration (Heating)
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0029 0x19 1 43200 {} {}, delay 8000",				// ThermostatRunningState (Heating)
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000",				// ThermostatRunningState (Heating)
 
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
+		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",				// SystemMode (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
+		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0023 0x30 1 43200 {} {}, delay 2000",				// TemperatureSetpointHold (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
+		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",				// TemperatureSetpointHoldDuration (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
+		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000"				// ThermostatRunningState (Water)
 	])
 
@@ -162,22 +166,20 @@ void cool() {
 
 
 void emergencyHeat() {
-	// Boost mode. For now we just crank it up to 32degC for 30 minutes, but this could be configurable.
+	// Boost mode.
 
-	logging("${device} : Heating Boost : This feature has not been implemented yet. Please boost from the thermostat.", "warn")
-
-	return
-
-	int boostTime = 30
+	int boostTime = 1
+	int boostTemp = 2300
+	logging("${device} : Heating Boost : Attempting to boost to ${boostTemp} for ${boostTime} minutes", "debug")
 
 	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05)		// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)		// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, boostTime)	// TemperatureSetpointHoldDuration (30 mins)
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, 0x0C80) 	// OccupiedHeatingSetpoint (32degC)
+	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x05], 0)			// SystemMode
+	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x05], 0)			// TemperatureSetpointHold
+	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, boostTime, [destEndpoint: 0x05], 0)		// TemperatureSetpointHoldDuration
+	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, boostTemp, [destEndpoint: 0x05], 0) 	// OccupiedHeatingSetpoint
 	sendZigbeeCommands(cmds)
 
-	runIn(3,getThermostatMode)
+	//runIn(3,getThermostatMode)
 
 }
 
@@ -204,7 +206,7 @@ void heat(String temperature) {
 	ArrayList<String> cmds = []
 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)				// SystemMode
 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)				// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)				// TemperatureSetpointHoldDuration
+	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x0)				// TemperatureSetpointHoldDuration
 	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt) 	// OccupiedHeatingSetpoint
 	sendZigbeeCommands(cmds)
 
@@ -216,10 +218,7 @@ void heat(String temperature) {
 void setHeatingSetpoint(BigDecimal temperature) {
 
 	// Convert from degF.
-	String temperatureScale = location.temperatureScale
-	if (temperatureScale == "F") {
-		temperature = (temperature / 1.8) - 32
-	}
+	if ("${location.temperatureScale}" == "F") temperature = (temperature / 1.8) - 32
 	
 	(temperature < 5) ? temperature = 1 : temperature		// Anything lower than 5degC is frost protect mode.
 	(temperature > 32) ? temperature = 32 : temperature		// Anything higher than 32degC is not supported.
@@ -228,11 +227,12 @@ void setHeatingSetpoint(BigDecimal temperature) {
 	temperature = temperature * 2
 	temperature = temperature.setScale(0, BigDecimal.ROUND_HALF_UP)
 	temperature = temperature / 2
-	temperature = temperature.setScale(2, BigDecimal.ROUND_UP)
+	temperature = temperature.setScale(2, BigDecimal.ROUND_UP) * 100
+	int temperatureInt = temperature.toInteger()
 
-	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperature}", "debug")
+	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperatureInt}", "debug")
 
-	heat(temperature.toString())
+	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt))
 
 }
 
