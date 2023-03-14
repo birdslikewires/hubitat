@@ -84,7 +84,6 @@ void refresh() {
 }
 
 
-
 void parse(String description) {
 
 	updatePresence()
