@@ -133,8 +133,6 @@ void processMap(Map map) {
 	if (map.cluster == "0001") {
 		// Power Configuration Cluster
 
-		logging("${device} : battery!", "info")
-
 		reportBattery("${map.value}", 10, 4.8, 6.0)
 
 	} else if (map.cluster == "0402") {
