@@ -95,8 +95,7 @@ void configureSpecifics() {
 
 	// Reporting
 	//  These had to be constructed manually as configureReporting seemed to ignore the [destEndpoint:0x06] additional parameter.
-	//  NOTE! Though the water (endpoint 0x06) configuration is reported as successful, the behaviour doesn't match heating (endpoint 0x05).
-	//        On early firmware some values were reported correctly, but on the latest firmware this doesn't appear to be the case.
+	//  NOTE! Though the water (endpoint 0x06) bind is reported as successful, the reporting doesn't match heating (endpoint 0x05).
 	sendZigbeeCommands([
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
 		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 2000",				// OccupiedHeatingSetpoint

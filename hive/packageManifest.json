@@ -11,7 +11,7 @@
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://github.com/birdslikewires/hubitat/raw/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
 			"required": false,
-			"version": "0.05"
+			"version": "0.51"
 		},
 		{
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
 			"required": false,
-			"version": "0.05"
+			"version": "0.51"
 		}
 	]
 }
