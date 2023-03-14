@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.26 (14th March 2023)
+ *  BirdsLikeWires Library v1.27 (14th March 2023)
  *	
  */
 
@@ -114,7 +114,7 @@ void release(buttonId) {
 void levelChange(int multiplier) {
 	// Work out the level we should report based upon a hold duration.
 
-	long millisHeld = now() - state.changeLevelStart
+	long millisHeld = now() - state.levelChangeStart
 	if (millisHeld > 6000) {
 		millisHeld = 0				// In case we don't receive a 'released' message.
 	}
@@ -129,30 +129,18 @@ void levelChange(int multiplier) {
 
 	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
 
-	setLevel(levelChange)
+	levelChangeReport(levelChange)
 
 }
 
 
-void setLevel(BigDecimal level) {
-
-	setLevel(level,1)
-
-}
-
-
-void setLevel(BigDecimal level, BigDecimal duration) {
+void levelChangeReport(BigDecimal level) {
 
 	BigDecimal safeLevel = level <= 100 ? level : 100
 	safeLevel = safeLevel < 0 ? 0 : safeLevel
 
-	String hexLevel = percentageToHex(safeLevel.intValue())
-
-	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-	String hexDuration = Integer.toHexString(safeDuration.intValue())
-
 	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+	logging("${device} : levelChangeReport : Got level of '${level}', sending ${safeLevel}%", "debug")
 
 	sendEvent(name: "level", value: "${safeLevel}")
 
