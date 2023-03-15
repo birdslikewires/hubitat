@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.14 (14th March 2023)"
+@Field String driverVersion = "v1.15 (15th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -24,9 +24,11 @@ metadata {
 		capability "Configuration"
 		capability "DoubleTapableButton"
 		capability "HoldableButton"
+		capability "Momentary"
 		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "ReleasableButton"
+		capability "Refresh"
 		capability "SwitchLevel"
 
 		attribute "batteryState", "string"
@@ -61,16 +63,17 @@ void testCommand() {
 }
 
 
-
 void configureSpecifics() {
 
-	// GOT SOME WORK TO DO HERE
-	// How do you know that this driver is being used for Zigbee and not MQTT?
+	String encodingCheck = "${getDeviceDataByName('encoding')}"
 
-	int reportIntervalSeconds = reportIntervalMinutes * 60
-	sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
+	if (encodingCheck != "MQTT") {
 
-	requestBasic()
+		int reportIntervalSeconds = reportIntervalMinutes * 60
+		sendZigbeeCommands(zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, DataType.UINT8, reportIntervalSeconds, reportIntervalSeconds, 0x00))   // Report in regardless of other changes.
+		requestBasic()
+
+	}
 
 }
 
@@ -82,19 +85,26 @@ void updateSpecifics() {
 }
 
 
-// void refresh() {
-	
-// 	// Battery status can be requested if command is sent within about 3 seconds of an actuation.
-// 	sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020))
-// 	logging("${device} : Refreshed", "info")
+void refresh() {
 
-// }
+	String encodingCheck = "${getDeviceDataByName('encoding')}"
 
+	if (encodingCheck != "MQTT") {
+
+		// Battery status can be requested if command is sent within about 3 seconds of an actuation.
+		sendZigbeeCommands(zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020))
+
+	}
+
+	logging("${device} : Refreshed", "info")
+
+}
 
 
 void parse(String description) {
 
 	updatePresence()
+	checkDriver()
 
 	logging("${device} : parse() : $description", "trace")
 
