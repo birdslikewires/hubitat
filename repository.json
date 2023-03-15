@@ -45,7 +45,7 @@
         "Zigbee"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/packageManifest.json",
-      "description": "Utility drivers, including Zigbee2MQTT integration."
+      "description": "Zigbee2MQTT Routing and other utility drivers."
     },
     {
       "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
@@ -56,7 +56,7 @@
         "MQTT"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/packageManifest.json",
-      "description": "Drivers for Hildebrand Glow consumer access devices."
+      "description": "Consumer access device drivers for SMETS1 and SMETS2 UK smart meters."
     },
     {
       "id": "A7ECBF4E-634F-4B5B-BF6B-1D511B830F21",
