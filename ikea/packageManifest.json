@@ -20,7 +20,7 @@
 			"id": "cdceaf16-657a-4827-b57a-5eace80bec18",
 			"name": "IKEA Symfonisk Sound Controller E1744",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller_e1744.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
 			"required": false,
 			"version": "1.07"
 		},
