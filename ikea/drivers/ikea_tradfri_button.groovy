@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.15 (15th March 2023)"
+@Field String driverVersion = "v1.16 (17th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -74,6 +74,8 @@ void configureSpecifics() {
 		requestBasic()
 
 	}
+
+	sendEvent(name: "level", value: 0, isStateChange: false)
 
 }
 
