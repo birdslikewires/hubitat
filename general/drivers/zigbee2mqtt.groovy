@@ -1,11 +1,11 @@
 /*
  * 
- *  Zigbee2MQTT Driver
+ *  Zigbee2MQTT Routing Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.02 (14th March 2023)"
+@Field String driverVersion = "v1.03 (17th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -126,6 +126,10 @@ void parse(String description) {
 
 				// Here we determine which driver to use based upon the model.
 				switch("${json.device.model}") {
+
+					case "E1744":
+						device = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
+						break						
 
 					case "E1766":
 					case "E1812":
