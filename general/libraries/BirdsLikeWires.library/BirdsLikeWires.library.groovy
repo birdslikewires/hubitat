@@ -166,7 +166,7 @@ void levelChangeReport(int levelChange, String direction) {
 
 	logging("${device} : levelChangeReport : Got level of '${levelChange}', sending ${newLevel}%", "debug")
 
-	sendEvent(name: "level", value: "${newLevel}")
+	sendEvent(name: "level", value: newLevel)
 
 }
 
