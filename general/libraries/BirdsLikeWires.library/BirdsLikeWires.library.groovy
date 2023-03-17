@@ -133,7 +133,7 @@ void levelChange(int multiplier, String direction) {
 	BigDecimal secondsActive = millisActive / 1000
 	secondsActive = secondsActive.setScale(2, BigDecimal.ROUND_HALF_UP)
 
-	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsActive} seconds.", "info")
+	logging("${device} : Level : Change of ${levelChange} after action for ${secondsActive} seconds.", "info")
 
 	levelChangeReport(levelChange, direction)
 
@@ -164,7 +164,6 @@ void levelChangeReport(int levelChange, String direction) {
 	newLevel = newLevel <= 100 ? newLevel : 100
 	newLevel = newLevel < 0 ? 0 : newLevel
 
-	String pluralisor = duration == 1 ? "" : "s"
 	logging("${device} : levelChangeReport : Got level of '${levelChange}', sending ${newLevel}%", "debug")
 
 	sendEvent(name: "level", value: "${newLevel}")
