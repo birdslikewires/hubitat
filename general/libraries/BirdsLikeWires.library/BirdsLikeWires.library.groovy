@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.27 (14th March 2023)
+ *  BirdsLikeWires Library v1.28 (17th March 2023)
  *	
  */
 
@@ -112,37 +112,62 @@ void release(buttonId) {
 
 
 void levelChange(int multiplier) {
-	// Work out the level we should report based upon a hold duration.
 
-	long millisHeld = now() - state.levelChangeStart
-	if (millisHeld > 6000) {
-		millisHeld = 0				// In case we don't receive a 'released' message.
-	}
-
-	BigInteger levelChange = 0
-	levelChange = millisHeld / 6000 * multiplier
-	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
-	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
-
-	BigDecimal secondsHeld = millisHeld / 1000
-	secondsHeld = secondsHeld.setScale(2, BigDecimal.ROUND_HALF_UP)
-
-	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsHeld} seconds.", "info")
-
-	levelChangeReport(levelChange)
+	levelChange(multiplier, "")
 
 }
 
 
-void levelChangeReport(BigDecimal level) {
+void levelChange(int multiplier, String direction) {
+	// Work out the level we should report based upon a hold duration.
 
-	BigDecimal safeLevel = level <= 100 ? level : 100
-	safeLevel = safeLevel < 0 ? 0 : safeLevel
+	long millisActive = now() - state.levelChangeStart
+	if (millisActive > 6000) {
+		millisActive = 0				// In case we don't receive a 'released' message.
+	}
+
+	int levelChange = millisActive / 6000 * multiplier
+	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
+	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
+
+	BigDecimal secondsActive = millisActive / 1000
+	secondsActive = secondsActive.setScale(2, BigDecimal.ROUND_HALF_UP)
+
+	logging("${device} : Level : Setting level to ${levelChange} after holding for ${secondsActive} seconds.", "info")
+
+	levelChangeReport(levelChange, direction)
+
+}
+
+
+void levelChangeReport(int levelChange, String direction) {
+
+	int initialLevel = device.currentState("level").value.toInteger()
+
+	int newLevel = 0
+
+	if ("$direction" == "decrease") {
+
+		newLevel = device.currentState("level").value.toInteger() - levelChange
+		levelChange *= -1
+
+	} else if ("$direction" == "increase") {
+
+		newLevel = device.currentState("level").value.toInteger() + levelChange
+
+	} else {
+
+		newLevel = levelChange
+
+	}
+
+	newLevel = newLevel <= 100 ? newLevel : 100
+	newLevel = newLevel < 0 ? 0 : newLevel
 
 	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : levelChangeReport : Got level of '${level}', sending ${safeLevel}%", "debug")
+	logging("${device} : levelChangeReport : Got level of '${levelChange}', sending ${newLevel}%", "debug")
 
-	sendEvent(name: "level", value: "${safeLevel}")
+	sendEvent(name: "level", value: "${newLevel}")
 
 }
 
