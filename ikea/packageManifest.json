@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
 			"required": false,
-			"version": "1.07"
+			"version": "1.08"
 		},
 		{
 			"id": "683107b8-d0b2-4984-9edc-0ecd1d90ac10",

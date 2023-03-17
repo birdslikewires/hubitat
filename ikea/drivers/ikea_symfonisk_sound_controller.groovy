@@ -81,6 +81,15 @@ void configureSpecifics() {
 
 	}
 
+	sendEvent(name: "level", value: 0, isStateChange: false)
+
+}
+
+
+void updateSpecifics() {
+
+	return
+
 }
 
 
@@ -177,7 +186,7 @@ def debouncePress(Map map) {
 		// This is a press of the button.
 		buttonNumber = 1
 
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+		logging("${device} : Action : Button ${buttonNumber} Pressed", "info")
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 		
 		device.currentState("switch").value == "off" ? on() : off()
@@ -195,7 +204,7 @@ def debouncePress(Map map) {
 
 				buttonNumber = 2
 				state.levelChangeStart = now()
-				logging("${device} : Trigger : Dial (Button ${buttonNumber}) Turning Clockwise", "info")
+				logging("${device} : Action : Dial (Button ${buttonNumber}) Turning Clockwise", "info")
 				sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 				sendEvent(name: "direction", value: "clockwise")
 				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
@@ -205,7 +214,7 @@ def debouncePress(Map map) {
 
 				buttonNumber = 3
 				state.levelChangeStart = now()
-				logging("${device} : Trigger : Dial (Button ${buttonNumber}) Turning Anticlockwise", "info")
+				logging("${device} : Action : Dial (Button ${buttonNumber}) Turning Anticlockwise", "info")
 				sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 				sendEvent(name: "direction", value: "anticlockwise")
 				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
@@ -227,13 +236,13 @@ def debouncePress(Map map) {
 			if (receivedData[0] == "00") {
 
 				// Double-press is a supported Hubitat action, so just report the event.
-				logging("${device} : Trigger : Button ${buttonNumber} Double Pressed", "info")
+				logging("${device} : Action : Button ${buttonNumber} Double Pressed", "info")
 				sendEvent(name: "doubleTapped", value: buttonNumber, isStateChange: true)
 
 			} else if (receivedData[0] == "01") {
 
 				// Triple-pressing is not a supported Hubitat action, but this device doesn't support hold or release on the button, so we'll use "held" for this.
-				logging("${device} : Trigger : Button ${buttonNumber} Triple Pressed", "info")
+				logging("${device} : Action : Button ${buttonNumber} Triple Pressed", "info")
 				sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 
 			} else {
@@ -249,7 +258,7 @@ def debouncePress(Map map) {
 
 			buttonNumber = device.currentState("held").value.toInteger()
 
-			logging("${device} : Trigger : Dial (Button ${buttonNumber}) Stopped", "info")
+			logging("${device} : Action : Dial (Button ${buttonNumber}) Stopped", "info")
 			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
 
 			// Now work out the level we should change to based upon the time spent changing.
@@ -297,31 +306,16 @@ def debouncePress(Map map) {
 }
 
 
+
 void processMQTT(def json) {
 
 	// Process the action first!
 	if (json.action) debounceAction("${json.action}")
 
 	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
-
-	BigDecimal batteryVoltage = new BigDecimal(json.voltage)
-	batteryVoltage = batteryVoltage / 1000
-	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
-	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")	
-
-	switch("${json.device.model}") {
-
-		case "WXKG11LM":
-			sendEvent(name: "numberOfButtons", value: 4, isStateChange: false)
-			break
-
-		case "WXKG12LM":
-			sendEvent(name: "numberOfButtons", value: 5, isStateChange: false)
-			break
-
-	}
-
-	String deviceName = "Xiaomi Aqara Wireless Mini Switch ${json.device.model}"
+	sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
+	
+	String deviceName = "Symfonisk Sound Controller E1744"
 	if ("${device.name}" != "$deviceName") device.name = "$deviceName"
 	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
 
@@ -341,54 +335,59 @@ void processMQTT(def json) {
 void debounceAction(String action) {
 
 	if (debounceActionParsing) {
-		logging("${device} : parseMQTT : DEBOUNCED", "debug")
+		logging("${device} : debounceAction : DEBOUNCED", "debug")
 		return
 	}
 	debounceActionParsing = true
 
 	switch(action) {
 
-		case "single":
+		case "toggle":
 			logging("${device} : Action : Button 1 Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
 			break
 
-		case "double":
+		case "brightness_step_up":
+			logging("${device} : Action : Button 1 Double Pressed", "info")
+			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			break			
+
+		case "brightness_step_down":
+			logging("${device} : Action : Button 1 Triple Pressed", "info")
+			sendEvent(name: "held", value: 1, isStateChange: true)
+			break
+
+		case "brightness_move_up":
 			logging("${device} : Action : Button 2 Pressed", "info")
 			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Action : Button Double Tapped", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			sendEvent(name: "held", value: 2, isStateChange: true)
+			state.levelChangeStart = now()
 			break
 
-		case "triple":
+		case "brightness_move_down":
 			logging("${device} : Action : Button 3 Pressed", "info")
 			sendEvent(name: "pushed", value: 3, isStateChange: true)
-			break
-
-		case "quadruple":
-			logging("${device} : Action : Button 4 Pressed", "info")
-			sendEvent(name: "pushed", value: 4, isStateChange: true)
-			break
-
-		case "hold":
+			sendEvent(name: "held", value: 3, isStateChange: true)
 			state.levelChangeStart = now()
-			logging("${device} : Action : Button Held", "info")
-			sendEvent(name: "held", value: 1, isStateChange: true)
-			sendEvent(name: "pushed", value: 3, isStateChange: true)
 			break
 
-		case "release":
-			logging("${device} : Action : Button Released", "info")
-			sendEvent(name: "released", value: 1, isStateChange: true)
-			sendEvent(name: "pushed", value: 4, isStateChange: true)
-			levelChange(160)
-			break
+		case "brightness_stop":
 
-		case "shake":
-			logging("${device} : Action : Button Shaken", "info")
-			sendEvent(name: "acceleration", value: "active", isStateChange: true)
-			sendEvent(name: "pushed", value: 5, isStateChange: true)
-			runIn(4,accelerationInactive)
+			int buttonNumber = device.currentState("held").value.toInteger()
+
+			logging("${device} : Action : Button ${buttonNumber} Released", "info")
+			sendEvent(name: "released", value: buttonNumber, isStateChange: true)
+
+			if (buttonNumber == 2) {
+
+				levelChange(100,"increase")
+
+			} else {
+
+				levelChange(100,"decrease")
+
+			}
+
 			break
 
 		default:
