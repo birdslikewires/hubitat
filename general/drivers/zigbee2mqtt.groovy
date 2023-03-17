@@ -117,48 +117,53 @@ void parse(String description) {
 		} else {
 
 			logging("${device} : Topic : ${msg.topic}", "debug")
-			logging("${device} : Payload : ${msg.payload}", "debug")
 
-			if ("${msg.payload.charAt(0)}" == "{") {
+			if ("${msg.payload}" != "") {
 
-				def json = new groovy.json.JsonSlurper().parseText(msg.payload)
-				def device
+				logging("${device} : Payload : ${msg.payload}", "debug")
 
-				// Here we determine which driver to use based upon the model.
-				switch("${json.device.model}") {
+				if ("${msg.payload.charAt(0)}" == "{") {
 
-					case "E1744":
-						device = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
-						break						
+					def json = new groovy.json.JsonSlurper().parseText(msg.payload)
+					def device
 
-					case "E1766":
-					case "E1812":
-						device = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
-						break
+					// Here we determine which driver to use based upon the model.
+					switch("${json.device.model}") {
 
-					case "WXKG06LM":
-					case "WXKG07LM":
-						device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
-						break
+						case "E1744":
+							device = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
+							break						
 
-					case "WXKG11LM":
-					case "WXKG12LM":
-						device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
-						break
+						case "E1766":
+						case "E1812":
+							device = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
+							break
 
-					default:		
-						logging("Zigbee2MQTT : No known driver for the ${json.device.model} from ${json.device.manufacturerName}.", "warn")
-						return
+						case "WXKG06LM":
+						case "WXKG07LM":
+							device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
+							break
+
+						case "WXKG11LM":
+						case "WXKG12LM":
+							device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
+							break
+
+						default:		
+							logging("Zigbee2MQTT : No known driver for the ${json.device.model} from ${json.device.manufacturerName}.", "warn")
+							return
+
+					}
+
+					// Hand off the payload.
+					device.processMQTT(json)
+
+				} else {
+
+					logging("${device} : Payload : Contained something other than JSON.", "debug")
+					return
 
 				}
-
-				// Hand off the payload.
-				device.processMQTT(json)
-
-			} else {
-
-				logging("${device} : Payload : Contained something other than JSON.", "debug")
-				return
 
 			}
 
