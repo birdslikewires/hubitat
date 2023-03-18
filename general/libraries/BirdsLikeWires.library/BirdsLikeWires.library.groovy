@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.28 (17th March 2023)
+ *  BirdsLikeWires Library v1.29 (18th March 2023)
  *	
  */
 
@@ -135,12 +135,12 @@ void levelChange(int multiplier, String direction) {
 
 	logging("${device} : Level : Change of ${levelChange} after action for ${secondsActive} seconds.", "info")
 
-	levelChangeReport(levelChange, direction)
+	levelEvent(levelChange, direction)
 
 }
 
 
-void levelChangeReport(int levelChange, String direction) {
+void levelEvent(int levelChange, String direction) {
 
 	int initialLevel = device.currentState("level").value.toInteger()
 
@@ -164,7 +164,7 @@ void levelChangeReport(int levelChange, String direction) {
 	newLevel = newLevel <= 100 ? newLevel : 100
 	newLevel = newLevel < 0 ? 0 : newLevel
 
-	logging("${device} : levelChangeReport : Got level of '${levelChange}', sending ${newLevel}%", "debug")
+	logging("${device} : levelEvent : Got level of '${levelChange}', sending ${newLevel}%", "debug")
 
 	sendEvent(name: "level", value: newLevel)
 
