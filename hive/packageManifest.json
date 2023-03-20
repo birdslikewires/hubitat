@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
 			"required": false,
-			"version": "0.55"
+			"version": "0.56"
 		},
 		{
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
