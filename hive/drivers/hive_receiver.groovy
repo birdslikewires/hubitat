@@ -1,11 +1,12 @@
 /*
  * 
- *  Hive Receiver Driver
+ *  Hive Receiver Heating Driver
  *	
  */
 
 
-@Field String driverVersion = "v0.51 (12th March 2023)"
+@Field String driverVersion = "v0.55 (14th March 2023)"
+
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -17,19 +18,21 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Hive Receiver", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy") {
+	definition (name: "Hive Receiver Heating", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
 		capability "PresenceSensor"
 		capability "Refresh"
 		capability "TemperatureMeasurement"
+		capability "Thermostat"
 		capability "ThermostatHeatingSetpoint"
 		capability "ThermostatMode"
 		capability "ThermostatOperatingState"
 		capability "ThermostatSetpoint"
 
 		attribute "heatingBoostRemaining", "number"
+		attribute "heatingMode", "string"
 
 		if (debugMode) {
 			command "checkPresence"
@@ -58,31 +61,6 @@ def testCommand() {
 
 	logging("${device} : Test Command", "info")
 
-	//sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0024, 0x21, 30, [sourceEndpoint:0x09]))	// TemperatureSetpointHoldDuration
-
-	sendZigbeeCommands([
-			"he wattr 0x${device.deviceNetworkId} 0x06 0x0201 0x0024 0x21 {1E}"
-	])
-
-
-	// ArrayList<String> cmds = []
-
-	// cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x1E, [destEndpoint: 0x06])
-	// //cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 65535)		
-	// sendZigbeeCommands(cmds)
-
-
-	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0000))	//Read LocalTemperature
-	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x0012))	//Read OccupiedHeatingSetpoint
-	//sendZigbeeCommands(zigbee.readAttribute(0x201, 0x001C))	//Read SystemMode
-	//sendZigbeeCommands(zigbee.readAttribute(0x000, 0x0003))	//Read HW Version
-	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029))	// ThermostatRunningState
-
-	//sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, 29))
-
-	//sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x001C, [destEndpoint:0x06]))	
-	//sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x001C, 0x30, 0, 60, null, [:], 500))
-
 }
 
 
@@ -94,34 +72,23 @@ void configureSpecifics() {
 	setThermostatDateAndTime()
 
 	// Reporting
-	//  These had to be constructed manually as configureReporting seemed to ignore the [destEndpoint:0x06] additional parameter.
-	//  NOTE! Though the water (endpoint 0x06) bind is reported as successful, the reporting doesn't match heating (endpoint 0x05).
+	//  These had to be constructed manually as configureReporting seems to ignore the [destEndpoint:0x06] additional parameter.
+	//  NOTE! Though the water (endpoint 0x06) bind is reported as successful no reports are ever sent. The endpoint needs to be polled. :(
+	//        Attributes 1C, 23, 24 and 29 all apply to endpoint 6. Temperature setpoint (12) does not apply (set on the boiler).
 	sendZigbeeCommands([
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 2000",				// OccupiedHeatingSetpoint
-
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 2000",			// (0x0201, 0x0012) OccupiedHeatingSetpoint
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",				// SystemMode (Heating)
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",			// (0x0201, 0x001C) SystemMode 
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0023 0x30 1 43200 {} {}, delay 2000",				// TemperatureSetpointHold (Heating)
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0023 0x30 1 43200 {} {}, delay 2000",			// (0x0201, 0x0023) TemperatureSetpointHold 
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",				// TemperatureSetpointHoldDuration (Heating)
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",			// (0x0201, 0x0024) TemperatureSetpointHoldDuration
 		"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000",				// ThermostatRunningState (Heating)
-
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",				// SystemMode (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0023 0x30 1 43200 {} {}, delay 2000",				// TemperatureSetpointHold (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",				// TemperatureSetpointHoldDuration (Water)
-		"zdo bind 0x${device.deviceNetworkId} 0x06 0x01 0x0201 {${device.zigbeeId}} {0x1039}, delay 2000",
-		"he cr 0x${device.deviceNetworkId} 0x06 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000"				// ThermostatRunningState (Water)
+		"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000"			// (0x0201, 0x0029) ThermostatRunningState
 	])
 
-	ArrayList<String> cmds = []
-	cmds += zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 60)		// Temperature Reporting
-	sendZigbeeCommands(cmds)
+	sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 60))							// (0x0201, 0x0000) Temperature Reporting
 
 }
 
@@ -142,7 +109,6 @@ void refresh() {
 }
 
 
-
 void auto() {
 	// Schedule mode. This will run any existing schedule set through the thermostat.
 
@@ -151,7 +117,9 @@ void auto() {
 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00)	// TemperatureSetpointHold
 	sendZigbeeCommands(cmds)
 
-	runIn(3,getThermostatMode)
+	logging("${device} : System set to schedule mode.", "info")
+
+	// runIn(3,getThermostatMode)
 
 }
 
@@ -159,6 +127,7 @@ void auto() {
 void cool() {
 	// This is a heat-only system, so cooling and off are essentially the same thing. Open a window!
 
+	logging("${device} : System switching off, there is no active cooling.", "info")
 	off()
 
 }
@@ -167,9 +136,8 @@ void cool() {
 void emergencyHeat() {
 	// Boost mode.
 
-	int boostTime = 1
-	int boostTemp = 2300
-	logging("${device} : Heating Boost : Attempting to boost to ${boostTemp} for ${boostTime} minutes", "debug")
+	int boostTime = 30
+	int boostTemp = 2400
 
 	ArrayList<String> cmds = []
 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x05], 0)			// SystemMode
@@ -178,7 +146,36 @@ void emergencyHeat() {
 	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, boostTemp, [destEndpoint: 0x05], 0) 	// OccupiedHeatingSetpoint
 	sendZigbeeCommands(cmds)
 
+	logging("${device} : System boosting to ${boostTemp} for ${boostTime} minutes.", "info")
+
 	//runIn(3,getThermostatMode)
+
+}
+
+
+void fanAuto() {
+	// No controllable fans here.
+
+	logging("${device} : No controllable fans.", "info")
+	return
+
+}
+
+
+void fanCirculate() {
+	// No controllable fans here either.
+
+	logging("${device} : No controllable fans.", "info")
+	return
+
+}
+
+
+void fanOn() {
+	// Still no controllable fans, stop asking.
+
+	logging("${device} : No controllable fans.", "info")
+	return
 
 }
 
@@ -186,35 +183,23 @@ void emergencyHeat() {
 void heat() {
 	// Manual mode.
 
-	// With no setpoint specified we have to assume the user wants the current temperature to continue indefinitely.
-	String currentSetpoint = device.currentState("heatingSetpoint") ? device.currentState("heatingSetpoint").value : "19.0"
-	heat("$currentSetpoint")
-
-}
-
-
-void heat(String temperature) {
-	// Manual mode.
-
-	temperature = temperature.replace(".","")
-
-	int temperatureInt = temperature.toInteger()
-
-	logging("${device} : Heating Setpoint : Setting ${temperature}degC", "info")
 
 	ArrayList<String> cmds = []
 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04)				// SystemMode
 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01)				// TemperatureSetpointHold
 	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x0)				// TemperatureSetpointHoldDuration
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt) 	// OccupiedHeatingSetpoint
 	sendZigbeeCommands(cmds)
-
-	runIn(3,getThermostatMode)
 
 }
 
 
 void setHeatingSetpoint(BigDecimal temperature) {
+
+	if ("${device.currentState("thermostatMode").value}" == "off") {
+
+		logging("${device} : Setpoint : System is turned off, this will have no effect.", "warn")
+
+	}
 
 	// Convert from degF.
 	if ("${location.temperatureScale}" == "F") temperature = (temperature / 1.8) - 32
@@ -232,6 +217,7 @@ void setHeatingSetpoint(BigDecimal temperature) {
 	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperatureInt}", "debug")
 
 	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt))
+	//state.lastHeatingSetpointRequest = temperatureInt / 100
 
 }
 
@@ -245,7 +231,7 @@ void off() {
 	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF)	// TemperatureSetpointHoldDuration
 	sendZigbeeCommands(cmds)
 
-	runIn(3,getThermostatMode)
+	//runIn(3,getThermostatMode)
 
 }
 
@@ -291,46 +277,6 @@ void setThermostatMode(thermostatmode) {
 	}
 
 }
-
-//// Dual channel receiver is a work in progress as despite being IDENTICAL in operation to heat mode, just without the temperature setting,
-//// water mode does not appear to properly respond to bind and reporting requests. The receiver replies with success, just doesn't do it.
-
-// def waterScheduleResume() {
-
-// 	ArrayList<String> cmds = []
-// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-// 	sendZigbeeCommands( cmds )  
-
-// }
-
-// def waterOn() {
-
-// 	ArrayList<String> cmds = []
-// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: 0x06])	// SystemMode
-// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-// 	sendZigbeeCommands( cmds )  
-
-// }
-
-// def waterOff() {
-
-// 	ArrayList<String> cmds = []
-// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x00, [destEndpoint: 0x06])	// SystemMode
-// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: 0x06])	// TemperatureSetpointHold
-// 	sendZigbeeCommands( cmds )  
-
-// }
-
-// def waterBoost() {
-
-// 	ArrayList<String> cmds = []
-// 	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: 0x06])	// SystemMode
-// 	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: 0x06])	// TemperatureSetpointHold
-// 	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x001E)	// TemperatureSetpointHoldDuration (30 mins)
-// 	sendZigbeeCommands( cmds )  
-
-// }
 
 
 def setThermostatDateAndTime() {
@@ -401,7 +347,7 @@ void processMap(Map map) {
 
 	if (map.endpoint == "06") {
 
-		logging("${device} : WATER! : We have a water reading!", "debug")
+		logging("${device} : WATER! : We have a water reading!", "error")
 
 	}
 
@@ -450,6 +396,7 @@ void processMap(Map map) {
 					// This always represents off.
 					logging("${device} : mode : ${channel} off", "debug")
 					sendEvent(name: "thermostatMode", value: "off")
+					sendEvent(name: "heatingMode", value: "off")
 					sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029, [destEndpoint:Integer.valueOf(map.endpoint)]))
 					break
 				case "04":
@@ -461,6 +408,7 @@ void processMap(Map map) {
 					// This always represents boost mode.
 					logging("${device} : mode : ${channel} boost", "debug")
 					sendEvent(name: "thermostatMode", value: "emergency heat")
+					sendEvent(name: "heatingMode", value: "boost")
 					break
 				default:
 					logging("${device} : mode : unknown ${channel} mode received", "warn")
@@ -473,13 +421,14 @@ void processMap(Map map) {
 
 			logging("${device} : setpoint hold : ${map.value} on endpoint ${map.endpoint}", "debug")
 
-			String channel = ("${map.endpoint}" == "05") ? "thermostatMode" : "waterstatMode"
+			String channel = ("${map.endpoint}" == "05") ? "thermostat" : "waterstat"
 
 			switch(map.value) {
 
 				case "00":
 					// This always represents scheduled mode as the hold is off, so the schedule is running.
-					sendEvent(name: "${channel}", value: "auto")
+					sendEvent(name: "${channel}Mode", value: "auto")
+					sendEvent(name: "heatingMode", value: "schedule")
 					logging("${device} : setpoint hold : ${map.value} on endpoint ${map.endpoint}", "debug")
 					break
 				case "01":
@@ -488,7 +437,8 @@ void processMap(Map map) {
 					//         the system switches to a hybrid mode where the altered setpoint runs for the duration until the
 					//         next programme change in the schedule. At that point the programme resumes, but the thermostat
 					//         always reports "SCH" despite being in a manual state.
-					sendEvent(name: "${channel}", value: "heat")
+					sendEvent(name: "${channel}Mode", value: "heat")
+					sendEvent(name: "heatingMode", value: "manual")
 					break
 
 			}
