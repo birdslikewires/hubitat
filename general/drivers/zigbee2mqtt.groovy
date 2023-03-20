@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (17th March 2023)"
+@Field String driverVersion = "v1.04 (20th March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -125,28 +125,32 @@ void parse(String description) {
 				if ("${msg.payload.charAt(0)}" == "{") {
 
 					def json = new groovy.json.JsonSlurper().parseText(msg.payload)
-					def device
+					def child
 
 					// Here we determine which driver to use based upon the model.
 					switch("${json.device.model}") {
 
 						case "E1744":
-							device = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
 							break						
 
 						case "E1766":
 						case "E1812":
-							device = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
+							break
+
+						case "FB20-002":
+							child = fetchChild("BirdsLikeWires","Tuya Remote","${json.device.networkAddress}")
 							break
 
 						case "WXKG06LM":
 						case "WXKG07LM":
-							device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
 							break
 
 						case "WXKG11LM":
 						case "WXKG12LM":
-							device = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
 							break
 
 						default:		
@@ -156,7 +160,7 @@ void parse(String description) {
 					}
 
 					// Hand off the payload.
-					device.processMQTT(json)
+					child.processMQTT(json)
 
 				} else {
 
