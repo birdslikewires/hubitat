@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.29 (18th March 2023)
+ *  BirdsLikeWires Library v1.30 (21st March 2023)
  *	
  */
 
@@ -418,13 +418,12 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 
 void reportToDev(map) {
 
-	def dataCount = ""
-	if (map.data != null) {
-		dataCount = "${map.data.length} bits of "
-	}
+	if (map.endpoint == null) return		// If the message doesn't even have an endpoint, it's garbage. Discard!
+
+	if (map.data != null) String dataCount = "${map.data.length} bits of "
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${map.data}", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${dataCount}data: ${map.data}", "warn")
 	logging("${device} : Splurge! : ${map}", "trace")
 
 }
@@ -462,22 +461,9 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${endpoint}", isComponent: false])
 
-			// if (type.indexOf('Switch') >= 0) {
-
-			// 	// Presume a switch to be off until told otherwise.
-			// 	childDevice.parse([[name: "switch", value: 'off']])
-
-			// }
-
-			//childDevice.updateSetting("txtEnable", false)
-
 		}
 
 		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
-
-	} else {
-
-		logging("${device} : Received null endpoint for device $device.id", "error")
 
 	}
 
