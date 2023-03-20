@@ -12,7 +12,7 @@
 import groovy.transform.Field
 
 @Field String deviceName = "Hive Receiver"
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
