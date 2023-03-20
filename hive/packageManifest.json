@@ -26,7 +26,7 @@
 		},
 		{
 			"id": "2b3da697-9d27-4a91-b714-f884e0f55c89",
-			"name": "Hive Receiver",
+			"name": "Hive Receiver Heating",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy",
 			"required": true,
