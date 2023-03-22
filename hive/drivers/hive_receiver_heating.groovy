@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.60 (21st March 2023)"
+@Field String driverVersion = "v0.61 (22nd March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -25,8 +25,10 @@ metadata {
 		capability "Configuration"
 		capability "PresenceSensor"
 		capability "Refresh"
+        capability "Sensor"
 		capability "TemperatureMeasurement"
 		capability "Thermostat"
+        capability "ThermostatCoolingSetpoint"
 		capability "ThermostatHeatingSetpoint"
 		capability "ThermostatMode"
 		capability "ThermostatOperatingState"
