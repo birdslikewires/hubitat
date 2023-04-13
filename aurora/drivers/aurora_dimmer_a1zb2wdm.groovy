@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (14th March 2023)"
+@Field String driverVersion = "v1.07 (14th April 2023)"
 
 
 #include BirdsLikeWires.library
@@ -172,7 +172,6 @@ void parse(String description) {
 	if (descriptionMap) {
 
 		logging("${device} : Parse : ${descriptionMap}", "debug")
-
 		processMap(descriptionMap)
 
 	} else {
@@ -186,8 +185,6 @@ void parse(String description) {
 
 
 void processMap(map) {
-
-	logging("${device} : processMap() : ${map}", "trace")
 
 	if (map.cluster == "0006" || map.clusterId == "0006") {
 

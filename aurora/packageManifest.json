@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
 			"required": false,
-			"version": "1.06"
+			"version": "1.07"
 		}
 	]
 }
