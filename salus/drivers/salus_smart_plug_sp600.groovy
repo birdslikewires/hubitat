@@ -12,7 +12,7 @@
 import groovy.transform.Field
 
 @Field String deviceName = "Salus Smart Plug SP600"
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 2
 @Field int checkEveryMinutes = 1
 
