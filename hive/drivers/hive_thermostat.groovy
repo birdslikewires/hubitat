@@ -5,12 +5,12 @@
  */
 
 
-@Field String driverVersion = "v0.52 (18th August 2023)"
+@Field String driverVersion = "v0.53 (18th August 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 @Field BigDecimal batteryLow = 4.6
