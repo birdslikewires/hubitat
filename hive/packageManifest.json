@@ -38,7 +38,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
 			"required": true,
-			"version": "0.51"
+			"version": "0.52"
 		}
 	]
 }

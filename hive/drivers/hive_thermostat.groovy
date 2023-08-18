@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.51 (6th March 2023)"
+@Field String driverVersion = "v0.52 (18th August 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -13,6 +13,7 @@ import groovy.transform.Field
 @Field boolean debugMode = true
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
+@Field BigDecimal batteryLow = 4.6
 
 
 metadata {
@@ -31,7 +32,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0201,0204,0402,0020,FD00", outClusters: "0003,000A,0201,0019,FD00", manufacturer: "Computime", model: "SLT3", deviceJoinName: "Computime Thermostat SLT3"
 
 	}
 
@@ -87,6 +88,7 @@ void refresh() {
 void parse(String description) {
 
 	updatePresence()
+	checkDriver()
 
 	logging("${device} : parse() : $description", "trace")
 
@@ -132,7 +134,7 @@ void processMap(Map map) {
 	if (map.cluster == "0001") {
 		// Power Configuration Cluster
 
-		reportBattery("${map.value}", 10, 4.8, 6.0)
+		reportBattery("${map.value}", 10, batteryLow, 6.0)
 
 	} else if (map.cluster == "0402") {
 		// Temperature Measurement Cluster
