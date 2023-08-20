@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.53 (18th August 2023)"
+@Field String driverVersion = "v0.54 (20th August 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -22,13 +22,14 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "TemperatureMeasurement"
 		capability "VoltageMeasurement"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-			command "checkPresence"
+			command "checkHealthStatus"
 			command "testCommand"
 		}
 
@@ -87,7 +88,7 @@ void refresh() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	logging("${device} : parse() : $description", "trace")

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.61 (22nd March 2023)"
+@Field String driverVersion = "v0.62 (20th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -23,7 +23,6 @@ metadata {
 
 		capability "Actuator"
 		capability "Configuration"
-		capability "PresenceSensor"
 		capability "Refresh"
         capability "Sensor"
 		capability "TemperatureMeasurement"
@@ -34,11 +33,12 @@ metadata {
 		capability "ThermostatOperatingState"
 		capability "ThermostatSetpoint"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
 		attribute "heatingBoostRemaining", "number"
 		attribute "heatingMode", "string"
 
 		if (debugMode) {
-			command "checkPresence"
+			command "checkHealthStatus"
 			command "testCommand"
 		}
 
@@ -213,7 +213,7 @@ void getThermostatRunningState() {
 
 void processMap(Map map) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	if (map.cluster == "0201") {

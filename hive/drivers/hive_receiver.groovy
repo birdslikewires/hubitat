@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.62 (20th August 2023)"
+@Field String driverVersion = "v0.63 (20th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -22,10 +22,11 @@ metadata {
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy") {
 
 		capability "Configuration"
-		capability "PresenceSensor"
+
+		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkPresence"
+			command "checkHealthStatus"
 			command "testCommand"
 		}
 
@@ -317,7 +318,7 @@ void getThermostatRunningState(int childEndpoint) {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	logging("${device} : parse() : $description", "trace")
