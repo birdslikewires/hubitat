@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.60 (21st March 2023)"
+@Field String driverVersion = "v0.61 (21st March 2023)"
 
 
 #include BirdsLikeWires.library
@@ -29,6 +29,7 @@ metadata {
 			command "testCommand"
 		}
 
+		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR1", deviceJoinName: "Computime Boiler Controller SLR1"
 		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2"
 
 	}
@@ -57,7 +58,7 @@ void configureSpecifics() {
 
 	String modelCheck = "${getDeviceDataByName('model')}"
 	device.name = "$deviceName $modelCheck"
-	setThermostatDateAndTime()
+	setThermostatDateAndTime(5)
 
 	// Reporting
 	//  These had to be constructed manually as configureReporting seems to ignore the [destEndpoint:0x06] additional parameter.
@@ -312,7 +313,6 @@ void getThermostatRunningState(int childEndpoint) {
 	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029, [destEndpoint: childEndpoint]))
 
 }
-
 
 
 void parse(String description) {
