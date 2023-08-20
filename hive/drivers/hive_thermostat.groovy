@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.54 (20th August 2023)"
+@Field String driverVersion = "v0.55 (20th August 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -58,6 +58,8 @@ void testCommand() {
 
 void configureSpecifics() {
 	// Called by library configure() method.
+
+	requestBasic()
 
 	String modelCheck = "${getDeviceDataByName('model')}"
 	device.name = "Hive Thermostat ${modelCheck}"
