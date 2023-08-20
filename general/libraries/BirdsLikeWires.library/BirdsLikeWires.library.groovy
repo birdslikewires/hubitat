@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.30 (21st March 2023)
+ *  BirdsLikeWires Library v1.31 (20th August 2023)
  *	
  */
 
@@ -42,12 +42,14 @@ void configure() {
 	// Tidy up.
 	unschedule()
 	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
 
-	// Schedule presence checking.
+	// Set up health status.
+	state.updatedHealthStatus = 0
+	sendEvent(name: "healthStatus", value: "online", isStateChange: false)
+
+	// Schedule health status checking.
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
@@ -171,7 +173,64 @@ void levelEvent(int levelChange, String direction) {
 }
 
 
+void updateHealthStatus() {
+
+	long millisNow = new Date().time
+	state.updatedHealthStatus = millisNow
+	sendEvent(name: "healthStatus", value: "online")
+
+}
+
+
+void checkHealthStatus() {
+	// Check how long ago the health status was updated.
+
+	long millisNow = new Date().time
+	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+
+	if (state.updatedHealthStatus > 0) {
+
+		long millisElapsed = millisNow - state.updatedHealthStatus
+		long timeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long reportIntervalMillis = reportIntervalMinutes * 60000
+		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
+		BigInteger hubUptime = location.hub.uptime
+
+		if (millisElapsed > timeoutMillis) {
+
+			if (hubUptime > uptimeAllowanceMinutes * 60) {
+
+				sendEvent(name: "healthStatus", value: "offline")
+				logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "warn")
+
+			} else {
+
+				logging("${device} : Health Status : Ignoring overdue reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
+
+			}
+
+		} else {
+
+			sendEvent(name: "healthStatus", value: "online")
+			logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "debug")
+
+		}
+
+		logging("${device} : checkHealthStatus() : ${millisNow} - ${state.updatedHealthStatus} = ${millisElapsed}", "trace")
+		logging("${device} : checkHealthStatus() : Report interval is ${reportIntervalMillis} ms, timeout is ${timeoutMillis} ms.", "trace")
+
+	} else {
+
+		logging("${device} : Health Status : Waiting for first report.", "warn")
+
+	}
+
+}
+
+
 void updatePresence() {
+
+	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
 
 	long millisNow = new Date().time
 	state.presenceUpdated = millisNow
@@ -182,6 +241,8 @@ void updatePresence() {
 
 void checkPresence() {
 	// Check how long ago the presence state was updated.
+
+	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
 
 	long millisNow = new Date().time
 	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
