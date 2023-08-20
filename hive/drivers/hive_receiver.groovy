@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.63 (20th August 2023)"
+@Field String driverVersion = "v0.64 (20th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -26,7 +26,6 @@ metadata {
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkHealthStatus"
 			command "testCommand"
 		}
 

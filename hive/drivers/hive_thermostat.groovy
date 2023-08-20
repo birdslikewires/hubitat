@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.55 (20th August 2023)"
+@Field String driverVersion = "v0.56 (20th August 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -29,7 +29,6 @@ metadata {
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkHealthStatus"
 			command "testCommand"
 		}
 
@@ -156,7 +155,7 @@ void processMap(Map map) {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			logging("${device} : temperature : ${temperature} °${temperatureScale}", "info")
+			logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
 			sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
 
 		} else {
