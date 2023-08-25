@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.64 (21st August 2023)"
+@Field String driverVersion = "v0.65 (25th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -221,7 +221,7 @@ void processMap(Map map) {
 		if (map.attrId == "0000" || map.attrId == "0012") {
 			// Temperature or OccupiedHeatingSetpoint
 
-			String temperatureType = ("${map.attrId}" == "0000") ? "Temperature" : "Heating Setpoint"
+			String temperatureType = ("${map.attrId}" == "0000") ? "temperature" : "heatingSetpoint"
 
 			BigDecimal temperature = hexStrToSignedInt(map.value)
 			temperature = temperature / 100
@@ -237,7 +237,7 @@ void processMap(Map map) {
 			logging("${device} : ${temperatureType} : ${temperature} °${temperatureScale}", "info")
 			sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
 
-			if (temperatureType == "Heating Setpoint") {
+			if (temperatureType == "heatingSetpoint") {
 				// We need to check whether this was a scheduled or manual setpoint change.
 
 				getSystemMode()
