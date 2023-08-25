@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.31 (1st March 2023)"
+@Field String driverVersion = "v1.32 (25th August 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -13,9 +13,9 @@
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-@Field int reportIntervalMinutes = 2		// The real reporting interval of the device.
-@Field int checkEveryMinutes = 1			// How often we should check for presence.
-@Field int rangeEveryHours = 6				// How often we run a ranging report.
+@Field int reportIntervalMinutes = 2
+@Field int checkEveryMinutes = 1
+@Field int rangeEveryHours = 6
 
 
 metadata {
@@ -24,7 +24,7 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "PresenceSensor"
+		//capability "PresenceSensor"	// to be re-enabled as this is a real thing this device would be used for
 		capability "PushableButton"
 		capability "Refresh"
 		capability "ReleasableButton"
@@ -36,9 +36,9 @@ metadata {
 		//command "quietMode"
 
 		attribute "batteryState", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 

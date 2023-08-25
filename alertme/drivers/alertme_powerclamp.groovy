@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.25 (1st March 2023)"
+@Field String driverVersion = "v1.26 (25th August 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -13,7 +13,7 @@
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-@Field int reportIntervalMinutes = 2
+@Field int reportIntervalMinutes = 6
 @Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
 
@@ -26,7 +26,6 @@ metadata {
 		capability "Configuration"
 		capability "EnergyMeter"
 		capability "PowerMeter"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "SignalStrength"
 		capability "TamperAlert"
@@ -38,11 +37,11 @@ metadata {
 		//command "quietMode"
 
 		attribute "batteryState", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
 		attribute "uptime", "string"
 		attribute "uptimeReadable", "string"
 
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 

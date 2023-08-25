@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.16 (5th March 2023)
+ *  BirdsLikeWires AlertMe Library v1.17 (25th August 2023)
  *	
  */
 
@@ -106,7 +106,7 @@ void refresh() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	if (description.startsWith("zone status")) {
