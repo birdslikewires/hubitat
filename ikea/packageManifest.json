@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
 			"required": false,
-			"version": "1.08"
+			"version": "1.09"
 		},
 		{
 			"id": "683107b8-d0b2-4984-9edc-0ecd1d90ac10",
@@ -30,15 +30,15 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
-			"version": "1.16"
+			"version": "1.17"
 		},
 		{
 			"id": "5f306d7c-655c-41bb-a11d-76456da40b9f",
 			"name": "IKEA Tradfri Signal Repeater E1746",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "1.03"
 		}
 	]
 }
