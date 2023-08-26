@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (10th March 2023)"
+@Field String driverVersion = "v1.04 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -23,14 +23,13 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "VoltageMeasurement"
 
 		attribute "batteryState", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 

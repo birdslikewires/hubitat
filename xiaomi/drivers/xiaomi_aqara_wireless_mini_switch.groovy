@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.19 (14th March 2023)"
+@Field String driverVersion = "v1.20 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -26,15 +26,15 @@ metadata {
 		capability "Configuration"
 		capability "DoubleTapableButton"
 		capability "HoldableButton"
-		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "ReleasableButton"
 		capability "SwitchLevel"
 		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
 		capability "VoltageMeasurement"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 
@@ -290,7 +290,7 @@ void processMQTT(def json) {
 
 	logging("${device} : parseMQTT : ${json}", "debug")
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 }

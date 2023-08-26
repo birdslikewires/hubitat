@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Xiaomi Library v1.16 (5th March 2023)
+ *  BirdsLikeWires Xiaomi Library v1.17 (26th August 2023)
  *	
  */
 
@@ -26,7 +26,7 @@ void refresh() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	String encodingCheck = "unknown"

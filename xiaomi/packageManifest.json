@@ -29,7 +29,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor.groovy",
 			"required": false,
-			"version": "1.14"
+			"version": "1.15"
 		},
 		{
 			"id": "3cb6a1f1-a3e3-4d9d-9688-384151e1cb67",
@@ -37,7 +37,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy",
 			"required": false,
-			"version": "1.19"
+			"version": "1.20"
 		},
 		{
 			"id": "380679c8-c0a7-4dcf-b32a-d90647ff8bd9",
@@ -45,7 +45,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy",
 			"required": false,
-			"version": "1.18"
+			"version": "1.19"
 		},
 		{
 			"id": "a45a2a70-3a59-49e8-bbf4-f84dd5a3a9f6",
@@ -53,7 +53,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy",
 			"required": false,
-			"version": "1.16"
+			"version": "1.17"
 		}
 	]
 }
