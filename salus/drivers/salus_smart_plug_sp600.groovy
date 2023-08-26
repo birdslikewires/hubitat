@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.16 (14th April 2023)"
+@Field String driverVersion = "v1.17 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -26,12 +26,12 @@ metadata {
 		capability "Initialize"
 		capability "Outlet"
 		capability "PowerMeter"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 
@@ -106,7 +106,7 @@ void on() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
@@ -188,8 +188,6 @@ void processMap(map) {
 	} else if (map.cluster == "0702" || map.clusterId == "0702") {
 
 		// Power configuration and response handling.
-
-		// We also use this to update our presence detection given its frequency.
 
 		if (map.command == "07") {
 
