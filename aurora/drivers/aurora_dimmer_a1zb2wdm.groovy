@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.07 (14th April 2023)"
+@Field String driverVersion = "v1.08 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -23,18 +23,17 @@ metadata {
 		capability "Actuator"
 		capability "Configuration"
 		capability "Light"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
 		capability "SwitchLevel"
 
-		attribute "indicator", "string"
-
 		command "indicatorOn"
 		command "indicatorOff"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+		attribute "indicator", "enum", ["off", "on"]
+
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 
@@ -164,7 +163,7 @@ void checkLevel() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
