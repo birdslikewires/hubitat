@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.10 (6th March 2023)"
+@Field String driverVersion = "v1.11 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -21,16 +21,14 @@ metadata {
 
 	definition (name: "Hildebrand Glow", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_mqtt.groovy") {
 
-		capability "PresenceSensor"
 		capability "SignalStrength"
 
 		command "disconnect"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-
-			command "checkPresence"
 			command "testCommand"
-
 		}
 
 	}
@@ -122,7 +120,7 @@ void uninstalled() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	// The parse is expected to run state.parsePasses number of times.
@@ -135,7 +133,7 @@ void parse(String description) {
 	Boolean updateOccasional = false
 	Integer updateCount = 0
 	long occasionalUpdateMillis = occasionalUpdateMinutes * 60000
-	long occasionalElapsedMillis = state.presenceUpdated - state.occasionalUpdated
+	long occasionalElapsedMillis = state.updatedHealthStatus - state.occasionalUpdated
 
 	if (occasionalElapsedMillis > occasionalUpdateMillis || state.occasionalUpdated == 0) {
 
@@ -327,7 +325,7 @@ void parse(String description) {
 
 		if (updateOccasional) {
 
-			state.occasionalUpdated = state.presenceUpdated
+			state.occasionalUpdated = state.updatedHealthStatus
 
 		}
 
