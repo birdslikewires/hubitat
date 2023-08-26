@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (26th August 2023)"
+@Field String driverVersion = "v1.04 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -21,8 +21,8 @@ metadata {
 	definition (name: "IKEA Tradfri Signal Repeater", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy") {
 
 		capability "Configuration"
+		capability "HealthCheck"
 		capability "Initialize"
-		capability "Refresh"
 
 		attribute "healthStatus", "enum", ["offline", "online"]
 
@@ -67,10 +67,10 @@ void updateSpecifics() {
 }
 
 
-void refresh() {
+void ping() {
 
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}"])
-	logging("${device} : Refreshed", "info")
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}"])	// request model information
+	logging("${device} : Pinged", "info")
 
 }
 
