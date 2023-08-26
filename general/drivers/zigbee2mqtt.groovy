@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.04 (20th March 2023)"
+@Field String driverVersion = "v1.05 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -20,15 +20,12 @@ metadata {
 
 	definition (name: "Zigbee2MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/zigbee2mqtt.groovy") {
 
-		capability "PresenceSensor"
+		attribute "healthStatus", "enum", ["offline", "online"]
 
 		command "disconnect"
 
 		if (debugMode) {
-
-			command "checkPresence"
 			command "testCommand"
-
 		}
 
 	}
@@ -97,7 +94,7 @@ void uninstalled() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
 	checkDriver()
 
 	try {
