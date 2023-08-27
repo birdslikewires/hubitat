@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (27th August 2023)"
+@Field String driverVersion = "v1.06 (27th August 2023)"
 
 
 #include BirdsLikeWires.library
