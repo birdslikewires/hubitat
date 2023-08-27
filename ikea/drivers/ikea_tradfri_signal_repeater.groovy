@@ -55,7 +55,9 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	return
+	// Reporting
+	int reportIntervalSeconds = reportIntervalMinutes * 60
+	sendZigbeeCommands(zigbee.configureReporting(0x0000, 0x0005, 0x0042, 0, reportIntervalSeconds, 1, [:], 200))	// Send model information.
 
 }
 
@@ -69,7 +71,7 @@ void updateSpecifics() {
 
 void ping() {
 
-	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}"])	// request model information
+	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}"])	// Request model information.
 	logging("${device} : Pinged", "info")
 
 }
