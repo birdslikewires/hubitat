@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.10 (27th August 2023)"
+@Field String driverVersion = "v1.11 (27th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -22,6 +22,7 @@ metadata {
 
 		capability "Actuator"
 		capability "Configuration"
+		capability "HealthCheck"
 		capability "Refresh"
 		capability "Switch"
 
@@ -66,7 +67,6 @@ void testCommand() {
 }
 
 
-
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
@@ -102,6 +102,14 @@ void updateSpecifics() {
 	// Called by updated() method in BirdsLikeWires.library
 
 	return
+
+}
+
+
+void ping() {
+
+	logging("${device} : Ping", "info")
+	refresh()
 
 }
 
