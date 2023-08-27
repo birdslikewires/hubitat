@@ -129,11 +129,9 @@ void parse(String description) {
 void processMap(map) {
 
 	if (map.cluster == "0006" || map.clusterId == "0006") {
-
 		// Relay configuration and response handling.
 
 		if (map.command == "01" || map.command == "0A") {
-
 			// Relay States
 
 			// 01 - Prompted Refresh
@@ -152,11 +150,9 @@ void processMap(map) {
 			}
 
 		} else if (map.command == "07") {
-
 			// Relay Configuration
 
 			logging("${device} : Relay Configuration : Successful", "info")
-
 
 		} else if (map.command == "0B") {
 
