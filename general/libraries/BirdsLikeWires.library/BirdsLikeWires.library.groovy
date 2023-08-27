@@ -311,7 +311,7 @@ void requestBasic() {
 		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0004 {}",
 		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0005 {}",
 		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}",
-		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"  // should that not be 8004 and not 0004?
+		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 
 	])
 
