@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (27th August 2023)"
+@Field String driverVersion = "v1.07 (27th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -54,6 +54,9 @@ void testCommand() {
 
 
 void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.library
+
+	requestBasic()
 
 	// Reporting
 	int reportIntervalSeconds = reportIntervalMinutes * 60
@@ -63,6 +66,7 @@ void configureSpecifics() {
 
 
 void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
 
 	return
 
@@ -71,8 +75,8 @@ void updateSpecifics() {
 
 void ping() {
 
+	logging("${device} : Ping", "info")
 	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x0001 0x0000 0x0005 {}"])	// Request model information.
-	logging("${device} : Pinged", "info")
 
 }
 

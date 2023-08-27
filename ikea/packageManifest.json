@@ -38,7 +38,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater.groovy",
 			"required": false,
-			"version": "1.06"
+			"version": "1.07"
 		}
 	]
 }
