@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy",
 			"required": false,
-			"version": "1.11"
+			"version": "1.12"
 		}
 	]
 }

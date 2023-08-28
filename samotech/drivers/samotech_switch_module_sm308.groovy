@@ -5,20 +5,23 @@
  */
 
 
-@Field String driverVersion = "v1.11 (27th August 2023)"
+@Field String driverVersion = "v1.12 (28th August 2023)"
+@Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
+@Field String deviceMan = "Samotech"
+@Field String deviceType = "Switch Module"
+
 @Field int reportIntervalMinutes = 10
 @Field int checkEveryMinutes = 2
 
 
 metadata {
 
-	definition (name: "Samotech Switch Module SM308", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -35,9 +38,9 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "Samotech Switch Module SM308", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "Samotech Switch Module SM308-S", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "Samotech Switch Module SM308-2CH", application: "00"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "$deviceMan $deviceType SM308", application: "00"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "$deviceMan $deviceType SM308-S", application: "00"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "$deviceMan $deviceType SM308-2CH", application: "00"
 
 	}
 
@@ -73,9 +76,8 @@ void configureSpecifics() {
 	requestBasic()
 
 	// Set device name.
-	String deviceManufacturer = getDeviceDataByName('manufacturer')
 	String deviceModel = getDeviceDataByName('model')
-	device.name = "$deviceManufacturer Switch Module $deviceModel"
+	device.name = "$deviceMan $deviceType $deviceModel"
 
 	// Store relay count and create children.
 	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
