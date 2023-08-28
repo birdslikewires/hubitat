@@ -34,11 +34,11 @@
 		},
 		{
 			"id": "567a083b-1641-4001-8cb0-b3add10158eb",
-			"name": "Tuya Switch Module TS0001 / TS0011 / TS0012",
+			"name": "Tuya Switch Modules TS0001 / TS0011 / TS0012",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_modules.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "1.03"
 		}
 	]
 }

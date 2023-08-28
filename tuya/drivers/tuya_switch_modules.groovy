@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (28th August 2023)"
+@Field String driverVersion = "v1.03 (28th August 2023)"
 @Field boolean debugMode = false
 
 
