@@ -20,7 +20,7 @@
 			"id": "59a4fc0a-5013-4b75-820a-aad512c3b942",
 			"name": "Lidl Smart Extension HG06338",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_usb_extension.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_extension.groovy",
 			"required": false,
 			"version": "1.06"
 		},
