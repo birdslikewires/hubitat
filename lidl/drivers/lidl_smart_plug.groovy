@@ -67,7 +67,6 @@ void configureSpecifics() {
 	requestBasic()
 
 	// Set device name.
-	String deviceModel = getDeviceDataByName('model')
 	device.name = "$deviceMan $deviceType HG06337"
 
 	// Reporting
@@ -118,7 +117,6 @@ void refresh() {
 
 
 void parse(String description) {
-	// Primary parse routine.
 
 	updateHealthStatus()
 	checkDriver()

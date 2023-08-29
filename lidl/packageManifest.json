@@ -17,18 +17,18 @@
 	],
 	"drivers": [
 		{
-			"id": "35214918-E42C-4153-BE13-1435500B292C",
+			"id": "59a4fc0a-5013-4b75-820a-aad512c3b942",
+			"name": "Lidl Smart Extension HG06338",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_usb_extension.groovy",
+			"required": false,
+			"version": "1.06"
+		},
+		{
+			"id": "35214918-e42c-4153-be13-1435500b292c",
 			"name": "Lidl Smart Plug HG06337",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_plug.groovy",
-			"required": false,
-			"version": "1.05"
-		},
-		{
-			"id": "59A4FC0A-5013-4B75-820A-AAD512C3B942",
-			"name": "Lidl Smart USB Extension HG06338",
-			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_usb_extension.groovy",
 			"required": false,
 			"version": "1.05"
 		}
