@@ -83,6 +83,18 @@
       "description": "Drivers for IKEA Tradfri devices."
     },
     {
+      "id": "5d733f43-0047-4da9-9266-144968a1a936",
+      "name": "Lidl Drivers from BirdsLikeWires",
+      "category": "Control",
+      "tags": [
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/packageManifest.json",
+      "description": "Drivers for devices based on Lidl's SilverCrest platform."
+    },
+    {
       "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",
       "name": "Salus Drivers from BirdsLikeWires",
       "category": "Control",

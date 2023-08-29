@@ -1,0 +1,36 @@
+{
+	"packageName": "Lidl Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.1.9",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/lidl",
+	"dateReleased": "2020-12-27",
+	"bundles": [
+		{
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "35214918-E42C-4153-BE13-1435500B292C",
+			"name": "Lidl Smart Plug HG06337",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_plug.groovy",
+			"required": false,
+			"version": "1.04"
+		},
+		{
+			"id": "59A4FC0A-5013-4B75-820A-AAD512C3B942",
+			"name": "Lidl Smart USB Extension HG06338",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_usb_extension.groovy",
+			"required": false,
+			"version": "1.05"
+		}
+	]
+}
