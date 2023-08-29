@@ -70,7 +70,7 @@ void configureSpecifics() {
 	device.name = "$deviceMan $deviceType HG06337"
 
 	// Reporting
-	int minReportTime = 10
+	int minReportTime = 1
 	int maxReportTime = reportIntervalMinutes * 60
 	int reportableChange = 1
 	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, minReportTime, maxReportTime, reportableChange))
