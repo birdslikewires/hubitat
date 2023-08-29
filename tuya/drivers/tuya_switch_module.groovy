@@ -195,7 +195,6 @@ void flashOff() {
 
 
 void parse(String description) {
-	// Primary parse routine.
 
 	updateHealthStatus()
 	checkDriver()
