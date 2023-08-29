@@ -7,7 +7,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (29th August 2023)"
+@Field String driverVersion = "v1.07 (29th August 2023)"
 @Field boolean debugMode = true
 
 
@@ -158,7 +158,7 @@ void processMap(map) {
 
 			if (map.value == "01") {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 
 				sendEvent(name: "switch", value: "on")
@@ -166,7 +166,7 @@ void processMap(map) {
 
 			} else {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 
 				def currentChildStates = fetchChildStates("switch","${cd.id}")
@@ -193,14 +193,14 @@ void processMap(map) {
 
 			if (map.value == "01") {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 				refresh()
 				logging("${device} : Local Switch ${map.endpoint} : On", "info")
 
 			} else {
 
-				def cd = fetchChild("Switch", "${map.endpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 				refresh()
 				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
@@ -216,14 +216,14 @@ void processMap(map) {
 
 			if (powerStateHex == "01") {
 
-				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.sourceEndpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
 
 			} else {
 
-				def cd = fetchChild("Switch", "${map.sourceEndpoint}")
+				def cd = fetchChild("hubitat","Switch","${map.sourceEndpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 
 				def currentChildStates = fetchChildStates("switch","${cd.id}")
