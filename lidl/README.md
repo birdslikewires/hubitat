@@ -1,7 +1,7 @@
-# Tuya Drivers for Hubitat
+# Lidl Drivers for Hubitat
 
-These drivers provide support for the smart plug and smart extension from Lidl.  Tested with the UK products, these drivers should work fine with the product range worldwide.
+These drivers provide support for some Lidl smart home products sold under their SilverCrest brand.
 
-## Instructions
+Only tested with the UK products, but these drivers should work fine with other derivatives. They're rebadged Tuya devices at heart, but I'm handling them separately as there should be at least some degree of standardisation? Maybe?
 
-Instructions mostly live [here](https://community.hubitat.com/t/release-tuya-lidl-smart-home-with-presence/60156?u=andydvsn) for the moment, though I should keep them here instead - and I shall when I get around to it!
+If nothing else it makes the drivers easier to find.

@@ -7,7 +7,7 @@
  */
 
 
-@Field String driverVersion = "v1.04 (29th August 2023)"
+@Field String driverVersion = "v1.05 (29th August 2023)"
 @Field boolean debugMode = false
 
 
@@ -68,7 +68,7 @@ void configureSpecifics() {
 
 	// Set device name.
 	String deviceModel = getDeviceDataByName('model')
-	device.name = "$deviceMan $deviceType $deviceModel"
+	device.name = "$deviceMan $deviceType HG06337"
 
 	// Reporting
 	int minReportTime = 10
