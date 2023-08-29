@@ -1,25 +1,44 @@
 /*
  * 
- *  Tuya Smart Plug TY-HG06337 Driver v1.02 (18th August 2021)
+ *  Tuya Smart Plug Driver
+ *
+ *  Supports: HG06337
  *	
  */
 
 
+@Field String driverVersion = "v1.03 (29th August 2023)"
+@Field boolean debugMode = false
+
+
+#include BirdsLikeWires.library
+import groovy.transform.Field
+
+@Field String deviceMan = "Tuya"
+@Field String deviceType = "Smart Plug"
+
+@Field int reportIntervalMinutes = 10
+@Field int checkEveryMinutes = 4
+
+
 metadata {
 
-	definition (name: "Tuya Smart Plug TY-HG06337", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_plug_ty-hg06337.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_smart_plug_ty-hg06337.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
-		capability "Initialize"
+		capability "HealthCheck"
 		capability "Outlet"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Switch"
 
-		attribute "powerWithUnit", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
 
-		fingerprint profileId: "976B", inClusters: "0000, 0003, 0004, 0005, 0006", outClusters: "0021", manufacturer: "_TZ3000_00mk2xzy", model: "TS011F", deviceJoinName: "Tuya Smart Plug TY-HG06337"
+		if (debugMode) {
+			command "testCommand"
+		}
+
+		fingerprint profileId: "976B", inClusters: "0000, 0003, 0004, 0005, 0006", outClusters: "0021", manufacturer: "_TZ3000_00mk2xzy", model: "TS011F", deviceJoinName: "$deviceMan $deviceType HG06337"
 
 	}
 
@@ -35,222 +54,86 @@ preferences {
 }
 
 
-def installed() {
-	// Runs after first pairing.
-	logging("${device} : Installed", "info")
-}
+void testCommand() {
 
-
-def initialize() {
-
-	// Set states to starting values and schedule a single refresh.
-	// Runs on reboot, or can be triggered manually.
-
-	// Reset states...
-
-	state.presenceUpdated = 0
-
-	// ...but don't arbitrarily reset the state of the device's main function.
-
-	sendEvent(name: "presence", value: "not present")
-	sendEvent(name: "switch", value: "unknown")
-
-	// Remove disused state variables from earlier versions.
-	state.remove("comment")
-	state.remove("rssi")
-
-	// Stagger our device init refreshes or we run the risk of DDoS attacking our hub on reboot!
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	runIn(randomSixty,refresh)
-
-	// Initialisation complete.
-	logging("${device} : Initialised", "info")
+	logging("${device} : Test Command", "info")
 
 }
 
 
-def configure() {
+void configureSpecifics() {
+	// Called by main configure() method in BirdsLikeWires.library
 
-	// Set preferences and ongoing scheduled tasks.
-	// Runs after installed() when a device is paired or rejoined, or can be triggered manually.
+	requestBasic()
 
-	initialize()
-	unschedule()
+	// Set device name.
+	String deviceModel = getDeviceDataByName('model')
+	device.name = "$deviceMan $deviceType $deviceModel"
 
-	// Default logging preferences.
-	device.updateSetting("infoLogging",[value:"true",type:"bool"])
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
-
-	// Prepare for scheduling.
-	int checkEveryMinutes 
-
-	// Schedule our refresh.
-	checkEveryMinutes = 5
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
-
-	// Schedule the presence check.
-	checkEveryMinutes = 6
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
-
-	// Set the operating mode.
-	sendZigbeeCommands(zigbee.onOffConfig())
-
-	// Configuration complete.
-	logging("${device} : Configured", "info")
-
-	// Request a refresh.
-	refresh()
+	// Reporting
+	int minReportTime = 10
+	int maxReportTime = reportIntervalMinutes * 60
+	int reportableChange = 1
+	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, minReportTime, maxReportTime, reportableChange))
 	
 }
 
 
-def updated() {
+void updateSpecifics() {
+	// Called by updated() method in BirdsLikeWires.library
 
-	// Runs whenever preferences are saved.
-
-	loggingStatus()
-	runIn(3600,debugLogOff)
-	runIn(1800,traceLogOff)
-	refresh()
+	return
 
 }
 
 
-void loggingStatus() {
-
-	log.info "${device} : Logging : ${infoLogging == true}"
-	log.debug "${device} : Debug Logging : ${debugLogging == true}"
-	log.trace "${device} : Trace Logging : ${traceLogging == true}"
-
-}
-
-
-void traceLogOff(){
-	
-	device.updateSetting("traceLogging",[value:"false",type:"bool"])
-	log.trace "${device} : Trace Logging : Automatically Disabled"
-
-}
-
-
-void debugLogOff(){
-	
-	device.updateSetting("debugLogging",[value:"false",type:"bool"])
-	log.debug "${device} : Debug Logging : Automatically Disabled"
-
-}
-
-
-void reportToDev(map) {
-
-	String[] receivedData = map.data
-
-	def receivedDataCount = ""
-	if (receivedData != null) {
-		receivedDataCount = "${receivedData.length} bits of "
-	}
-
-	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${receivedData}", "warn")
-	logging("${device} : Splurge! : ${map}", "trace")
-
-}
-
-
-def off() {
+void off() {
 
 	sendZigbeeCommands(zigbee.off())
 
 }
 
 
-def on() {
+void on() {
 
 	sendZigbeeCommands(zigbee.on())
 
 }
 
 
-def refresh() {
-	
-	logging("${device} : Refreshing", "info")
-	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))
+void ping() {
+
 	sendZigbeeCommands(zigbee.onOffRefresh())
+	logging("${device} : Ping", "info")
 
 }
 
 
-def updatePresence() {
-
-	long millisNow = new Date().time
-	state.presenceUpdated = millisNow
-
-}
-
-
-def checkPresence() {
-
-	// Check how long ago the presence state was updated.
-
-	// With no power reporting these plugs are very quiet on the network, usually 10 minutes between unprompted status messages.
-	// It may be worthwhile having an active check as it could be 16 minutes before presence is accurately detected.
-	// Unlike other drivers this routine is called on every parse after updatePresence().
-
-	long millisNow = new Date().time
-
-	presenceTimeoutMinutes = 6
-
-	if (state.presenceUpdated > 0) {
-
-		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = presenceTimeoutMinutes * 60000
-		BigDecimal secondsElapsed = millisElapsed / 1000
-
-		if (millisElapsed > presenceTimeoutMillis) {
-
-			sendEvent(name: "presence", value: "not present")
-			logging("${device} : Not Present : Last presence report ${secondsElapsed} seconds ago.", "warn")
-
-		} else {
-
-			sendEvent(name: "presence", value: "present")
-			logging("${device} : Present : Last presence report ${secondsElapsed} seconds ago.", "debug")
-
-		}
-
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed} (Threshold: ${presenceTimeoutMillis})", "trace")
-
-	} else {
-
-		logging("${device} : Waiting for first presence report.", "warn")
-
-	}
+void refresh() {
+	
+	sendZigbeeCommands(zigbee.onOffRefresh())
+	logging("${device} : Refreshed", "info")
 
 }
 
 
-def parse(String description) {
-
+void parse(String description) {
 	// Primary parse routine.
 
-	logging("${device} : Parse : $description", "debug")
-
-	sendEvent(name: "presence", value: "present")
-	updatePresence()
+	updateHealthStatus()
+	checkDriver()
 
 	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
 	if (descriptionMap) {
 
+		logging("${device} : Parse : ${descriptionMap}", "debug")
 		processMap(descriptionMap)
 
 	} else {
 		
 		logging("${device} : Parse : Failed to parse received data. Please report these messages to the developer.", "warn")
-		logging("${device} : Splurge! : ${description}", "warn")
+		logging("${device} : Parse : ${description}", "error")
 
 	}
 
@@ -290,7 +173,6 @@ void processMap(map) {
 
 			logging("${device} : Relay Configuration : Successful", "info")
 
-
 		} else if (map.command == "0B") {
 
 			// Relay State Confirmations?
@@ -318,91 +200,10 @@ void processMap(map) {
 
 		}
 
-	} else if (map.cluster == "0702" || map.clusterId == "0702") {
-
-		logging("${device} : skipping power messaging (unsupported in hardware) : ${map}", "trace")
-
-	} else if (map.cluster == "8001" || map.clusterId == "8001") {
-
-		logging("${device} : skipping network address response message : ${map}", "trace")
-
-	} else if (map.cluster == "8021" || map.clusterId == "8021") {
-
-		logging("${device} : skipping discovery message : ${map}", "trace")
-
-	} else if (map.cluster == "8032" || map.clusterId == "8032") {
-
-		logging("${device} : skipping management routing response message : ${map}", "trace")
-
-	} else if (map.cluster == "8038" || map.clusterId == "8038") {
-
-		logging("${device} : skipping management network update notify message : ${map}", "trace")
-
 	} else {
 
-		reportToDev(map)
+		filterThis(map)
 
 	}
 	
-}
-
-
-void sendZigbeeCommands(List<String> cmds) {
-
-	// All hub commands go through here for immediate transmission and to avoid some method() weirdness.
-
-	logging("${device} : sendZigbeeCommands received : ${cmds}", "trace")
-	sendHubCommand(new hubitat.device.HubMultiAction(cmds, hubitat.device.Protocol.ZIGBEE))
-
-}
-
-
-private String[] millisToDhms(BigInteger millisToParse) {
-
-	BigInteger secondsToParse = millisToParse / 1000
-
-	def dhms = []
-	dhms.add(secondsToParse % 60)
-	secondsToParse = secondsToParse / 60
-	dhms.add(secondsToParse % 60)
-	secondsToParse = secondsToParse / 60
-	dhms.add(secondsToParse % 24)
-	secondsToParse = secondsToParse / 24
-	dhms.add(secondsToParse % 365)
-	return dhms
-
-}
-
-
-private boolean logging(String message, String level) {
-
-	boolean didLog = false
-
-	if (level == "error") {
-		log.error "$message"
-		didLog = true
-	}
-
-	if (level == "warn") {
-		log.warn "$message"
-		didLog = true
-	}
-
-	if (traceLogging && level == "trace") {
-		log.trace "$message"
-		didLog = true
-	}
-
-	if (debugLogging && level == "debug") {
-		log.debug "$message"
-		didLog = true
-	}
-
-	if (infoLogging && level == "info") {
-		log.info "$message"
-		didLog = true
-	}
-
-	return didLog
-
 }
