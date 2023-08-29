@@ -40,7 +40,6 @@
       "name": "General Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
-        "MQTT",
         "Tools & Utilities",
         "Zigbee"
       ],
@@ -52,8 +51,7 @@
       "name": "Hildebrand Glow Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
-        "Energy Monitoring",
-        "MQTT"
+        "Energy Monitoring"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/packageManifest.json",
       "description": "Consumer access device drivers for SMETS1 and SMETS2 UK smart meters."
