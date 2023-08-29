@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (29th August 2023)"
+@Field String driverVersion = "v1.06 (29th August 2023)"
 @Field boolean debugMode = false
 
 
@@ -16,7 +16,7 @@ import groovy.transform.Field
 @Field String deviceType = "Switch Module"
 
 @Field int reportIntervalMinutes = 10
-@Field int checkEveryMinutes = 2
+@Field int checkEveryMinutes = 4
 
 
 metadata {
@@ -81,7 +81,6 @@ void configureSpecifics() {
 
 	// Store relay count and create children.
 	state.relayCount = ("${getDeviceDataByName('model')}" == "TS0012") ? 2 : 1
-
 	if (state.relayCount > 1) {
 		for (int i = 1; i == state.relayCount; i++) {
 			fetchChild("hubitat","Switch","0$i")
@@ -93,11 +92,15 @@ void configureSpecifics() {
 	// Always set to 'static' to ensure we're never stuck in 'flashing' mode.
 	sendEvent(name: "mode", value: "static", isStateChange: false)
 
-	// Reporting - *** this bit's not quite right
-	List<String> cmds = []
-    cmds += zigbee.onOffConfig()    // Maximum Interval: 600 seconds
-    cmds += zigbee.configureReporting(0x0702, 0x0000, DataType.UINT48, 1, 600, 1)// +    // Energy reporting
-    sendZigbeeCommands(cmds)
+	// Reporting
+
+	/// Sadly it would appear that these modules don't support binding to 00 or FF as an endpoint.
+	/// On other modules it's possible to do a configureReporting((0x0006, 0x0000...) which results in all
+	/// endpoint states being reported. Instead we just have to poll, ironically using FF as the endpoint.
+
+	sendZigbeeCommands(zigbee.onOffConfig())
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", refresh)
 
 }
 
