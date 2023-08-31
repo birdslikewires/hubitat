@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.66 (31st August 2023)"
+@Field String driverVersion = "v0.67 (1st September 2023)"
 
 
 #include BirdsLikeWires.library
@@ -196,7 +196,6 @@ void setHeatingSetpoint(int childEndpoint, BigDecimal temperature) {
 	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperatureInt}", "debug")
 
 	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt, [destEndpoint: childEndpoint]))
-	//state.lastHeatingSetpointRequest = temperatureInt / 100
 
 }
 
@@ -220,7 +219,7 @@ void setThermostatMode(int childEndpoint, String thermostatMode) {
 			emergencyHeat(childEndpoint)
 			break
 		case "cool":
-			off(childEndpoint)
+			cool(childEndpoint)
 			break
 
 	}
