@@ -5,13 +5,12 @@
  */
 
 
-@Field String driverVersion = "v0.65 (25th August 2023)"
+@Field String driverVersion = "v0.66 (31st August 2023)"
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field String deviceName = "Hive Receiver Heating"
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
@@ -19,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy") {
+	definition (name: "Hive Receiver Heating", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -238,8 +237,12 @@ void processMap(Map map) {
 			sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
 
 			if (temperatureType == "heatingSetpoint") {
-				// We need to check whether this was a scheduled or manual setpoint change.
 
+				// System is heating-only. The cooling setpoint can only ever be our heating target.
+				sendEvent(name: "coolingSetpoint", value: temperature, unit: "${temperatureScale}")
+				sendEvent(name: "thermostatSetpoint", value: temperature, unit: "${temperatureScale}")
+
+				// Now we need to check whether this was a scheduled or manual setpoint change.
 				getSystemMode()
 				getTemperatureSetpointHoldDuration()
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.64 (20th August 2023)"
+@Field String driverVersion = "v0.65 (31st August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -113,8 +113,10 @@ void cool(int childEndpoint) {
 
 
 void setCoolingSetpoint(int childEndpoint, BigDecimal temperature) {
+	// Being a heat-only system the cooling setpoint can only ever be the same as the heating setpoint.
 
-	logging("${device} : No active cooling on this system.", "info")
+	logging("${device} : Cooling setpoint requested, but this system does not support active cooling.", "warn")
+	setHeatingSetpoint(childEndpoint, temperature)
 
 }
 
