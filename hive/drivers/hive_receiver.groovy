@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.65 (31st August 2023)"
+@Field String driverVersion = "v0.66 (31st August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -104,10 +104,10 @@ void auto(int childEndpoint) {
 
 
 void cool(int childEndpoint) {
-	// This is a heat-only system, so cooling and off are essentially the same thing. Open a window!
+	// Being a heat-only system we can only take this to be a request to actively reach a temperature by the only means we have.
 
-	logging("${device} : System switching off, there is no active cooling.", "info")
-	off(childEndpoint)
+	logging("${device} : Request to cool received, but this system does not support active cooling.", "warn")
+	heat(childEndpoint)
 
 }
 

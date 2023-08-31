@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.66 (31st August 2023)"
+@Field String driverVersion = "v0.67 (31st August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -100,7 +100,7 @@ void auto() {
 
 void cool() {
 
-	getParent().off(receiverEndpoint)
+	getParent().cool(receiverEndpoint)
 
 }
 
