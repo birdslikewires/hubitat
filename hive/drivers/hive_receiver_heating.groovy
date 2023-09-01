@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.68 (1st September 2023)"
+@Field String driverVersion = "v0.69 (1st September 2023)"
 @Field boolean debugMode = false
 
 
@@ -32,7 +32,7 @@ metadata {
 		capability "ThermostatOperatingState"
 		capability "ThermostatSetpoint"
 
-		attribute "boostMinutes", "number"
+		attribute "overrideMinutes", "number"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
@@ -305,9 +305,9 @@ void processMap(Map map) {
 			BigDecimal holdDuration = hexStrToSignedInt(map.value)
 			(holdDuration < 0) ? holdDuration = 0 : holdDuration
 
-			logging("${device} : boostMinutes : ${holdDuration} (${map.value}) on endpoint ${map.endpoint}", "debug")
+			logging("${device} : overrideMinutes : ${holdDuration} (${map.value}) on endpoint ${map.endpoint}", "debug")
 
-			sendEvent(name: "boostMinutes", value: holdDuration)
+			sendEvent(name: "overrideMinutes", value: holdDuration)
 
 		} else if (map.attrId == "0029") {
 			// ThermostatRunningState

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.68 (1st September 2023)"
+@Field String driverVersion = "v0.69 (1st September 2023)"
 @Field boolean debugMode = false
 
 
@@ -229,10 +229,10 @@ void setThermostatMode(int childEndpoint, String thermostatMode) {
 
 void setThermostatModeWithSafety(int childEndpoint, String thermostatMode) {
 
-	def currentBoostMinutes = fetchChildStates("boostMinutes","${childEndpoint}")
+	def currentOverrideMinutes = fetchChildStates("overrideMinutes","${childEndpoint}")
 	def currentThermostatMode = fetchChildStates("thermostatMode","${childEndpoint}")
 
-	if (currentBoostMinutes[0] != "0" || currentThermostatMode[0] == "auto") {
+	if (currentOverrideMinutes[0] != "0" || currentThermostatMode[0] == "auto") {
 
 		logging("${device} : We're running a schedule. Command 'heat' or 'cool' directly to switch to manual.", "warn")
 
