@@ -5,14 +5,14 @@
  */
 
 
-@Field String driverVersion = "v0.67 (1st September 2023)"
+@Field String driverVersion = "v0.68 (1st September 2023)"
+@Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
 @Field String deviceName = "Hive Receiver"
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 
@@ -213,14 +213,41 @@ void setThermostatMode(int childEndpoint, String thermostatMode) {
 			off(childEndpoint)
 			break
 		case "heat":
-			heat(childEndpoint)
+			setThermostatModeWithSafety(childEndpoint, thermostatMode)
 			break
 		case "emergency heat":
 			emergencyHeat(childEndpoint)
 			break
 		case "cool":
-			cool(childEndpoint)
+			setThermostatModeWithSafety(childEndpoint, thermostatMode)
 			break
+
+	}
+
+}
+
+
+void setThermostatModeWithSafety(int childEndpoint, String thermostatMode) {
+
+	def currentBoostMinutes = fetchChildStates("boostMinutes","${childEndpoint}")
+	def currentThermostatMode = fetchChildStates("thermostatMode","${childEndpoint}")
+
+	if (currentBoostMinutes[0] != "0" || currentThermostatMode[0] == "auto") {
+
+		logging("${device} : We're running a schedule. Command 'heat' or 'cool' directly to switch to manual.", "warn")
+
+	} else {
+
+		switch(thermostatMode) {
+
+			case "heat":
+				heat(childEndpoint)
+				break
+			case "cool":
+				cool(childEndpoint)
+				break
+
+		}
 
 	}
 

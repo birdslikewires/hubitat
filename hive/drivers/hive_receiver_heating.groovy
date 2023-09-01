@@ -5,13 +5,13 @@
  */
 
 
-@Field String driverVersion = "v0.67 (31st August 2023)"
+@Field String driverVersion = "v0.68 (1st September 2023)"
+@Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
 @Field int receiverEndpoint = 5
@@ -32,9 +32,8 @@ metadata {
 		capability "ThermostatOperatingState"
 		capability "ThermostatSetpoint"
 
+		attribute "boostMinutes", "number"
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "heatingBoostRemaining", "number"
-		attribute "heatingMode", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -253,30 +252,26 @@ void processMap(Map map) {
 			// Received mode data.
 			logging("${device} : mode : ${map.value} on endpoint ${map.endpoint}", "debug")
 
-			String channel = ("${map.endpoint}" == "05") ? "heating" : "water"
-
 			switch(map.value) {
 
 				case "00":
 					// This always represents off.
-					logging("${device} : mode : ${channel} off", "debug")
+					logging("${device} : mode : heating off", "debug")
 					sendEvent(name: "thermostatMode", value: "off")
-					sendEvent(name: "heatingMode", value: "off")
 					getThermostatRunningState()
 					break
 				case "04":
 					// This always represents normal heating, but we must request the hold state to know if we're scheduled or manual.
-					logging("${device} : mode : ${channel} on - requesting hold state", "debug")
+					logging("${device} : mode : heating on - requesting hold state", "debug")
 					getTemperatureSetpointHold()
 					break
 				case "05":
 					// This always represents boost mode.
-					logging("${device} : mode : ${channel} boost", "debug")
+					logging("${device} : mode : heating boost", "debug")
 					sendEvent(name: "thermostatMode", value: "emergency heat")
-					sendEvent(name: "heatingMode", value: "boost")
 					break
 				default:
-					logging("${device} : mode : unknown ${channel} mode received", "warn")
+					logging("${device} : mode : unknown heating mode received", "warn")
 					break
 
 			}
@@ -286,14 +281,11 @@ void processMap(Map map) {
 
 			logging("${device} : setpoint hold : ${map.value} on endpoint ${map.endpoint}", "debug")
 
-			String channel = ("${map.endpoint}" == "05") ? "thermostat" : "waterstat"
-
 			switch(map.value) {
 
 				case "00":
 					// This always represents scheduled mode as the hold is off, so the schedule is running.
-					sendEvent(name: "${channel}Mode", value: "auto")
-					sendEvent(name: "heatingMode", value: "schedule")
+					sendEvent(name: "thermostatMode", value: "auto")
 					logging("${device} : setpoint hold : ${map.value} on endpoint ${map.endpoint}", "debug")
 					break
 				case "01":
@@ -302,8 +294,7 @@ void processMap(Map map) {
 					//         the system switches to a hybrid mode where the altered setpoint runs for the duration until the
 					//         next programme change in the schedule. At that point the programme resumes, but the thermostat
 					//         always reports "SCH" despite being in a manual state.
-					sendEvent(name: "${channel}Mode", value: "heat")
-					sendEvent(name: "heatingMode", value: "manual")
+					sendEvent(name: "thermostatMode", value: "heat")
 					break
 
 			}
@@ -311,37 +302,30 @@ void processMap(Map map) {
 		} else if (map.attrId == "0024") {
 			// TemperatureSetpointHoldDuration
 
-			String channel = ("${map.endpoint}" == "05") ? "heatingBoostRemaining" : "waterBoostRemaining"
 			BigDecimal holdDuration = hexStrToSignedInt(map.value)
 			(holdDuration < 0) ? holdDuration = 0 : holdDuration
 
-			logging("${device} : ${channel} : ${holdDuration} (${map.value}) on endpoint ${map.endpoint}", "debug")
+			logging("${device} : boostMinutes : ${holdDuration} (${map.value}) on endpoint ${map.endpoint}", "debug")
 
-			sendEvent(name: "${channel}", value: holdDuration)
-
-			// If we're not in emergency heat (boost) mode then a temporary override is happening.
-			String currentSystemMode = device.currentState("thermostatMode").value
-			if (currentSystemMode == "heat" && holdDuration > 0) sendEvent(name: "heatingMode", value: "override")
+			sendEvent(name: "boostMinutes", value: holdDuration)
 
 		} else if (map.attrId == "0029") {
 			// ThermostatRunningState
 
-			String channel = ("${map.endpoint}" == "05") ? "thermostatOperatingState" : "waterstatOperatingState"
-
-			logging("${device} : ${channel} : ${map.value} on endpoint ${map.endpoint}", "debug")
+			logging("${device} : thermostatOperatingState : ${map.value} on endpoint ${map.endpoint}", "debug")
 
 			switch(map.value) {
 
 				case "0000":
-					sendEvent(name: "${channel}", value: "idle")
-					logging("${device} : ${channel} : idle", "debug")
+					sendEvent(name: "thermostatOperatingState", value: "idle")
+					logging("${device} : thermostatOperatingState : idle", "debug")
 					break
 				case "0001":
-					sendEvent(name: "${channel}", value: "heating")
-					logging("${device} : ${channel} : heating", "debug")
+					sendEvent(name: "thermostatOperatingState", value: "heating")
+					logging("${device} : thermostatOperatingState : heating", "debug")
 					break
 				default:
-					logging("${device} : ${channel} : Received an unknown boiler control state!", "warn")
+					logging("${device} : thermostatOperatingState : Received an unknown boiler control state!", "warn")
 					break
 
 			}
