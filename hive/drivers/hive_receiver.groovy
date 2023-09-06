@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.69 (1st September 2023)"
+@Field String driverVersion = "v0.70 (6th September 2023)"
 @Field boolean debugMode = false
 
 
@@ -142,7 +142,7 @@ void emergencyHeat(int childEndpoint) {
 void fanAuto(int childEndpoint) {
 	// No controllable fans here.
 
-	logging("${device} : No controllable fans.", "info")
+	logging("${device} : No controllable fans.", "warn")
 	return
 
 }
@@ -151,7 +151,7 @@ void fanAuto(int childEndpoint) {
 void fanCirculate(int childEndpoint) {
 	// No controllable fans here either.
 
-	logging("${device} : No controllable fans.", "info")
+	logging("${device} : No controllable fans.", "warn")
 	return
 
 }
@@ -160,7 +160,7 @@ void fanCirculate(int childEndpoint) {
 void fanOn(int childEndpoint) {
 	// Still no controllable fans, stop asking.
 
-	logging("${device} : No controllable fans.", "info")
+	logging("${device} : No controllable fans.", "warn")
 	return
 
 }
@@ -170,9 +170,9 @@ void heat(int childEndpoint) {
 	// Manual mode.
 
 	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: childEndpoint])				// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: childEndpoint])				// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x00, [destEndpoint: childEndpoint])				// TemperatureSetpointHoldDuration
+	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: childEndpoint])	// SystemMode
+	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: childEndpoint])	// TemperatureSetpointHold
+	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x00, [destEndpoint: childEndpoint])	// TemperatureSetpointHoldDuration
 	sendZigbeeCommands(cmds)
 
 }

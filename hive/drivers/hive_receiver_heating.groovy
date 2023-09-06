@@ -5,11 +5,12 @@
  */
 
 
-@Field String driverVersion = "v0.69 (1st September 2023)"
+@Field String driverVersion = "v0.70 (6th September 2023)"
 @Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
+import groovy.json.JsonOutput
 import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 1
@@ -26,7 +27,6 @@ metadata {
         capability "Sensor"
 		capability "TemperatureMeasurement"
 		capability "Thermostat"
-        capability "ThermostatCoolingSetpoint"
 		capability "ThermostatHeatingSetpoint"
 		capability "ThermostatMode"
 		capability "ThermostatOperatingState"
@@ -38,8 +38,6 @@ metadata {
 		if (debugMode) {
 			command "testCommand"
 		}
-
-		command "getSystemMode"
 
 		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2"
 
@@ -71,7 +69,14 @@ void configureSpecifics() {
 	device.label = "${getParent().device.label} (Heating)"
 	refresh()
 
+	// Set expected modes and values.
+	sendEvent(name: "supportedThermostatModes", value: JsonOutput.toJson(["auto", "emergency heat", "heat", "off"]))
+	sendEvent(name: "supportedThermostatFanModes", value: JsonOutput.toJson(["auto"]))
+	sendEvent(name: "thermostatFanMode", value: "auto", isStateChange: false)
+
 }
+
+
 
 
 void updateSpecifics() {
