@@ -1,0 +1,40 @@
+body {
+    background-color: black;
+    min-width: 800px;
+    min-height: 480px;
+    position: fixed;
+    margin: 0;
+    padding: 1.5vw 0 0 1.5vw;
+    border: none;
+}
+
+
+button {
+    color: black;
+    width: 14.6vw;
+    min-width: 60px;
+    height: 20vh;
+    max-height: 160px;
+	font-size: clamp(0.5em, 2vw, 2em);
+	background-color: #266dc8;
+    border: none;
+    border-radius: 10px;
+    margin: 0 1.4vw 2.2vh 0;
+    xoverflow: hidden;
+    text-align: center;
+}
+
+button:active {
+    background-color: yellow;
+}
+ 
+.hide,
+.hide:active {
+	text-indent: -9999px;
+	background-color: #222;
+	pointer-events: none;
+}
+
+.danger {
+	background-color: #cd0000;
+}

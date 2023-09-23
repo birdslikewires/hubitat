@@ -1,11 +1,11 @@
 /*
  *
- *  Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM Driver
+ *  Xiaomi Aqara Temperature and Humidity Sensor Driver
  *
  */
 
 
-@Field String driverVersion = "v1.13 (1st March 2023)"
+@Field String driverVersion = "v1.15 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -19,11 +19,10 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor_wsdcgq11lm.groovy") {
+	definition (name: "Xiaomi Aqara Temperature and Humidity Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "PresenceSensor"
 		capability "PressureMeasurement"
 		capability "RelativeHumidityMeasurement"
 		capability "Sensor"
@@ -32,11 +31,11 @@ metadata {
 		capability "PushableButton"
 
 		attribute "absoluteHumidity", "number"
+		attribute "healthStatus", "enum", ["offline", "online"]
 		attribute "pressureDirection", "string"
 		//attribute "pressurePrevious", "string"
 
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 

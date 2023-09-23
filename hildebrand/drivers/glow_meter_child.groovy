@@ -1,6 +1,6 @@
 /*
  * 
- *  Hildebrand Glow Meter Child Driver v1.02 (15th July 2022)
+ *  Hildebrand Glow Meter Child Driver v1.03 (6th March 2023)
  *	
  */
 
@@ -13,6 +13,8 @@ metadata {
 
 		capability "EnergyMeter"
 		capability "PowerMeter"
+
+		attribute "export", "decimal"
 
 		attribute "day", "decimal"
 		attribute "week", "decimal"

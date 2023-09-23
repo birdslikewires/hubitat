@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.20 (5th March 2023)
+ *  BirdsLikeWires Library v1.31 (20th August 2023)
  *	
  */
 
@@ -26,6 +26,15 @@ void sendZigbeeCommands(List<String> cmds) {
 }
 
 
+void installed() {
+
+	// Runs after first installation.
+	logging("${device} : Installed", "info")
+	configure()
+
+}
+
+
 void configure() {
 
 	int randomSixty
@@ -33,12 +42,14 @@ void configure() {
 	// Tidy up.
 	unschedule()
 	state.clear()
-	state.presenceUpdated = 0
-	sendEvent(name: "presence", value: "present", isStateChange: false)
 
-	// Schedule presence checking.
+	// Set up health status.
+	state.updatedHealthStatus = 0
+	sendEvent(name: "healthStatus", value: "online", isStateChange: false)
+
+	// Schedule health status checking.
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkPresence)
+	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
@@ -67,7 +78,7 @@ void updated() {
 
 	updateSpecifics()
 
-	logging("${device} : Preferences Updated", "info")
+	logging("${device} : Preferences updated.", "info")
 
 	loggingStatus()
 
@@ -101,34 +112,125 @@ void release(buttonId) {
 	
 }
 
-//////////////// So, this may well be different for different lamps and dimmers, so... possibly not for here, 
 
-// void setLevel(BigDecimal level) {
+void levelChange(int multiplier) {
 
-// 	setLevel(level,1)
+	levelChange(multiplier, "")
 
-// }
+}
 
 
-// void setLevel(BigDecimal level, BigDecimal duration) {
+void levelChange(int multiplier, String direction) {
+	// Work out the level we should report based upon a hold duration.
 
-// 	BigDecimal safeLevel = level <= 100 ? level : 100
-// 	safeLevel = safeLevel < 0 ? 0 : safeLevel
+	long millisActive = now() - state.levelChangeStart
+	if (millisActive > 6000) {
+		millisActive = 0				// In case we don't receive a 'released' message.
+	}
 
-// 	String hexLevel = percentageToHex(safeLevel.intValue())
+	int levelChange = millisActive / 6000 * multiplier
+	// That multiplier above is arbitrary - just use whatever feels right when testing the device.
+	// The greater the multiplier, the quicker the level value will increase. A larger value is better for laggier devices.
 
-// 	BigDecimal safeDuration = duration <= 25 ? (duration*10) : 255
-// 	String hexDuration = Integer.toHexString(safeDuration.intValue())
+	BigDecimal secondsActive = millisActive / 1000
+	secondsActive = secondsActive.setScale(2, BigDecimal.ROUND_HALF_UP)
 
-// 	String pluralisor = duration == 1 ? "" : "s"
-// 	logging("${device} : setLevel : Got level request of '${level}' (${safeLevel}%) [${hexLevel}] changing over '${duration}' second${pluralisor} (${safeDuration} deciseconds) [${hexDuration}].", "debug")
+	logging("${device} : Level : Change of ${levelChange} after action for ${secondsActive} seconds.", "info")
 
-// 	sendEvent(name: "level", value: "${safeLevel}")
+	levelEvent(levelChange, direction)
 
-// }
+}
+
+
+void levelEvent(int levelChange, String direction) {
+
+	int initialLevel = device.currentState("level").value.toInteger()
+
+	int newLevel = 0
+
+	if ("$direction" == "decrease") {
+
+		newLevel = device.currentState("level").value.toInteger() - levelChange
+		levelChange *= -1
+
+	} else if ("$direction" == "increase") {
+
+		newLevel = device.currentState("level").value.toInteger() + levelChange
+
+	} else {
+
+		newLevel = levelChange
+
+	}
+
+	newLevel = newLevel <= 100 ? newLevel : 100
+	newLevel = newLevel < 0 ? 0 : newLevel
+
+	logging("${device} : levelEvent : Got level of '${levelChange}', sending ${newLevel}%", "debug")
+
+	sendEvent(name: "level", value: newLevel)
+
+}
+
+
+void updateHealthStatus() {
+
+	long millisNow = new Date().time
+	state.updatedHealthStatus = millisNow
+	sendEvent(name: "healthStatus", value: "online")
+
+}
+
+
+void checkHealthStatus() {
+	// Check how long ago the health status was updated.
+
+	long millisNow = new Date().time
+	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+
+	if (state.updatedHealthStatus > 0) {
+
+		long millisElapsed = millisNow - state.updatedHealthStatus
+		long timeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long reportIntervalMillis = reportIntervalMinutes * 60000
+		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
+		BigInteger hubUptime = location.hub.uptime
+
+		if (millisElapsed > timeoutMillis) {
+
+			if (hubUptime > uptimeAllowanceMinutes * 60) {
+
+				sendEvent(name: "healthStatus", value: "offline")
+				logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "warn")
+
+			} else {
+
+				logging("${device} : Health Status : Ignoring overdue reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
+
+			}
+
+		} else {
+
+			sendEvent(name: "healthStatus", value: "online")
+			logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "debug")
+
+		}
+
+		logging("${device} : checkHealthStatus() : ${millisNow} - ${state.updatedHealthStatus} = ${millisElapsed}", "trace")
+		logging("${device} : checkHealthStatus() : Report interval is ${reportIntervalMillis} ms, timeout is ${timeoutMillis} ms.", "trace")
+
+	} else {
+
+		logging("${device} : Health Status : Waiting for first report.", "warn")
+
+	}
+
+}
 
 
 void updatePresence() {
+
+	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
 
 	long millisNow = new Date().time
 	state.presenceUpdated = millisNow
@@ -139,6 +241,8 @@ void updatePresence() {
 
 void checkPresence() {
 	// Check how long ago the presence state was updated.
+
+	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
 
 	long millisNow = new Date().time
 	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
@@ -177,6 +281,21 @@ void checkPresence() {
 	} else {
 
 		logging("${device} : Presence : Waiting for first presence report.", "warn")
+
+	}
+
+}
+
+
+void checkDriver() {
+
+	String versionCheck = "unknown"
+	versionCheck = "${getDeviceDataByName('driver')}"
+
+	if ("$versionCheck" != "$driverVersion") {
+
+		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
+		configure()
 
 	}
 
@@ -303,8 +422,14 @@ void processDescriptors(Map map) {
 
 
 void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecimal batteryVoltageScaleMin, BigDecimal batteryVoltageScaleMax) {
-
 	// Report the battery voltage and calculated percentage.
+
+	if ($batteryVoltageHex == "") {
+		// Ignore empty nonsense.
+		logging("${device} : batteryVoltageHex : skipping anomolous reading.", "debug")
+		return
+	}
+
 	BigDecimal batteryVoltage = 0
 
 	logging("${device} : batteryVoltageHex : ${batteryVoltageHex}", "trace")
@@ -312,7 +437,8 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex)
 	logging("${device} : batteryVoltage raw value : ${batteryVoltage}", "debug")
 
-	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP) / batteryVoltageDivisor
+	batteryVoltage = batteryVoltage / batteryVoltageDivisor
+	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
@@ -353,13 +479,12 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 
 void reportToDev(map) {
 
-	def dataCount = ""
-	if (map.data != null) {
-		dataCount = "${map.data.length} bits of "
-	}
+	if (map.endpoint == null) return		// If the message doesn't even have an endpoint, it's garbage. Discard!
+
+	if (map.data != null) String dataCount = "${map.data.length} bits of "
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
-	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${receivedDataCount}data: ${map.data}", "warn")
+	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${dataCount}data: ${map.data}", "warn")
 	logging("${device} : Splurge! : ${map}", "trace")
 
 }
@@ -385,7 +510,7 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
 	// Type will determine the driver to use.
-	// Endpoint is any identifier unique to the parent.
+	// Endpoint is any unique identifier.
 
 	def childDevice = getChildDevice("${device.id}-${endpoint}")
 
@@ -397,22 +522,9 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${endpoint}", isComponent: false])
 
-			if (type.indexOf('Switch') >= 0) {
-
-				// Presume a switch to be off until told otherwise.
-				childDevice.parse([[name: "switch", value: 'off']])
-
-			}
-
-			//childDevice.updateSetting("txtEnable", false)
-
 		}
 
 		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
-
-	} else {
-
-		logging("${device} : Received null endpoint for device $device.id", "error")
 
 	}
 
@@ -562,6 +674,30 @@ private String hexToText(String hex) {
 }
 
 
+private String capitaliseFirstLetters(String input) {
+
+    if (input == null || input.isEmpty()) return input
+
+    String[] words = input.split("\\s+")
+    StringBuilder output = new StringBuilder(input.length())
+
+    for (String word : words) {
+
+        output.append(Character.toUpperCase(word.charAt(0)))
+
+        if (word.length() > 1) {
+            output.append(word.substring(1))
+        }
+
+        output.append(" ")
+
+    }
+
+    return output.toString().trim()
+
+}
+
+
 void loggingStatus() {
 
 	log.info  "${device} :  Info Logging : ${infoLogging == true}"
@@ -699,12 +835,12 @@ void mqttConnect() {
 		def mqttInt = interfaces.mqtt
 
 		if (mqttInt.isConnected()) {
-			logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+			logging("${device} : mqttConnect : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
 			return
 		}
 
 		if (state.mqttTopic == "") {
-			logging("${device} : MQTT : Topic is not set.", "error")
+			logging("${device} : mqttConnect : Topic is not set.", "error")
 			return
 		}
 
@@ -716,7 +852,15 @@ void mqttConnect() {
 
 	} catch (Exception e) {
 
-		logging("${device} : MQTT : ${e.message}", "error")
+		if (state.mqttBroker == null) {
+
+			logging("${device} : mqttConnect : No broker configured.", "warn")
+
+		} else {
+
+			logging("${device} : mqttConnect : ${e.message}", "error")
+
+		}
 
 	}
 
@@ -727,11 +871,11 @@ void mqttClientStatus(String status) {
 
 	if (status.indexOf('Connection succeeded') >= 0) {
 
-		logging("${device} : MQTT : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
+		logging("${device} : mqttClientStatus : Connection to broker ${state.mqttBroker} (${state.mqttTopic}) is live.", "trace")
 
 	} else {
 
-		logging("${device} : MQTT : ${status}", "error")
+		logging("${device} : mqttClientStatus : ${status}", "error")
 
 	}
 

@@ -1,31 +1,34 @@
 /*
  * 
- *  Salus Smart Plug SP600 Driver
+ *  Lidl Smart Plug Driver
+ *
+ *  Supports: HG06337
  *	
  */
 
 
-@Field String driverVersion = "v1.17 (26th August 2023)"
+@Field String driverVersion = "v1.10 (29th August 2023)"
+@Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field String deviceName = "Salus Smart Plug SP600"
-@Field boolean debugMode = false
-@Field int reportIntervalMinutes = 2
-@Field int checkEveryMinutes = 1
+@Field String deviceMan = "Lidl"
+@Field String deviceType = "Smart Plug"
+
+@Field int reportIntervalMinutes = 10
+@Field int checkEveryMinutes = 4
 
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_smart_plug_sp600.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_plug.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
-		capability "Initialize"
+		capability "HealthCheck"
 		capability "Outlet"
-		capability "PowerMeter"
 		capability "Refresh"
 		capability "Switch"
 
@@ -35,7 +38,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000, 0001, 0003, 0004, 0005, 0006, 0402, 0702, FC01", outClusters: "0019", manufacturer: "Computime", model: "SP600", deviceJoinName: "Salus Smart Plug SP600"
+		fingerprint profileId: "976B", inClusters: "0000, 0003, 0004, 0005, 0006", outClusters: "0021", manufacturer: "_TZ3000_00mk2xzy", model: "TS011F", deviceJoinName: "$deviceMan $deviceType HG06337"
 
 	}
 
@@ -61,15 +64,17 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
-	device.name = "$deviceName"
+	requestBasic()
 
-	int minReportTime = 10
-	int maxReportTime = 20
+	// Set device name.
+	device.name = "$deviceMan $deviceType HG06337"
+
+	// Reporting
+	int minReportTime = 1
+	int maxReportTime = reportIntervalMinutes * 60
 	int reportableChange = 1
-
-	sendZigbeeCommands(zigbee.configureReporting(0x0702, 0x0400, DataType.INT24, minReportTime, maxReportTime, reportableChange))
-	sendZigbeeCommands(zigbee.onOffConfig())
-
+	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, minReportTime, maxReportTime, reportableChange))
+	
 }
 
 
@@ -77,15 +82,6 @@ void updateSpecifics() {
 	// Called by updated() method in BirdsLikeWires.library
 
 	return
-
-}
-
-
-void refresh() {
-	
-	logging("${device} : Refreshing", "debug")
-	sendZigbeeCommands(zigbee.readAttribute(0x0702, 0x0400))	// power
-	sendZigbeeCommands(zigbee.onOffRefresh())					// state
 
 }
 
@@ -100,6 +96,22 @@ void off() {
 void on() {
 
 	sendZigbeeCommands(zigbee.on())
+
+}
+
+
+void ping() {
+
+	sendZigbeeCommands(zigbee.onOffRefresh())
+	logging("${device} : Ping", "info")
+
+}
+
+
+void refresh() {
+	
+	sendZigbeeCommands(zigbee.onOffRefresh())
+	logging("${device} : Refreshed", "info")
 
 }
 
@@ -128,10 +140,14 @@ void parse(String description) {
 
 void processMap(map) {
 
+	logging("${device} : processMap() : ${map}", "trace")
+
 	if (map.cluster == "0006" || map.clusterId == "0006") {
+
 		// Relay configuration and response handling.
 
 		if (map.command == "01" || map.command == "0A") {
+
 			// Relay States
 
 			// 01 - Prompted Refresh
@@ -150,6 +166,7 @@ void processMap(map) {
 			}
 
 		} else if (map.command == "07") {
+
 			// Relay Configuration
 
 			logging("${device} : Relay Configuration : Successful", "info")
@@ -178,40 +195,6 @@ void processMap(map) {
 		} else {
 
 			reportToDev(map)
-
-		}
-
-	} else if (map.cluster == "0702" || map.clusterId == "0702") {
-
-		// Power configuration and response handling.
-
-		if (map.command == "07") {
-
-			// Power Configuration
-
-			logging("${device} : Power Reporting Configuration : Successful", "info")
-
-		} else if (map.command == "01" || map.command == "0A") {
-
-			// Power Usage
-
-			// 01 - Prompted Refresh
-			// 0A - Automated Refresh
-
-			int powerValue = zigbee.convertHexToInt(map.value)
-			powerValue = powerValue <= 1 ? 0 : powerValue		// when off the value can bounce a little
-			BigDecimal powerValueCorrected = powerValue / 10
-			powerValueCorrected = powerValueCorrected.setScale(1, BigDecimal.ROUND_HALF_UP)
-			sendEvent(name: "power", value: powerValueCorrected, unit: "W", isStateChange: false)
-
-			if (map.command == "01") {
-				// If this has been requested by the user, return the value in the log.
-				logging("${device} : Power : ${powerValue} W", "info")
-			}
-
-		} else {
-
-			filterThis(map)
 
 		}
 

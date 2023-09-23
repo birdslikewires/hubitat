@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.30 (1st March 2023)"
+@Field String driverVersion = "v1.31 (25th August 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -25,7 +25,6 @@ metadata {
 		capability "Battery"
 		capability "Configuration"
 		capability "MotionSensor"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "Sensor"
 		capability "SignalStrength"
@@ -39,9 +38,9 @@ metadata {
 		//command "quietMode"
 
 		attribute "batteryState", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 

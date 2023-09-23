@@ -18,7 +18,7 @@
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -29,7 +29,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_alarm.groovy",
 			"required": false,
-			"version": "1.30"
+			"version": "1.31"
 		},
 		{
 			"id": "a4d3a7b5-50e4-4544-baa4-93119db89f29",
@@ -37,7 +37,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_button.groovy",
 			"required": false,
-			"version": "1.28"
+			"version": "1.29"
 		},
 		{
 			"id": "d495b545-9a9f-49a5-9323-28dcb21269c4",
@@ -45,7 +45,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_contact.groovy",
 			"required": false,
-			"version": "1.19"
+			"version": "1.20"
 		},
 		{
 			"id": "aa1ab2a1-8df9-4f37-924c-ecd88b79e43e",
@@ -53,7 +53,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy",
 			"required": false,
-			"version": "1.31"
+			"version": "1.32"
 		},
 		{
 			"id": "1447f569-33a8-4bb9-a554-6ea22f3de617",
@@ -61,7 +61,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_lamp.groovy",
 			"required": false,
-			"version": "1.27"
+			"version": "1.28"
 		},
 		{
 			"id": "c90b1fcb-e829-4b4e-bcbb-293b12bba796",
@@ -69,7 +69,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_motion.groovy",
 			"required": false,
-			"version": "1.24"
+			"version": "1.25"
 		},
 		{
 			"id": "046d352f-6394-4714-9a11-510aeea322b4",
@@ -77,7 +77,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_pendant.groovy",
 			"required": false,
-			"version": "1.05"
+			"version": "1.06"
 		},
 		{
 			"id": "81be6755-09ad-45af-91a8-52308e3fc319",
@@ -85,7 +85,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_powerclamp.groovy",
 			"required": false,
-			"version": "1.25"
+			"version": "1.26"
 		},
 		{
 			"id": "5a73c17f-176a-46a6-9d81-db2e4823f32a",
@@ -93,7 +93,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy",
 			"required": false,
-			"version": "1.53"
+			"version": "1.54"
 		}
 	]
 }

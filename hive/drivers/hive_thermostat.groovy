@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.50 (1st March 2023)"
+@Field String driverVersion = "v0.57 (3rd September 2023)"
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -13,6 +13,7 @@ import groovy.transform.Field
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 4
+@Field BigDecimal batteryLow = 4.7
 
 
 metadata {
@@ -21,17 +22,17 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "TemperatureMeasurement"
 		capability "VoltageMeasurement"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0009,000A,0201,FD00", outClusters: "000A,0402,0019", manufacturer: "Computime", model: "SLR2", deviceJoinName: "Computime Boiler Controller SLR2"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0201,0204,0402,0020,FD00", outClusters: "0003,000A,0201,0019,FD00", manufacturer: "Computime", model: "SLT3", deviceJoinName: "Computime Thermostat SLT3"
 
 	}
 
@@ -54,17 +55,10 @@ void testCommand() {
 }
 
 
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-
-}
-
-
 void configureSpecifics() {
 	// Called by library configure() method.
+
+	requestBasic()
 
 	String modelCheck = "${getDeviceDataByName('model')}"
 	device.name = "Hive Thermostat ${modelCheck}"
@@ -93,10 +87,10 @@ void refresh() {
 }
 
 
-
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
+	checkDriver()
 
 	logging("${device} : parse() : $description", "trace")
 
@@ -142,9 +136,7 @@ void processMap(Map map) {
 	if (map.cluster == "0001") {
 		// Power Configuration Cluster
 
-		logging("${device} : battery!", "info")
-
-		reportBattery("${map.value}", 10, 4.8, 6.0)
+		reportBattery("${map.value}", 10, batteryLow, 6.0)
 
 	} else if (map.cluster == "0402") {
 		// Temperature Measurement Cluster
@@ -163,7 +155,7 @@ void processMap(Map map) {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			logging("${device} : temperature : ${temperature} °${temperatureScale}", "info")
+			logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
 			sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
 
 		} else {

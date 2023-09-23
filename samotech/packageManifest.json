@@ -11,7 +11,7 @@
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy",
 			"required": false,
-			"version": "1.09"
+			"version": "1.13"
 		}
 	]
 }

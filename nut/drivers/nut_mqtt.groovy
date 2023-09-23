@@ -1,8 +1,11 @@
 /*
  * 
- *  Network UPS Tools MQTT Driver v1.03 (5th March 2023)
+ *  Network UPS Tools MQTT Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.05 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -17,15 +20,12 @@ metadata {
 
 	definition (name: "Network UPS Tools MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy") {
 
-		capability "PresenceSensor"
-
 		command "disconnect"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-
-			command "checkPresence"
 			command "testCommand"
-
 		}
 
 	}
@@ -49,15 +49,6 @@ preferences {
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-
-}
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
 
 }
 
@@ -103,7 +94,8 @@ void uninstalled() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
+	checkDriver()
 
 	try {
 

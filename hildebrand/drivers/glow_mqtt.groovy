@@ -1,8 +1,11 @@
 /*
  * 
- *  Hildebrand Glow MQTT Driver v1.08 (5th March 2023)
+ *  Hildebrand Glow MQTT Driver
  *	
  */
+
+
+@Field String driverVersion = "v1.11 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -18,16 +21,14 @@ metadata {
 
 	definition (name: "Hildebrand Glow", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_mqtt.groovy") {
 
-		capability "PresenceSensor"
 		capability "SignalStrength"
 
 		command "disconnect"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-
-			command "checkPresence"
 			command "testCommand"
-
 		}
 
 	}
@@ -53,15 +54,6 @@ preferences {
 void testCommand() {
 
 	logging("${device} : Test Command", "info")
-
-}
-
-
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
 
 }
 
@@ -128,19 +120,20 @@ void uninstalled() {
 
 void parse(String description) {
 
+	updateHealthStatus()
+	checkDriver()
+
 	// The parse is expected to run state.parsePasses number of times.
 	Integer parseMax = state.parsePasses
 	Integer parseCount = state.parseCounter + 1
 
 	logging("${device} : Parse (Pass $parseCount/$parseMax) : $description", "trace")
 
-	updatePresence()
-
 	// Some values should only be updated every occasionalUpdateMinutes to reduce chatter and hub load.
 	Boolean updateOccasional = false
 	Integer updateCount = 0
 	long occasionalUpdateMillis = occasionalUpdateMinutes * 60000
-	long occasionalElapsedMillis = state.presenceUpdated - state.occasionalUpdated
+	long occasionalElapsedMillis = state.updatedHealthStatus - state.occasionalUpdated
 
 	if (occasionalElapsedMillis > occasionalUpdateMillis || state.occasionalUpdated == 0) {
 
@@ -226,14 +219,23 @@ void parse(String description) {
 
 			} else if (msg.topic.indexOf('electricitymeter') >= 0) {
 
+				BigDecimal cumulativeExport = json.electricitymeter.energy.export.cumulative
+				String cumulativeExportUnits = json.electricitymeter.energy.export.units
+				eleMeter.parse([[name:"export", value:cumulativeExport, unit: "${cumulativeExportUnits}"]])
+
 				BigDecimal cumulative = json.electricitymeter.energy.import.cumulative
-				eleMeter.parse([[name:"energy", value:cumulative]])
+				String cumulativeUnits = json.electricitymeter.energy.import.units
+				eleMeter.parse([[name:"energy", value:cumulative, unit: "${cumulativeUnits}"]])
 
 				BigDecimal power = json.electricitymeter.power.value * 1000
 				power = power.intValue()
-				eleMeter.parse([[name:"power", value:power]])
+				eleMeter.parse([[name:"power", value:power, unit: "W"]])
 
 				if (updateOccasional) {
+
+					eleMeter.setState([[name:"energyUnit", value:"${cumulativeUnits}"]])
+					eleMeter.setState([[name:"exportUnit", value:"${cumulativeExportUnits}"]])
+					eleMeter.setState([[name:"powerUnit", value:"W"]])
 
 					BigDecimal day = json.electricitymeter.energy.import.day
 					BigDecimal week = json.electricitymeter.energy.import.week
@@ -245,10 +247,6 @@ void parse(String description) {
 
 					String mpan = json.electricitymeter.energy.import.mpan
 					eleMeter.setState([[name:"mpan", value:mpan]])
-
-					String units = json.electricitymeter.energy.import.units
-					eleMeter.setState([[name:"energyUnit", value:"${units}"]])
-					eleMeter.setState([[name:"powerUnit", value:"W"]]) 			// This is a fixed value but just in case it's easier to find here.
 
 					BigDecimal unitrate = json.electricitymeter.energy.import.price.unitrate
 					BigDecimal unitratePence = unitrate * 100
@@ -269,10 +267,9 @@ void parse(String description) {
 
 			} else if (msg.topic.indexOf('gasmeter') >= 0) {
 
-				// Gas meters only send data every 30 minutes via the electricity meter, so there's no point being verbose.
-				// It is expected that cumulative energy will soon be sent in cubic meters and the power value will be removed.
 
 				if (updateOccasional) {
+					// Gas meters only send data every 30 minutes via the electricity meter, so there's no point being verbose.
 
 					BigDecimal volume = json.gasmeter.energy.import.cumulativevol
 					gasMeter.parse([[name:"volume", value:volume]])
@@ -328,7 +325,7 @@ void parse(String description) {
 
 		if (updateOccasional) {
 
-			state.occasionalUpdated = state.presenceUpdated
+			state.occasionalUpdated = state.updatedHealthStatus
 
 		}
 

@@ -1,5 +1,2 @@
 .DS_Store
-generic/drivers/virtual_ups.groovy
-xiaomi/drivers/xiaomi_aqara_cube_controller_mfkzq01lm.groovy
-hive/drivers/computime_thermostat_slt3.groovy
 hive/thingy.groovy

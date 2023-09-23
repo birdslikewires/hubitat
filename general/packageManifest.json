@@ -1,11 +1,11 @@
 {
-	"packageName": "Network UPS Tools MQTT Driver from BirdsLikeWires",
+	"packageName": "General Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
-	"dateReleased": "2022-11-01",
+	"dateReleased": "2023-03-09",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
@@ -17,20 +17,20 @@
 	],
 	"drivers": [
 		{
-			"id": "aa61f365-14fd-4831-a8d9-d852425ddabc",
-			"name": "Network UPS Tools MQTT Driver",
+			"id": "bb0231d6-9f1c-41dd-99e4-403bdcf37a39",
+			"name": "Virtual Switchable Presence",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy",
-			"required": true,
-			"version": "1.05"
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/virtual_switchable_presence.groovy",
+			"required": false,
+			"version": "1.04"
 		},
 		{
-			"id": "8e03b3c8-85a3-44d6-b0e7-11a6e6a4335d",
-			"name": "Network UPS Tools MQTT Child Driver",
+			"id": "82f074bf-3c7e-4867-86f6-f4028a06eebc",
+			"name": "Zigbee2MQTT",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt_child.groovy",
-			"required": true,
-			"version": "1.00"
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/zigbee2mqtt.groovy",
+			"required": false,
+			"version": "1.05"
 		}
 	]
 }

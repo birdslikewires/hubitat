@@ -1,11 +1,11 @@
 /*
  * 
- *  Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM Driver
+ *  Xiaomi Aqara Wireless Remote Switch Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.14 (1st March 2023)"
+@Field String driverVersion = "v1.19 (26th August 2023)"
 
 
 #include BirdsLikeWires.library
@@ -19,19 +19,19 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch_wxkg06lm_wxkg07lm.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Remote Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
 		capability "DoubleTapableButton"
 		capability "HoldableButton"
-		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "ReleasableButton"
 		capability "VoltageMeasurement"
 
+		attribute "healthStatus", "enum", ["offline", "online"]
+
 		if (debugMode) {
-			command "checkPresence"
 			command "testCommand"
 		}
 
@@ -62,13 +62,12 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.xiaomi
 
-	updateDataValue("encoding", "Xiaomi")
-
 	String modelCheck = "${getDeviceDataByName('model')}"
 
 	if (modelCheck.indexOf('lumi.remote.b186acn02') >= 0) {
 		// This is the WXKG06LM single key device.
 
+		updateDataValue("encoding", "Xiaomi")
 		device.name = "Xiaomi Aqara Wireless Remote Switch WXKG06LM"
 		updateDataValue("name", "WXKG06LM")
 		sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
@@ -76,13 +75,27 @@ void configureSpecifics() {
 	} else if (modelCheck.indexOf('lumi.remote.b286acn02') >= 0) {
 		// This is the WXKG07LM double key device.
 
+		updateDataValue("encoding", "Xiaomi")
 		device.name = "Xiaomi Aqara Wireless Remote Switch WXKG07LM"
 		updateDataValue("name", "WXKG07LM")
 		sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
 
 	} else {
 
-		logging("${device} : Model '$modelCheck' is not known.", "warn")
+		String encodingCheck = "${getDeviceDataByName('encoding')}"
+
+		if (encodingCheck.indexOf('MQTT') >= 0) {
+			// If this is an MQTT device everything is already configured. Just tidy up.
+
+			removeDataValue("isComponent")
+			removeDataValue("label")
+			removeDataValue("name")
+
+		} else {
+
+			logging("${device} : Model '$modelCheck' is not known.", "debug")
+
+		}
 
 	}
 
@@ -178,7 +191,7 @@ void processMap(Map map) {
 
 			int heldButton = device.currentState("held").value.toInteger()
 			sendEvent(name: "released", value: heldButton, isStateChange: true)
-			logging("${device} : Trigger : Button ${heldButton} Autoreleased", "info")
+			logging("${device} : Action : Button ${heldButton} Autoreleased", "info")
 
 		} else {
 
@@ -206,17 +219,17 @@ int debouncePress(Map map) {
 
 	if (map.value == "0100") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Pressed", "info")
+		logging("${device} : Action : Button ${buttonNumber} Pressed", "info")
 		sendEvent(name: "pushed", value: buttonNumber, isStateChange: true)
 
 	} else if (map.value == "0200") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Double Tapped", "info")
+		logging("${device} : Action : Button ${buttonNumber} Double Pressed", "info")
 		sendEvent(name: "doubleTapped", value: buttonNumber, isStateChange: true)
 
 	} else if (map.value == "0000") {
 
-		logging("${device} : Trigger : Button ${buttonNumber} Held", "info")
+		logging("${device} : Action : Button ${buttonNumber} Held", "info")
 		sendEvent(name: "held", value: buttonNumber, isStateChange: true)
 
 	}
@@ -225,5 +238,116 @@ int debouncePress(Map map) {
 	isParsing = false
 
 	return buttonNumber
+
+}
+
+
+void processMQTT(def json) {
+
+	// Process the action first!
+	if (json.action) debounceAction("${json.action}")
+
+	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+
+	BigDecimal batteryVoltage = new BigDecimal(json.voltage)
+	batteryVoltage = batteryVoltage / 1000
+	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
+	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
+
+	switch("${json.device.model}") {
+
+		case "WXKG06LM":
+			sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
+			break
+
+		case "WXKG07LM":
+			sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
+			break
+
+	}
+
+	String deviceName = "Xiaomi Aqara Wireless Remote Switch ${json.device.model}"
+	if ("${device.name}" != "$deviceName") device.name = "$deviceName"
+	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+
+	updateDataValue("encoding", "MQTT")
+	updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	updateDataValue("model", "${json.device.model}")
+
+	logging("${device} : parseMQTT : ${json}", "debug")
+
+	updateHealthStatus()
+	checkDriver()
+
+}
+
+
+@Field static Boolean debounceActionParsing = false
+void debounceAction(String action) {
+
+	if (debounceActionParsing) {
+		logging("${device} : parseMQTT : DEBOUNCED", "debug")
+		return
+	}
+	debounceActionParsing = true
+
+	switch(action) {
+
+		case "single":
+		case "single_left":
+			logging("${device} : Action : Button 1 Pressed", "info")
+			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			break
+
+		case "double":
+		case "double_left":
+			logging("${device} : Action : Button 1 Double Pressed", "info")
+			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+			break
+
+		case "hold":
+		case "hold_left":
+			logging("${device} : Action : Button 1 Held", "info")
+			sendEvent(name: "held", value: 1, isStateChange: true)
+			break
+
+		case "single_right":
+			logging("${device} : Action : Button 2 Pressed", "info")
+			sendEvent(name: "pushed", value: 2, isStateChange: true)
+			break
+
+		case "double_right":
+			logging("${device} : Action : Button 2 Double Pressed", "info")
+			sendEvent(name: "doubleTapped", value: 2, isStateChange: true)
+			break
+
+		case "hold_right":
+			logging("${device} : Action : Button 2 Held", "info")
+			sendEvent(name: "held", value: 2, isStateChange: true)
+			break
+
+		case "single_both":
+			logging("${device} : Action : Button 3 Pressed", "info")
+			sendEvent(name: "pushed", value: 3, isStateChange: true)
+			break
+
+		case "double_both":
+			logging("${device} : Action : Button 1 Double Pressed", "info")
+			sendEvent(name: "doubleTapped", value: 3, isStateChange: true)
+			break
+
+		case "hold_both":
+			logging("${device} : Action : Button 1 Held", "info")
+			sendEvent(name: "held", value: 3, isStateChange: true)
+			break
+
+		default:
+			logging("${device} : Action : '$action' is an unknown action.", "info")
+			break
+
+	}
+
+	pauseExecution 200
+	debounceActionParsing = false
 
 }

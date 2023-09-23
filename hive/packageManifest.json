@@ -5,13 +5,13 @@
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hive",
-	"dateReleased": "2023-03-02",
+	"dateReleased": "2023-03-20",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -21,16 +21,24 @@
 			"name": "Hive Receiver",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
-			"required": false,
-			"version": "0.05"
+			"required": true,
+			"version": "0.70"
+		},
+		{
+			"id": "2b3da697-9d27-4a91-b714-f884e0f55c89",
+			"name": "Hive Receiver Heating",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy",
+			"required": true,
+			"version": "0.70"
 		},
 		{
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
 			"name": "Hive Thermostat",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
-			"required": false,
-			"version": "0.05"
+			"required": true,
+			"version": "0.57"
 		}
 	]
 }

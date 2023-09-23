@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.27 (1st March 2023)"
+@Field String driverVersion = "v1.28 (25th August 2023)"
 
 
 #include BirdsLikeWires.alertme
@@ -13,9 +13,9 @@
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-@Field int reportIntervalMinutes = 2		// The real reporting interval of the device.
-@Field int checkEveryMinutes = 6			// How often we should check for presence.
-@Field int rangeEveryHours = 6				// How often we run a ranging report.
+@Field int reportIntervalMinutes = 6
+@Field int checkEveryMinutes = 1
+@Field int rangeEveryHours = 6
 
 
 metadata {
@@ -28,7 +28,6 @@ metadata {
 		capability "ColorMode"
 		capability "Configuration"
 		capability "Light"
-		capability "PresenceSensor"
 		capability "Refresh"
 		capability "SignalStrength"
 		capability "Switch"
@@ -44,6 +43,11 @@ metadata {
 		command "pause"
 
 		attribute "batteryState", "string"
+		attribute "healthStatus", "enum", ["offline", "online"]
+
+		if (debugMode) {
+			command "testCommand"
+		}
 
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Beacon", deviceJoinName: "AlertMe Lamp"
 		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F5", outClusters: "", manufacturer: "AlertMe.com", model: "Lamp Device", deviceJoinName: "AlertMe Lamp"

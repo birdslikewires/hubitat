@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.14 (1st March 2023)
+ *  BirdsLikeWires AlertMe Library v1.17 (25th August 2023)
  *	
  */
 
@@ -20,16 +20,7 @@ library (
 )
 
 
-void installed() {
-
-	// Runs after first installation.
-	logging("${device} : Installed", "info")
-	configure()
-
-}
-
-
-def lockedMode() {
+void lockedMode() {
 	// Disables the local power button on a SmartPlug.
 
 	// Locked mode is not as useful as it might first appear. Though it disables the local power button on
@@ -115,7 +106,8 @@ void refresh() {
 
 void parse(String description) {
 
-	updatePresence()
+	updateHealthStatus()
+	checkDriver()
 
 	if (description.startsWith("zone status")) {
 
@@ -175,16 +167,6 @@ void parse(String description) {
 			logging("${device} : Parse : ${description}", "error")
 
 		}
-
-	}
-
-	String versionCheck = "unknown"
-	versionCheck = "${getDeviceDataByName('driver')}"
-
-	if ("$versionCheck" != "$driverVersion") {
-
-		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
-		configure()
 
 	}
 

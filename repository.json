@@ -37,25 +37,24 @@
     },
     {
       "id": "071ec430-411e-4321-886a-5785d0b29e4c",
-      "name": "Generic Drivers from BirdsLikeWires",
+      "name": "General Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
         "Tools & Utilities",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/generic/packageManifest.json",
-      "description": "Generic utility drivers for platform exploration."
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/packageManifest.json",
+      "description": "Zigbee2MQTT Routing and other utility drivers."
     },
     {
       "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
       "name": "Hildebrand Glow Drivers from BirdsLikeWires",
       "category": "Utility",
       "tags": [
-        "Energy Monitoring",
-        "MQTT"
+        "Energy Monitoring"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/packageManifest.json",
-      "description": "Drivers for Hildebrand Glow consumer access devices."
+      "description": "Consumer access device drivers for SMETS1 and SMETS2 UK smart meters."
     },
     {
       "id": "A7ECBF4E-634F-4B5B-BF6B-1D511B830F21",
@@ -80,6 +79,18 @@
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/packageManifest.json",
       "description": "Drivers for IKEA Tradfri devices."
+    },
+    {
+      "id": "5d733f43-0047-4da9-9266-144968a1a936",
+      "name": "Lidl Drivers from BirdsLikeWires",
+      "category": "Control",
+      "tags": [
+        "Lights & Switches",
+        "Repeaters & Extenders",
+        "Zigbee"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/packageManifest.json",
+      "description": "Drivers for devices based on Lidl's SilverCrest platform."
     },
     {
       "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",

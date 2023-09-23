@@ -1,27 +1,27 @@
 /*
  * 
- *  Samotech Switch Module SM308 Driver
+ *  Tuya Switch Module TS0001 / TS0011 / TS0012 Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.13 (29th August 2023)"
+@Field String driverVersion = "v1.06 (29th August 2023)"
 @Field boolean debugMode = false
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field String deviceMan = "Samotech"
+@Field String deviceMan = "Tuya"
 @Field String deviceType = "Switch Module"
 
 @Field int reportIntervalMinutes = 10
-@Field int checkEveryMinutes = 2
+@Field int checkEveryMinutes = 4
 
 
 metadata {
 
-	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -38,9 +38,9 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "$deviceMan $deviceType SM308", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "$deviceMan $deviceType SM308-S", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "$deviceMan $deviceType SM308-2CH", application: "00"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0006", outClusters: "0003,0006,0004", manufacturer: "_TYZB01_phjeraqq", model: "TS0001", deviceJoinName: "$deviceMan $deviceType TS0001", application: "43"
+		fingerprint profileId: "0104", inClusters: "0003,0004,0005,0006,E000,E001,0000", outClusters: "0019,000A", manufacturer: "_TZ3000_qmi1cfuq", model: "TS0011", deviceJoinName: "$deviceMan $deviceType TS0011", application: "43"
+		fingerprint profileId: "0104", inClusters: "0003,0004,0005,0006,E000,E001,0000", outClusters: "0019,000A", manufacturer: "_TZ3000_jl7qyupf", model: "TS0012", deviceJoinName: "$deviceMan $deviceType TS0012", application: "43"
 
 	}
 
@@ -52,13 +52,13 @@ preferences {
 	input name: "flashEnabled", type: "bool", title: "Enable flash", defaultValue: false
 	input name: "flashRate", type: "number", title: "Flash rate (ms)", range: "500..5000", defaultValue: 1000
 
-	if ("${getDeviceDataByName('model')}" == "SM308-2CH") {
+	if ("${getDeviceDataByName('model')}" == "TS0012") {
 		input name: "flashRelays", type: "enum", title: "Flash relay", options:[["FF":"Both"],["01":"Relay 1"],["02":"Relay 2"]]
 	}
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false	
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true	
 
 }
 
@@ -80,11 +80,10 @@ void configureSpecifics() {
 	device.name = "$deviceMan $deviceType $deviceModel"
 
 	// Store relay count and create children.
-	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
-
+	state.relayCount = ("${getDeviceDataByName('model')}" == "TS0012") ? 2 : 1
 	if (state.relayCount > 1) {
 		for (int i = 1; i == state.relayCount; i++) {
-			fetchChild("hubitat", "Switch","0$i")
+			fetchChild("hubitat","Switch","0$i")
 		}
 	} else {
 		deleteChildren()
@@ -94,8 +93,14 @@ void configureSpecifics() {
 	sendEvent(name: "mode", value: "static", isStateChange: false)
 
 	// Reporting
-	int reportIntervalSeconds = reportIntervalMinutes * 60
-	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, 0, reportIntervalSeconds, 1, [:], 200))	// Send switch status.
+
+	/// Sadly it would appear that these modules don't support binding to 00 or FF as an endpoint.
+	/// On other modules it's possible to do a configureReporting((0x0006, 0x0000...) which results in all
+	/// endpoint states being reported. Instead we just have to poll, ironically using FF as the endpoint.
+
+	sendZigbeeCommands(zigbee.onOffConfig())
+	randomSixty = Math.abs(new Random().nextInt() % 60)
+	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", refresh)
 
 }
 
@@ -147,7 +152,7 @@ void flash() {
 		return
 	}
 
-	if (!flashRelays && "${getDeviceDataByName('model')}" == "SM308-2CH") {
+	if (!flashRelays && "${getDeviceDataByName('model')}" == "TS0012") {
 		logging("${device} : Flash : No relay chosen in preferences.", "warn")
 		return
 	}
@@ -218,7 +223,20 @@ void processMap(Map map) {
 
 	logging("${device} : processMap() : ${map}", "trace")
 
-	if (map.cluster == "0006" || map.clusterId == "0006") {
+	if (map.cluster == "0001") {
+		// Power configuration.
+
+		if (map.value) {
+
+			logging("${device} : Switch ${map.endpoint} : On", "warn")
+
+		} else {
+
+			filterThis(map)
+
+		}
+
+	} else if (map.cluster == "0006" || map.clusterId == "0006") {
 		// Relay configuration and response handling.
 		// State confirmation and command receipts.
 
@@ -231,9 +249,7 @@ void processMap(Map map) {
 
 					def childDevice = fetchChild("hubitat", "Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"off"]])
-
 					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
-					logging("${device} : currentChildStates : ${childDevice.id} ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
 						logging("${device} : Switch : All Off", "info")
@@ -269,53 +285,47 @@ void processMap(Map map) {
 			// Relay States
 
 			// Command "0A" is local actuation, command "0B" is remote actuation.
-
-			// Some modules send an "0A" response after being switched remotely, which is a nice confirmation, but not correct behaviour.
-			// Trick is, I've got one SM308-S which does this and one SM308-S which doesn't. Both fresh out of the box.
-
-			// For the time being we're going to treat these as the same.
-			// We'll be sure not to force our event with "isStateChange" as this would lead to double messaging.
+			String relayActuation = (map.command == "0A") ? "local" : "remote"
+			
+			// These appear to always report on both 0A and 0B when remote controlled, so I'm skipping the local message for now.
 
 			// I'll investigate this with a momentary switch when I get chance.
 
+			// Temporary Skipper
+			if (map.command == "0A") {
+				logging("${device} : Skipping $relayActuation actuation message", "debug")
+				return
+			}
+
 			String relayActuated = (map.command == "0A") ? map.endpoint : map.sourceEndpoint
 			String relayState = (map.command == "0A") ? map.value : map.data[0]
+			String relayOnOff = (relayState == "00") ? "off" : "on"
 
-			if (relayState == "00") {
+			if (state.relayCount > 1) {
 
-				if (state.relayCount > 1) {
+				def childDevice = fetchChild("hubitat", "Switch", "$relayActuated")
+				childDevice.parse([[name:"switch", value:"${relayOnOff}"]])
+				def currentChildStates = fetchChildStates("switch","${childDevice.id}")
 
-					def childDevice = fetchChild("hubitat", "Switch", "$relayActuated")
-					childDevice.parse([[name:"switch", value:"off"]])
+				// You need all of them off to be off, but only one to be on to be on. ;)
+				if (relayOnOff == "off" && currentChildStates.every{it == "off"}) {
 
-					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
-					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
+					debounceParentState("switch", "${relayOnOff}", "All Devices ${relayOnOff.capitalize()}", "info", 300)
+					sendEvent(name: "switch", value: "${relayOnOff}")
 
-					if (currentChildStates.every{it == "off"}) {
+				} else if (relayOnOff == "on") {
 
-						debounceParentState("switch", "off", "All Devices Off", "info", 100)
-
-					}
-
-				} else {
-
-					sendEvent(name: "switch", value: "off")
+					sendEvent(name: "switch", value: "${relayOnOff}")
 
 				}
-
-				logging("${device} : Switched $relayActuated : Off", "info")
 
 			} else {
 
-				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Switch", "$relayActuated")
-					childDevice.parse([[name:"switch", value:"on"]])
-				}
-
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switched $relayActuated : On", "info")
+				sendEvent(name: "switch", value: "${relayOnOff}")
 
 			}
+
+			logging("${device} : ${relayActuation.capitalize()}ly Switched $relayActuated : ${relayOnOff.capitalize()}", "info")
 
 		} else if (map.command == "00") {
 
@@ -326,17 +336,6 @@ void processMap(Map map) {
 			filterThis(map)
 
 		}
-
-	} else if (map.cluster == "0702" || map.clusterId == "0702") {
-
-		def int powerValue = zigbee.convertHexToInt(map.value)
-		// sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
-		// sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
-		// logging("${device} : power hex value : ${map.value}", "trace")
-		// logging("${device} : power sensor reports : ${powerValue}", "debug")
-
-		logging("${device} : Power messaging seems broken. It looks more like energy logging. Received: ${powerValue} for endpoint ${map.endpoint}.", "debug")
-		filterThis(map)
 
 	} else {
 
