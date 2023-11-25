@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_extension.groovy",
 			"required": false,
-			"version": "1.10"
+			"version": "1.11"
 		},
 		{
 			"id": "35214918-e42c-4153-be13-1435500b292c",

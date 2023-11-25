@@ -7,7 +7,7 @@
  */
 
 
-@Field String driverVersion = "v1.10 (29th August 2023)"
+@Field String driverVersion = "v1.11 (25th November 2023)"
 @Field boolean debugMode = false
 
 
@@ -71,8 +71,8 @@ void configureSpecifics() {
 
 	// Store relay count and create children.
 	state.relayCount = 3
-	for (int i = 1; i == state.relayCount; i++) {
-		fetchChild("hubitat","Switch","0$i")
+	for (int i = 1; i <= state.relayCount; i++) {
+		fetchChild("hubitat", "Generic Component Switch", "0$i")
 	}
 
 	// Reporting
@@ -158,7 +158,7 @@ void processMap(map) {
 
 			if (map.value == "01") {
 
-				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 
 				sendEvent(name: "switch", value: "on")
@@ -166,7 +166,7 @@ void processMap(map) {
 
 			} else {
 
-				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 
 				def currentChildStates = fetchChildStates("switch","${cd.id}")
@@ -193,14 +193,14 @@ void processMap(map) {
 
 			if (map.value == "01") {
 
-				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 				refresh()
 				logging("${device} : Local Switch ${map.endpoint} : On", "info")
 
 			} else {
 
-				def cd = fetchChild("hubitat","Switch","${map.endpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 				refresh()
 				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
@@ -216,14 +216,14 @@ void processMap(map) {
 
 			if (powerStateHex == "01") {
 
-				def cd = fetchChild("hubitat","Switch","${map.sourceEndpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.sourceEndpoint}")
 				cd.parse([[name:"switch", value:"on"]])
 				sendEvent(name: "switch", value: "on")
 				logging("${device} : Switched ${map.sourceEndpoint} : On", "info")
 
 			} else {
 
-				def cd = fetchChild("hubitat","Switch","${map.sourceEndpoint}")
+				def cd = fetchChild("hubitat", "Generic Component Switch", "${map.sourceEndpoint}")
 				cd.parse([[name:"switch", value:"off"]])
 
 				def currentChildStates = fetchChildStates("switch","${cd.id}")

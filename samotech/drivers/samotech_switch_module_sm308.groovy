@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.13 (29th August 2023)"
+@Field String driverVersion = "v1.14 (25th November 2023)"
 @Field boolean debugMode = false
 
 
@@ -83,8 +83,8 @@ void configureSpecifics() {
 	state.relayCount = ("${getDeviceDataByName('model')}" == "SM308-2CH") ? 2 : 1
 
 	if (state.relayCount > 1) {
-		for (int i = 1; i == state.relayCount; i++) {
-			fetchChild("hubitat", "Switch","0$i")
+		for (int i = 1; i <= state.relayCount; i++) {
+			fetchChild("hubitat", "Generic Component Switch", "0$i")
 		}
 	} else {
 		deleteChildren()
@@ -229,7 +229,7 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					def childDevice = fetchChild("hubitat", "Switch", "${map.endpoint}")
+					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"off"]])
 
 					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
@@ -251,7 +251,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Switch", "${map.endpoint}")
+					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
@@ -285,7 +285,7 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					def childDevice = fetchChild("hubitat", "Switch", "$relayActuated")
+					def childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"off"]])
 
 					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
@@ -308,7 +308,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Switch", "$relayActuated")
+					def childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
