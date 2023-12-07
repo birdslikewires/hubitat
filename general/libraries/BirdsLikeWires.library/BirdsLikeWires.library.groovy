@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.31 (20th August 2023)
+ *  BirdsLikeWires Library v1.32 (7th December 2023)
  *	
  */
 
@@ -303,13 +303,18 @@ void checkDriver() {
 
 
 void requestBasic() {
-	// Request application value, manufacturer, model name, software build and simple descriptor data.
 
+	// Request manufacturer, cluster library version, application version, model name, power source and Tuya's "attributeReportingStatus" from the Basic cluster.
+	// This is mostly information we want anyway, but we request it in "Tuya Magic Spell" format as this may be advantageous in putting some devices into the correct mode.
+	ArrayList<String> cmds = []
+	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe])
+	sendZigbeeCommands(cmds)
+
+	pauseExecution(500)
+
+	// Request software build and simple descriptor data.
 	sendZigbeeCommands([
 
-		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0001 {}",
-		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0004 {}",
-		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x0005 {}",
 		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}",
 		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 

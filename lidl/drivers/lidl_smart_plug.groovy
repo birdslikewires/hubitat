@@ -1,13 +1,13 @@
 /*
  * 
  *  Lidl Smart Plug Driver
- *
+ *  
  *  Supports: HG06337
  *	
  */
 
 
-@Field String driverVersion = "v1.11 (2nd December 2023)"
+@Field String driverVersion = "v1.12 (7th December 2023)"
 @Field boolean debugMode = false
 
 
@@ -63,13 +63,6 @@ void testCommand() {
 
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
-
-	// Tuya Magic Spell
-	// I'm told this is necessary for some Tuya devices to behave properly. I have not verified this, but reading these values should be harmless.
-	// Reads (Cluster: Basic, [Attributes: man name, zlc ver, app ver, model id, power source, attributeReportingStatus])
-	ArrayList<String> cmds = []
-	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe])
-	sendZigbeeCommands(cmds)
 
 	requestBasic()
 
