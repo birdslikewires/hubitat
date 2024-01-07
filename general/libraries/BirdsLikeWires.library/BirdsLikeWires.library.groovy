@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.32 (7th December 2023)
+ *  BirdsLikeWires Library v1.33 (7th January 2024)
  *	
  */
 
@@ -56,8 +56,8 @@ void configure() {
 	configureSpecifics()
 
 	// Notify.
-	sendEvent(name: "configuration", value: "complete", isStateChange: false)
-	logging("${device} : Configuration complete.", "info")
+	sendEvent(name: "configuration", value: "sent", isStateChange: false)
+	logging("${device} : Configuration : Sent to device.", "info")
 
 	updated()
 	
