@@ -357,11 +357,12 @@ void processConfigurationResponse(Map map) {
 
 		if (map.data[0] == "00") {
 
-			sendEvent(name: "configuration", value: "received", isStateChange: false)
-			logging("${device} : Configuration : Received by device.", "info")
+			sendEvent(name: "configuration", value: "ok", isStateChange: false)
+			logging("${device} : Configuration : Received and accepted by device.", "info")
 
 		} else {
 
+			sendEvent(name: "configuration", value: "failed", isStateChange: false)
 			logging("${device} : Configuration : Device may not have processed configuration correctly.", "warn")
 
 		}
