@@ -21,7 +21,12 @@ metadata {
 
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/sonoff/drivers/sonoff_trvzb.groovy") {
 
+		capability "Battery"
 		capability "Configuration"
+		capability "Refresh"
+		capability "TemperatureMeasurement"
+		capability "ThermostatSetpoint"
+		capability "VoltageMeasurement"
 
 		attribute "healthStatus", "enum", ["offline", "online"]
 
@@ -45,9 +50,11 @@ preferences {
 }
 
 
-void testCommand(int childEndpoint) {
+void testCommand() {
 
 	logging("${device} : Test Command", "info")
+
+	zigbee.readAttribute(0x0001, 0x0021, [:], delay=200)
 
 }
 
@@ -56,27 +63,9 @@ void configureSpecifics() {
 	// Called by general configure() method
 
 	String modelCheck = "${getDeviceDataByName('model')}"
-	device.name = "$deviceName $modelCheck"
-	//setThermostatDateAndTime(5)
+	device.name = "$deviceName"
 
-	// Reporting
-	//  These had to be constructed manually as configureReporting seems to ignore the [destEndpoint:0x06] additional parameter.
-	//  NOTE! Though the water (endpoint 0x06) bind is reported as successful no reports are ever sent. The endpoint needs to be polled. :(
-	//        Attributes 1C, 23, 24 and 29 all apply to endpoint 6. Temperature setpoint (12) does not apply (set on the boiler).
-	// sendZigbeeCommands([
-	// 	"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-	// 	"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0012 0x29 1 43200 {} {}, delay 2000",			// (0x0201, 0x0012) OccupiedHeatingSetpoint
-	// 	"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-	// 	"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x001C 0x30 1 43200 {} {}, delay 2000",			// (0x0201, 0x001C) SystemMode 
-	// 	"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-	// 	"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0023 0x30 1 43200 {} {}, delay 2000",			// (0x0201, 0x0023) TemperatureSetpointHold 
-	// 	"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-	// 	"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0024 0x21 1 43200 {} {}, delay 2000",			// (0x0201, 0x0024) TemperatureSetpointHoldDuration
-	// 	"zdo bind 0x${device.deviceNetworkId} 0x05 0x01 0x0201 {${device.zigbeeId}} {}, delay 2000",
-	// 	"he cr 0x${device.deviceNetworkId} 0x05 0x0201 0x0029 0x19 1 43200 {} {}, delay 2000"			// (0x0201, 0x0029) ThermostatRunningState
-	// ])
-
-	// sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 60))							// (0x0201, 0x0000) Temperature Reporting
+	sendZigbeeCommands(zigbee.configureReporting(0x0201, 0x0000, 0x29, 1, 60))							// (0x0201, 0x0000) Temperature Reporting
 
 }
 
@@ -89,238 +78,6 @@ void updateSpecifics() {
 }
 
 
-void auto(int childEndpoint) {
-	// Schedule mode. This will run any existing schedule set through the thermostat.
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: childEndpoint])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x00, [destEndpoint: childEndpoint])	// TemperatureSetpointHold
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : System set to schedule mode.", "info")
-
-}
-
-
-void cool(int childEndpoint) {
-	// Being a heat-only system we can only take this to be a request to actively reach a temperature by the only means we have.
-
-	logging("${device} : Request to cool received, but this system does not support active cooling.", "warn")
-	heat(childEndpoint)
-
-}
-
-
-void setCoolingSetpoint(int childEndpoint, BigDecimal temperature) {
-	// Being a heat-only system the cooling setpoint can only ever be the same as the heating setpoint.
-
-	logging("${device} : Cooling setpoint requested, but this system does not support active cooling.", "warn")
-	setHeatingSetpoint(childEndpoint, temperature)
-
-}
-
-
-void emergencyHeat(int childEndpoint) {
-	// Boost mode.
-
-	int boostTime = 30
-	int boostTemp = 2400
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x05, [destEndpoint: childEndpoint], 0)			// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: childEndpoint], 0)			// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, boostTime, [destEndpoint: childEndpoint], 0)	// TemperatureSetpointHoldDuration
-	cmds += zigbee.writeAttribute(0x0201, 0x0012, 0x29, boostTemp, [destEndpoint: childEndpoint], 0) 	// OccupiedHeatingSetpoint
-	sendZigbeeCommands(cmds)
-
-	logging("${device} : System boosting to ${boostTemp} for ${boostTime} minutes.", "info")
-
-}
-
-
-void fanAuto(int childEndpoint) {
-	// No controllable fans here.
-
-	logging("${device} : No controllable fans.", "warn")
-	return
-
-}
-
-
-void fanCirculate(int childEndpoint) {
-	// No controllable fans here either.
-
-	logging("${device} : No controllable fans.", "warn")
-	return
-
-}
-
-
-void fanOn(int childEndpoint) {
-	// Still no controllable fans, stop asking.
-
-	logging("${device} : No controllable fans.", "warn")
-	return
-
-}
-
-
-void heat(int childEndpoint) {
-	// Manual mode.
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x04, [destEndpoint: childEndpoint])	// SystemMode
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x01, [destEndpoint: childEndpoint])	// TemperatureSetpointHold
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0x00, [destEndpoint: childEndpoint])	// TemperatureSetpointHoldDuration
-	sendZigbeeCommands(cmds)
-
-}
-
-
-void setHeatingSetpoint(int childEndpoint, BigDecimal temperature) {
-
-	// Convert from degF.
-	if ("${location.temperatureScale}" == "F") temperature = (temperature / 1.8) - 32
-	
-	(temperature < 5) ? temperature = 1 : temperature		// Anything lower than 5degC is frost protect mode.
-	(temperature > 32) ? temperature = 32 : temperature		// Anything higher than 32degC is not supported.
-
-	// System works in 0.5degC steps.
-	temperature = temperature * 2
-	temperature = temperature.setScale(0, BigDecimal.ROUND_HALF_UP)
-	temperature = temperature / 2
-	temperature = temperature.setScale(2, BigDecimal.ROUND_UP) * 100
-	int temperatureInt = temperature.toInteger()
-
-	logging("${device} : setHeatingSetpoint : sanitised temperature input to ${temperatureInt}", "debug")
-
-	sendZigbeeCommands(zigbee.writeAttribute(0x0201, 0x0012, 0x29, temperatureInt, [destEndpoint: childEndpoint]))
-
-}
-
-
-void setThermostatMode(int childEndpoint, String thermostatMode) {
-
-	logging("${device} : setThermostatMode : ${thermostatMode} ", "debug")
-
-	switch(thermostatMode) {
-
-		case "auto":
-			auto(childEndpoint)
-			break
-		case "off":
-			off(childEndpoint)
-			break
-		case "heat":
-			setThermostatModeWithSafety(childEndpoint, thermostatMode)
-			break
-		case "emergency heat":
-			emergencyHeat(childEndpoint)
-			break
-		case "cool":
-			setThermostatModeWithSafety(childEndpoint, thermostatMode)
-			break
-
-	}
-
-}
-
-
-void setThermostatModeWithSafety(int childEndpoint, String thermostatMode) {
-
-	def currentOverrideMinutes = fetchChildStates("overrideMinutes","${childEndpoint}")
-	def currentThermostatMode = fetchChildStates("thermostatMode","${childEndpoint}")
-
-	if (currentOverrideMinutes[0] != "0" || currentThermostatMode[0] == "auto") {
-
-		logging("${device} : We're running a schedule. Command 'heat' or 'cool' directly to switch to manual.", "warn")
-
-	} else {
-
-		switch(thermostatMode) {
-
-			case "heat":
-				heat(childEndpoint)
-				break
-			case "cool":
-				cool(childEndpoint)
-				break
-
-		}
-
-	}
-
-}
-
-
-void setThermostatFanMode(int childEndpoint, String fanMode) {
-
-	switch(fanMode) {
-
-		case "auto":
-			fanAuto(childEndpoint)
-			break
-		case "circulate":
-			fanCirculate(childEndpoint)
-			break
-		case "on":
-			fanOn(childEndpoint)
-			break
-
-	}
-
-}
-
-
-void off(int childEndpoint) {
-	// Turns everything off, but respects the frost protect setting.
-
-	ArrayList<String> cmds = []
-	cmds += zigbee.writeAttribute(0x0201, 0x001C, 0x30, 0x0000, [destEndpoint: childEndpoint])	// SystemMode to off
-	cmds += zigbee.writeAttribute(0x0201, 0x0023, 0x30, 0x0001, [destEndpoint: childEndpoint])	// TemperatureSetpointHold 
-	cmds += zigbee.writeAttribute(0x0201, 0x0024, 0x21, 0xFFFF, [destEndpoint: childEndpoint])	// TemperatureSetpointHoldDuration
-	sendZigbeeCommands(cmds)
-
-	//runIn(3,getSystemMode)
-
-}
-
-
-void getOccupiedHeatingSetpoint(int childEndpoint) {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0012, [destEndpoint: childEndpoint]))
-
-}
-
-
-void getSystemMode(int childEndpoint) {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x001C, [destEndpoint: childEndpoint]))
-
-}
-
-
-void getTemperatureSetpointHold(int childEndpoint) {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0023, [destEndpoint: childEndpoint]))
-
-}
-
-
-void getTemperatureSetpointHoldDuration(int childEndpoint) {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0024, [destEndpoint: childEndpoint]))
-
-}
-
-
-void getThermostatRunningState(int childEndpoint) {
-
-	sendZigbeeCommands(zigbee.readAttribute(0x0201, 0x0029, [destEndpoint: childEndpoint]))
-
-}
-
-
 void parse(String description) {
 
 	updateHealthStatus()
@@ -328,50 +85,113 @@ void parse(String description) {
 
 	logging("${device} : parse() : $description", "trace")
 
-	// Map descriptionMap = zigbee.parseDescriptionAsMap(description)
+	Map descriptionMap = zigbee.parseDescriptionAsMap(description)
 
-	// if (descriptionMap) {
+	if (descriptionMap) {
 
-	// 	def child
+		try {
 
-	// 	if ("${descriptionMap.endpoint}" == "06") {
+			processMap(descriptionMap)
 
-	// 		child = fetchChild("BirdsLikeWires","Hive Receiver Water","${descriptionMap.endpoint}")
+		} catch (Exception e) {
 
-	// 	} else {
+			// Slice-and-dice the string we receive.
+			descriptionMap = description.split(', ').collectEntries {
+				entry -> def pair = entry.split(': ')
+				[(pair.first()): pair.last()]
+			}
 
-	// 		child = fetchChild("BirdsLikeWires","Hive Receiver Heating","${descriptionMap.endpoint}")
+			try {
 
-	// 	}
+				processMap(descriptionMap)
 
-	// 	try {
+			} catch (Exception ee) {
 
-	// 		child.processMap(descriptionMap)
+				reportToDev(descriptionMap)
 
-	// 	} catch (Exception e) {
+			}
 
-	// 		// Slice-and-dice the string we receive.
-	// 		descriptionMap = description.split(', ').collectEntries {
-	// 			entry -> def pair = entry.split(': ')
-	// 			[(pair.first()): pair.last()]
-	// 		}
+		}
 
-	// 		try {
-
-	// 			child.processMap(descriptionMap)
-
-	// 		} catch (Exception ee) {
-
-	// 			reportToDev(descriptionMap)
-
-	// 		}
-
-	// 	}
-
-	// } else {
+	} else {
 		
-	// 	reportToDev(descriptionMap)
+		reportToDev(descriptionMap)
 
-	// }
+	}
 
+}
+
+
+void processMap(Map map) {
+
+	if (map.cluster == "0201") {
+		// Thermostat Cluster
+
+		if (map.attrId == "0000" || map.attrId == "0012") {
+			// temperature or heatingSetpoint
+
+			String temperatureType = ("${map.attrId}" == "0000") ? "temperature" : "thermostatSetpoint"
+
+			BigDecimal temperature = hexStrToSignedInt(map.value)
+			temperature = temperature / 100
+			temperature = temperature.setScale(1, BigDecimal.ROUND_DOWN)
+
+			logging("${device} : ${temperatureType} : ${temperature} from hex value ${map.value} ", "debug")
+
+			String temperatureScale = location.temperatureScale
+			if (temperatureScale == "F") {
+				temperature = (temperature * 1.8) + 32
+			}
+
+			logging("${device} : ${temperatureType} : ${temperature} °${temperatureScale}", "info")
+			sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
+
+			// if (temperatureType == "heatingSetpoint") {
+
+			// 	// System is heating-only. The cooling setpoint can only ever be our heating target.
+			// 	sendEvent(name: "thermostatSetpoint", value: temperature, unit: "${temperatureScale}")
+
+			// 	// Now we need to check whether this was a scheduled or manual setpoint change.
+			// 	//getSystemMode()
+			// 	//getTemperatureSetpointHoldDuration()
+
+			// }
+		
+		} else if (map.attrId == "001C") {
+			// Thermostat Mode
+
+			// It's likely this will always be "04" for "heating" as this is a heating-only device.
+			// I suppose it's possible it could be "00" for "off". Maybe.
+			logging("${device} : Thermostat Mode : hex value ${map.value} ", "debug")
+
+		
+		} else {
+
+			filterThis(map)
+
+		}
+
+	} else if (map.cluster == "FC11") {
+		// Vendor Specific Cluster
+
+		if (map.attrId == "6007") {
+			// valve_motor_running_voltage
+
+			/// Just quickly threw this in to see what we get overnight, or whenever I get back to this.
+
+			BigDecimal motorVoltage = hexStrToSignedInt(map.value)
+			motorVoltage = motorVoltage / 100
+			motorVoltage = motorVoltage.setScale(1, BigDecimal.ROUND_DOWN)  
+
+			logging("${device} : valve_motor_running_voltage : ${motorVoltage} from hex value ${map.value} ", "debug")
+
+		}
+
+
+	} else {
+
+		filterThis(map)
+
+	}
+	
 }
