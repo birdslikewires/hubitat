@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.04 (9th March 2023)"
+@Field String driverVersion = "v1.05 (21st June 2024)"
 
 
 #include BirdsLikeWires.library
@@ -27,11 +27,12 @@ metadata {
 		attribute "absent", "integer"
 		attribute "absentCounter", "string"
 		attribute "absentDate", "integer"
-		attribute "absentTime", "string"
+		attribute "absentDuration", "string"
+		attribute "duration", "string"
 		attribute "present", "integer"
 		attribute "presentCounter", "string"
 		attribute "presentDate", "integer"
-		attribute "presentTime", "string"
+		attribute "presentDuration", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -147,7 +148,8 @@ void updateDurations(long millisNow) {
 			String timeAbsent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			sendEvent(name: "absentCounter", value: durationAbsent)
-			sendEvent(name: "absentTime", value: timeAbsent)
+			sendEvent(name: "absentDuration", value: timeAbsent)
+			sendEvent(name: "duration", value: timeAbsent)
 
 		} else {
 
@@ -159,7 +161,8 @@ void updateDurations(long millisNow) {
 			String timePresent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			sendEvent(name: "presentCounter", value: durationPresent)
-			sendEvent(name: "presentTime", value: timePresent)
+			sendEvent(name: "presentDuration", value: timePresent)
+			sendEvent(name: "duration", value: timePresent)
 
 		}
 
