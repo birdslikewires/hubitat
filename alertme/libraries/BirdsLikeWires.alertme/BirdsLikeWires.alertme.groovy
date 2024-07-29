@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.17 (25th August 2023)
+ *  BirdsLikeWires AlertMe Library v1.18 (29th July 2024)
  *	
  */
 
@@ -212,11 +212,15 @@ void alertmeDeviceStatus(Map map) {
 	batteryVoltage = zigbee.convertHexToInt(batteryVoltageHex) / 1000
 	logging("${device} : batteryVoltage sensor value : ${batteryVoltage}", "debug")
 
-	if (getDataValue("model").startsWith("SmartPlug") && getDataValue("firmware").startsWith("2010")) {
+	if (getDataValue("model") && getDataValue("firmware")) {
+		if (getDataValue("model").startsWith("SmartPlug") && getDataValue("firmware").startsWith("2010")) {
 			// Early SmartPlug firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
 			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
 			batteryVoltage = batteryVoltage * 1.43
 			logging("${device} : Early firmware requires batteryVoltage correction!", "debug")
+		}
+	} else {
+		logging("${device} : Model and firmware data incomplete for this SmartPlug.", "debug")
 	}
 
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
