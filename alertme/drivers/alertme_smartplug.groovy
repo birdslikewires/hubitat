@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.55 (29th July 2024)"
+@Field String driverVersion = "v1.56 (13th November 2024)"
 
 
 #include BirdsLikeWires.alertme
@@ -59,7 +59,8 @@ preferences {
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
-	
+	input name: "disableOff", type: "bool", title: "Disable 'Off' command", defaultValue: false
+
 }
 
 
@@ -97,8 +98,12 @@ void updateSpecifics() {
 
 void off() {
 
-	// The off command is custom to AlertMe equipment, so has to be constructed.
-	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 02 00 01} {0xC216}"])
+	if (disableOff) {
+		logging("${device} : Switch : Off is disabled!", "warn")
+	} else {
+		// The off command is custom to AlertMe equipment, so has to be constructed.
+		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 02 00 01} {0xC216}"])
+	}
 
 }
 
