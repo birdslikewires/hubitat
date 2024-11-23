@@ -1,0 +1,45 @@
+{
+	"packageName": "General Drivers from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.2.8",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
+	"dateReleased": "2023-03-09",
+	"bundles": [
+		{
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"required": true
+		}
+	],
+	"drivers": [
+
+		{
+			"id": "1f79558f-41c3-43a7-9683-fdda4863350b",
+			"name": "Zigbee2MQTT",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy",
+			"required": true,
+			"version": "2.00"
+		},
+		{
+			"id": "bc6f635c-9a46-4a6e-92dd-9d3253cd48d2",
+			"name": "Zigbee2MQTT Generic Device Driver",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_generic.groovy",
+			"required": true,
+			"version": "1.00"
+		},
+		{
+			"id": "cad9d81a-fbe4-44f1-9d28-957e2f96001c",
+			"name": "Zigbee2MQTT Generic Child Switch Driver",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_generic_child_switch.groovy",
+			"required": true,
+			"version": "1.00"
+		}
+	]
+}
