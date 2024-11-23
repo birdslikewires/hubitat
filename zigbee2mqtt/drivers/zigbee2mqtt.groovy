@@ -11,7 +11,7 @@
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = true
+@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 1
 
