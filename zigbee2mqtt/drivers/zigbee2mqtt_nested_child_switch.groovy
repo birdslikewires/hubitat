@@ -99,7 +99,7 @@ void processMQTT(def json) {
 	String switchState = json."$switchNumber".toLowerCase()
 	sendEvent(name: "switch", value: "$switchState")
 
-	logging("${device} : processMQTT NESTED CHILD : ${json}", "trace")
+	String capSwitchState = switchState.capitalize()
+	logging("${device} : Switch : $capSwitchState", "info")
 
 }
-
