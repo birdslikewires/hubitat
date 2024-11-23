@@ -141,6 +141,17 @@
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/packageManifest.json",
       "description": "Drivers for Xiaomi Aqara and Mijia devices."
+    },
+    {
+      "id": "e997d860-30d3-4ca8-b0ba-b1298061318b",
+      "name": "Zigbee2MQTT Drivers from BirdsLikeWires",
+      "category": "Control",
+      "tags": [
+        "MQTT",
+        "Zigbee"
+      ],
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/packageManifest.json",
+      "description": "Drivers for devices connected via Zigbee2MQTT."
     }
   ]
 }
