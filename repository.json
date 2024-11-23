@@ -151,7 +151,7 @@
         "Zigbee"
       ],
       "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/packageManifest.json",
-      "description": "Drivers for devices connected via Zigbee2MQTT."
+      "description": "Zigbee2MQTT Routing Driver."
     }
   ]
 }
