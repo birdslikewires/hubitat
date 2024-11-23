@@ -105,7 +105,7 @@ void processMQTT(def json) {
 
 			logging("${device} : Processing switch $i.", "debug")
 
-			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Generic Child Switch", "$i")
+			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$i")
 			child.processMQTT(json)
 
 		}
@@ -114,7 +114,7 @@ void processMQTT(def json) {
 
 		logging("${device} : Device has 1 switch.", "debug")
 
-		child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Generic Child Switch", "$i")
+		child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$i")
 		child.processMQTT(json)
 
 	}
