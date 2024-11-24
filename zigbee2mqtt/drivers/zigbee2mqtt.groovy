@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.00 (23rd November 2024)"
+@Field String driverVersion = "v2.01 (24th November 2024)"
 
 
 #include BirdsLikeWires.library
@@ -57,6 +57,8 @@ void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
 	device.name = "Zigbee2MQTT"
+
+	removeDataValue("encoding")
 
 }
 
