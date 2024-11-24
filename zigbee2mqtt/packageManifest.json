@@ -1,11 +1,11 @@
 {
-	"packageName": "General Drivers from BirdsLikeWires",
+	"packageName": "Zigbee2MQTT Routing from BirdsLikeWires",
 	"author": "Andrew Davison",
-	"minimumHEVersion": "2.2.8",
+	"minimumHEVersion": "2.3.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
-	"dateReleased": "2023-03-09",
+	"dateReleased": "2024-11-24",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
