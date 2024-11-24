@@ -144,7 +144,7 @@
     },
     {
       "id": "e997d860-30d3-4ca8-b0ba-b1298061318b",
-      "name": "Zigbee2MQTT Drivers from BirdsLikeWires",
+      "name": "Zigbee2MQTT Routing from BirdsLikeWires",
       "category": "Control",
       "tags": [
         "MQTT",
