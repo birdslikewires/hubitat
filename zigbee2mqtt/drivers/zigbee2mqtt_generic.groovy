@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (23rd November 2024)"
+@Field String driverVersion = "v1.01 (2nd December 2024)"
 
 
 #include BirdsLikeWires.library
@@ -105,7 +105,7 @@ void processMQTT(def json) {
 
 			logging("${device} : Processing switch $i.", "debug")
 
-			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$i")
+			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$relays-$i")
 			child.processMQTT(json)
 
 		}
@@ -114,7 +114,7 @@ void processMQTT(def json) {
 
 		logging("${device} : Device has 1 switch.", "debug")
 
-		child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$i")
+		child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "1-1")
 		child.processMQTT(json)
 
 	}

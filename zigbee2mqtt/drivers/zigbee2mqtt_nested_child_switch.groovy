@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (23rd November 2024)"
+@Field String driverVersion = "v1.01 (1st December 2024)"
 
 
 #include BirdsLikeWires.library
@@ -73,18 +73,27 @@ void refresh() {
 }
 
 
+def getStateType() {
+
+	def details = "${device.deviceNetworkId}".split('-')
+	String stateType = ("${details[-2]}" > 1) ? "state_l${details[-1]}" : "state"
+	return stateType
+
+}
+
+
 void off() {
 
-	String switchNumber = "${device.deviceNetworkId}".split('-').last()
-	parent.publish("state_l${switchNumber}", "off")
+	String stateType = getStateType()
+	parent.publish("${stateType}", "off")
 
 }
 
 
 void on() {
 
-	String switchNumber = "${device.deviceNetworkId}".split('-').last()
-	parent.publish("state_l${switchNumber}", "on")
+	String stateType = getStateType()
+	parent.publish("${stateType}", "on")
 
 }
 
@@ -93,10 +102,9 @@ void processMQTT(def json) {
 
 	checkDriver()
 
-	String switchNumber = "${device.deviceNetworkId}".split('-').last()
-	switchNumber = "state_l" + switchNumber
+	String stateType = getStateType()
 
-	String switchState = json."$switchNumber".toLowerCase()
+	String switchState = json."$stateType".toLowerCase()
 	sendEvent(name: "switch", value: "$switchState")
 
 	String capSwitchState = switchState.capitalize()
