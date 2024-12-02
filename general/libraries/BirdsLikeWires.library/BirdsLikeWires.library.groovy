@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.33 (7th January 2024)
+ *  BirdsLikeWires Library v1.34 (2nd December 2024)
  *	
  */
 
@@ -519,6 +519,7 @@ def fetchChild(String namespace, String type, String endpoint) {
 	// Endpoint is any unique identifier.
 
 	def childDevice = getChildDevice("${device.id}-${endpoint}")
+	def childInitialLabel = (endpoint.contains("-")) ? endpoint.split("-").last() : endpoint
 
 	if (endpoint != "null") {
 
@@ -526,7 +527,7 @@ def fetchChild(String namespace, String type, String endpoint) {
 
 			logging("${device} : Creating child device $device.id-$endpoint", "debug")
 
-			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${endpoint}", isComponent: false])
+			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${childInitialLabel}", isComponent: false])
 
 		}
 
