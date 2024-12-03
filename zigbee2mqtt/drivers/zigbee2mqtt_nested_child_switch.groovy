@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (1st December 2024)"
+@Field String driverVersion = "v1.02 (3rd December 2024)"
 
 
 #include BirdsLikeWires.library
@@ -109,5 +109,7 @@ void processMQTT(def json) {
 
 	String capSwitchState = switchState.capitalize()
 	logging("${device} : Switch : $capSwitchState", "info")
+
+	updateHealthStatus()
 
 }
