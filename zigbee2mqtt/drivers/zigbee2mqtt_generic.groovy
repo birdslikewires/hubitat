@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (2nd December 2024)"
+@Field String driverVersion = "v1.02 (3rd December 2024)"
 
 
 #include BirdsLikeWires.library
@@ -87,35 +87,50 @@ void publish(String endpoint, String cmd) {
 
 void processMQTT(def json) {
 
-	updateHealthStatus()
 	checkDriver()
 
 	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
 	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
 	sendEvent(name: "powerSource", value:"$powerSource")
 
-	def child
+	long installed = 0
 
-	if ("${json}".indexOf('state_l') >= 0) {
+	try {
+		installed = Long.valueOf(getDataValue("installed"))
+	} catch (Exception e) {
+		logging("${device} : processMQTT : Installation still in progress.", "trace")
+	}
 
-		int relays = "${json}".count('state_l')
-		logging("${device} : Device has ${relays} switches.", "debug")
+	long millis = now()
 
-		for (i in 1..relays) {
+	if (installed > 0 && millis - installed > 10000) {
+	// We have to check because the first burst of messages show the building of the device.
+	// Multiple relay devices will build one relay at a time, meaning we end up with duplicate children.
 
-			logging("${device} : Processing switch $i.", "debug")
+		def child
 
-			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$relays-$i")
+		if ("${json}".indexOf('state_l') >= 0) {
+
+			int relays = "${json}".count('state_l')
+			logging("${device} : Device has ${relays} switches.", "debug")
+
+			for (i in 1..relays) {
+
+				logging("${device} : Processing switch $i.", "debug")
+
+				child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$relays-$i")
+				child.processMQTT(json)
+
+			}
+
+		} else if (json.containsKey('state')) {
+
+			logging("${device} : Device has 1 switch.", "debug")
+
+			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "1-1")
 			child.processMQTT(json)
 
 		}
-
-	} else if (json.containsKey('state')) {
-
-		logging("${device} : Device has 1 switch.", "debug")
-
-		child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "1-1")
-		child.processMQTT(json)
 
 	}
 
@@ -130,5 +145,7 @@ void processMQTT(def json) {
 	updateDataValue("model", "${json.device.model}")
 
 	logging("${device} : processMQTT : ${json}", "trace")
+
+	updateHealthStatus()
 
 }
