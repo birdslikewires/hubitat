@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.34 (2nd December 2024)
+ *  BirdsLikeWires Library v1.35 (3rd December 2024)
  *	
  */
 
@@ -29,6 +29,8 @@ void sendZigbeeCommands(List<String> cmds) {
 void installed() {
 
 	// Runs after first installation.
+	long millis = now()
+	updateDataValue("installed", "${millis}")
 	logging("${device} : Installed", "info")
 	configure()
 
