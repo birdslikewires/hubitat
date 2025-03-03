@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.35 (3rd December 2024)
+ *  BirdsLikeWires Library v1.36 (3rd March 2025)
  *	
  */
 
@@ -681,6 +681,39 @@ private String hexToText(String hex) {
 	return text.trim()
 
 }
+
+
+private Integer octetToPercentage(Integer octet) {
+
+	Integer percentage = Math.round(octet / 2.54).toInteger()
+	return percentage
+
+}
+
+
+private Integer percentageToOctet(Integer percentage) {
+
+	Integer octet = Math.round(octet * 2.54).toInteger()
+	return octet
+
+}
+
+
+private Integer kelvinToMired(Integer kelvin) {
+
+	Integer mired = Math.round(1000000 / kelvin).toInteger()
+	return mired
+
+}
+
+
+private Integer miredToKelvin(Integer mired) {
+
+	Integer kelvin = Math.round(1000000 * mired).toInteger()
+	return kelvin
+
+}
+
 
 
 private String capitaliseFirstLetters(String input) {
