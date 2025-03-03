@@ -35,11 +35,11 @@
 		},
 		{
 			"id": "cad9d81a-fbe4-44f1-9d28-957e2f96001c",
-			"name": "Zigbee2MQTT Nested Child Switch Driver",
+			"name": "Zigbee2MQTT Nested Switch Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_child_switch.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
 			"required": true,
-			"version": "1.02"
+			"version": "1.03"
 		}
 	]
 }

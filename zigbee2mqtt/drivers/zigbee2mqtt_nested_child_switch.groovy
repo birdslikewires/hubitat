@@ -1,11 +1,11 @@
 /*
  * 
- *  Zigbee2MQTT Nested Child Switch Driver
+ *  Zigbee2MQTT Nested Switch Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.02 (3rd December 2024)"
+@Field String driverVersion = "v1.03 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Zigbee2MQTT Nested Child Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_child_switch.groovy") {
+	definition (name: "Zigbee2MQTT Nested Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
