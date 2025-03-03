@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.04 (3rd March 2025)"
+@Field String driverVersion = "v1.05 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -64,13 +64,6 @@ void configureSpecifics() {
 
 
 void updateSpecifics() {
-
-	return
-
-}
-
-
-void refresh() {
 
 	return
 

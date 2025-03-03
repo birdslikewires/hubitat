@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (3rd March 2025)"
+@Field String driverVersion = "v1.01 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -69,13 +69,6 @@ void updateSpecifics() {
 }
 
 
-void refresh() {
-
-	return
-
-}
-
-
 def getStateType() {
 
 	def details = "${device.deviceNetworkId}".split('-')
@@ -113,7 +106,7 @@ void setLevel(BigDecimal pct, BigDecimal duration) {
 	Integer level = Math.round(pct * 2.54).toInteger()
 
 	String pluralisor = duration == 1 ? "" : "s"
-	logging("${device} : setLevel : Got level request of '${pct}%' [${level}] over '${duration}' second${pluralisor}) [${duration}].", "debug")
+	logging("${device} : setLevel : Got level request of '${pct}%' [${level}] over ${duration} second${pluralisor} [${duration}].", "debug")
 
 	parent.publish("\"brightness\":${level},\"transition\":${duration}")
 
@@ -129,8 +122,12 @@ void processMQTT(def json) {
 	String switchState = json."$stateType".toLowerCase()
 	sendEvent(name: "switch", value: "$switchState")
 
+	Integer currentLevel = json.brightness
+	currentLevel = Math.round(currentLevel / 2.54).toInteger()
+	sendEvent(name: "level", value: "${currentLevel}")
+
 	String capSwitchState = switchState.capitalize()
-	logging("${device} : Switch : $capSwitchState", "info")
+	logging("${device} : Switch : $capSwitchState at $currentLevel%", "info")
 
 	if ("${device.name}" != "${deviceName}") device.name = "${deviceName}"
 
