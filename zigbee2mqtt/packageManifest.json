@@ -23,7 +23,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy",
 			"required": true,
-			"version": "2.01"
+			"version": "2.02"
 		},
 		{
 			"id": "bc6f635c-9a46-4a6e-92dd-9d3253cd48d2",
@@ -47,7 +47,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
 			"required": true,
-			"version": "1.03"
+			"version": "1.04"
 		}
 	]
 }
