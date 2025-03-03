@@ -1,11 +1,11 @@
 /*
  * 
- *  Zigbee2MQTT Nested Switch Driver
+ *  Zigbee2MQTT Nested Dimmer Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.04 (3rd March 2025)"
+@Field String driverVersion = "v1.00 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -14,16 +14,18 @@ import groovy.transform.Field
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
 @Field int checkEveryMinutes = 10
-@Field String deviceName = "Zigbee2MQTT Nested Switch"
+@Field String deviceName = "Zigbee2MQTT Nested Dimmer"
 
 
 metadata {
 
-	definition (name: "${deviceName}", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy") {
+	definition (name: "${deviceName}", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
+		capability "Light"
 		capability "Switch"
+		capability "SwitchLevel"
 
 		if (debugMode) {
 			command "testCommand"
@@ -95,6 +97,25 @@ void on() {
 
 	String stateType = getStateType()
 	parent.publish("\"${stateType}\":\"on\"")
+
+}
+
+
+void setLevel(BigDecimal pct) {
+
+	setLevel(pct,1)
+
+}
+
+
+void setLevel(BigDecimal pct, BigDecimal duration) {
+
+	Integer level = Math.round(pct * 2.54).toInteger()
+
+	String pluralisor = duration == 1 ? "" : "s"
+	logging("${device} : setLevel : Got level request of '${pct}%' [${level}] over '${duration}' second${pluralisor}) [${duration}].", "debug")
+
+	parent.publish("\"brightness\":${level},\"transition\":${duration}")
 
 }
 

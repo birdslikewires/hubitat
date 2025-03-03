@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (3rd March 2025)"
+@Field String driverVersion = "v1.04 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -77,10 +77,10 @@ void refresh() {
 }
 
 
-void publish(String endpoint, String cmd) {
+void publish(String payload) {
 
 	String ieee = getDataValue("ieee")
-	parent.publish("$ieee", "$endpoint", "$cmd")
+	parent.publish("$ieee", "$payload")
 
 }
 
@@ -118,7 +118,7 @@ void processMQTT(def json) {
 
 				logging("${device} : Processing switch $i.", "debug")
 
-				child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "$relays-$i")
+				child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Switch", "$relays-$i")
 				child.processMQTT(json)
 
 			}
@@ -127,7 +127,7 @@ void processMQTT(def json) {
 
 			logging("${device} : Device has 1 switch.", "debug")
 
-			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Child Switch", "1-1")
+			child = fetchChild("BirdsLikeWires", "Zigbee2MQTT Nested Switch", "1-1")
 			child.processMQTT(json)
 
 		}
