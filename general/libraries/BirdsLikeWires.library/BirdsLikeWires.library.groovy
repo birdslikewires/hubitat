@@ -636,15 +636,6 @@ private String[] millisToDhms(BigInteger millisToParse) {
 }
 
 
-private String percentageToHex(Integer pc) {
-
-	BigDecimal safePc = pc > 0 ? (pc*2.55) : 0
-	safePc = safePc > 255 ? 255 : safePc
-	return Integer.toHexString(safePc.intValue())
-
-}
-
-
 private BigDecimal hexToBigDecimal(String hex) {
 
     int d = Integer.parseInt(hex, 16) << 21 >> 21
@@ -683,18 +674,27 @@ private String hexToText(String hex) {
 }
 
 
-private Integer octetToPercentage(Integer octet) {
+private String percentageToHex(Integer pc) {
 
-	Integer percentage = Math.round(octet / 2.54).toInteger()
-	return percentage
+	BigDecimal safePc = pc > 0 ? (pc*2.55) : 0
+	safePc = safePc > 255 ? 255 : safePc
+	return Integer.toHexString(safePc.intValue())
 
 }
 
 
-private Integer percentageToOctet(Integer percentage) {
+private Integer percentageToOctet(Integer pc) {
 
-	Integer octet = Math.round(octet * 2.54).toInteger()
+	Integer octet = Math.round(pc * 2.54).toInteger()
 	return octet
+
+}
+
+
+private Integer octetToPercentage(Integer octet) {
+
+	Integer pc = Math.round(octet / 2.54).toInteger()
+	return pc
 
 }
 
@@ -709,11 +709,10 @@ private Integer kelvinToMired(Integer kelvin) {
 
 private Integer miredToKelvin(Integer mired) {
 
-	Integer kelvin = Math.round(1000000 * mired).toInteger()
+	Integer kelvin = Math.round(1000000 / mired).toInteger()
 	return kelvin
 
 }
-
 
 
 private String capitaliseFirstLetters(String input) {
