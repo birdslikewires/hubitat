@@ -1,11 +1,11 @@
 /*
  * 
- *  Zigbee2MQTT Generic Device Driver
+ *  Zigbee2MQTT Device Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.02 (3rd December 2024)"
+@Field String driverVersion = "v1.03 (3rd March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Zigbee2MQTT Generic Device", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_generic.groovy") {
+	definition (name: "Zigbee2MQTT Device", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy") {
 
 		capability "Configuration"
 		capability "PowerSource"

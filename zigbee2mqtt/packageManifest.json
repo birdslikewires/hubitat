@@ -27,11 +27,11 @@
 		},
 		{
 			"id": "bc6f635c-9a46-4a6e-92dd-9d3253cd48d2",
-			"name": "Zigbee2MQTT Generic Device Driver",
+			"name": "Zigbee2MQTT Device Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_generic.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy",
 			"required": true,
-			"version": "1.02"
+			"version": "1.03"
 		},
 		{
 			"id": "cad9d81a-fbe4-44f1-9d28-957e2f96001c",
