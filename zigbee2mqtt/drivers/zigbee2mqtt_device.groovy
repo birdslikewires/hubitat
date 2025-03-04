@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (3rd March 2025)"
+@Field String driverVersion = "v1.06 (4th March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -14,11 +14,12 @@ import groovy.transform.Field
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
 @Field int checkEveryMinutes = 10
+@Field String deviceName = "Zigbee2MQTT Device"
 
 
 metadata {
 
-	definition (name: "Zigbee2MQTT Device", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy") {
 
 		capability "Configuration"
 		capability "PowerSource"
@@ -130,8 +131,8 @@ void processMQTT(def json) {
 	// NOTE FOR FUTURE ME
 	/// Use 'if (json.update.containsKey('state'))' if checking for nested keys.
 
-	if ("${device.name}" != "${json.device.model}") device.name = "${json.device.model}"
-	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+	device.name = "${json.device.model}"
+	device.label = "${json.device.friendlyName}"
 
 	updateDataValue("ieee", "${json.device.ieeeAddr}")
 	updateDataValue("manufacturer", "${json.device.manufacturerName}")

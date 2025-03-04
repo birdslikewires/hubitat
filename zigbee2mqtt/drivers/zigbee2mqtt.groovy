@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.03 (3rd March 2025)"
+@Field String driverVersion = "v2.04 (4th March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -14,11 +14,12 @@ import groovy.transform.Field
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 1
+@Field String deviceName = "Zigbee2MQTT"
 
 
 metadata {
 
-	definition (name: "Zigbee2MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy") {
 
 		attribute "healthStatus", "enum", ["offline", "online"]
 
@@ -56,7 +57,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
-	device.name = "Zigbee2MQTT"
+	device.name = "$deviceName"
 
 	removeDataValue("encoding")
 

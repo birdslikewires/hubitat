@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (3rd March 2025)"
+@Field String driverVersion = "v1.02 (4th March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "${deviceName}", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -69,18 +69,9 @@ void updateSpecifics() {
 }
 
 
-def getStateType() {
-
-	def details = "${device.deviceNetworkId}".split('-')
-	String stateType = ("${details[-2]}" > 1) ? "state_l${details[-1]}" : "state"
-	return stateType
-
-}
-
-
 void off() {
 
-	String stateType = getStateType()
+	String stateType = mqttGetStateType()
 	parent.publish("\"${stateType}\":\"off\"")
 
 }
@@ -88,7 +79,7 @@ void off() {
 
 void on() {
 
-	String stateType = getStateType()
+	String stateType = mqttGetStateType()
 	parent.publish("\"${stateType}\":\"on\"")
 
 }
@@ -117,7 +108,7 @@ void processMQTT(def json) {
 
 	checkDriver()
 
-	String stateType = getStateType()
+	String stateType = mqttGetStateType()
 
 	String switchState = json."$stateType".toLowerCase()
 	sendEvent(name: "switch", value: "$switchState")
