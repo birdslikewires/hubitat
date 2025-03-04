@@ -923,3 +923,12 @@ void mqttClientStatus(String status) {
 	}
 
 }
+
+
+def mqttGetStateType() {
+
+	def details = "${device.deviceNetworkId}".split('-')
+	String stateType = ("${details[-2]}" > 1) ? "state_l${details[-1]}" : "state"
+	return stateType
+
+}
