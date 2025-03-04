@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.36 (3rd March 2025)
+ *  BirdsLikeWires Library v1.37 (4th March 2025)
  *	
  */
 
@@ -702,6 +702,8 @@ private Integer octetToPercentage(Integer octet) {
 private Integer kelvinToMired(Integer kelvin) {
 
 	Integer mired = Math.round(1000000 / kelvin).toInteger()
+	mired = mired > 454 ? 454 : mired
+	mired = mired < 250 ? 250 : mired
 	return mired
 
 }
