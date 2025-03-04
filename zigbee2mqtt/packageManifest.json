@@ -48,6 +48,14 @@
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
 			"required": true,
 			"version": "1.05"
+		},
+		{
+			"id": "b77d9d57-4639-44d3-8e3a-833af58f337a",
+			"name": "Zigbee2MQTT Nested White Spectrum Driver",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_white_spectrum.groovy",
+			"required": true,
+			"version": "1.01"
 		}
 	]
 }
