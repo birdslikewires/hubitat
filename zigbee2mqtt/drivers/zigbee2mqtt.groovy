@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.04 (4th March 2025)"
+@Field String driverVersion = "v2.05 (17th March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -167,7 +167,7 @@ void parse(String description) {
 							break
 
 						default:
-							child = fetchChild("BirdsLikeWires","Zigbee2MQTT Generic Device","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.networkAddress}")
 
 					}
 
