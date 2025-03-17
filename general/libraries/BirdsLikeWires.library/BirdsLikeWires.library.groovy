@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.37 (4th March 2025)
+ *  BirdsLikeWires Library v1.38 (17th March 2025)
  *	
  */
 
@@ -306,12 +306,13 @@ void checkDriver() {
 
 void requestBasic() {
 
-	// Request manufacturer, cluster library version, application version, model name, power source and Tuya's "attributeReportingStatus" from the Basic cluster.
-	// This is mostly information we want anyway, but we request it in "Tuya Magic Spell" format as this may be advantageous in putting some devices into the correct mode.
+	// Request manufacturer, cluster library version, application version, model name,
+	// power source and Tuya's "attributeReportingStatus" from the Basic cluster.
+	// This is mostly information we want anyway, but we request it in "Tuya Magic Spell" format as
+	// this may be advantageous in putting some of their devices into the correct mode.
 	ArrayList<String> cmds = []
 	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe])
 	sendZigbeeCommands(cmds)
-
 	pauseExecution(500)
 
 	// Request software build and simple descriptor data.
@@ -686,6 +687,7 @@ private String percentageToHex(Integer pc) {
 private Integer percentageToOctet(Integer pc) {
 
 	Integer octet = Math.round(pc * 2.54).toInteger()
+	octet = octet > 254 ? 254 : octet
 	return octet
 
 }
@@ -694,6 +696,7 @@ private Integer percentageToOctet(Integer pc) {
 private Integer octetToPercentage(Integer octet) {
 
 	Integer pc = Math.round(octet / 2.54).toInteger()
+	pc = pc > 100 ? 100 : pc
 	return pc
 
 }
