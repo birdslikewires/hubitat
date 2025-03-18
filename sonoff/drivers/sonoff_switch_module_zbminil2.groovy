@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (17th March 2025)"
+@Field String driverVersion = "v1.01 (18th March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -66,16 +66,22 @@ void configureSpecifics() {
 
 	requestBasic()
 
+	// Unbind from polling control cluster and set reporting intervals.
+	int reportIntervalMinSeconds = 3
+	int reportIntervalMaxSeconds = reportIntervalMinutes * 60
+
+	ArrayList<String> cmds = [
+		"zdo unbind 0x${device.deviceNetworkId} 0x${device.endpointId} 0x01 0x0020 {${device.zigbeeId}} {}",'delay 200',
+	]
+	cmds += zigbee.configureReporting(0x0006, 0x0000, 0x0010, reportIntervalMinSeconds, reportIntervalMaxSeconds, null)
+	sendZigbeeCommands(cmds)
+
 	// Set device name.
 	String deviceModel = getDeviceDataByName('model')
 	device.name = "$deviceName"
 
 	// Always set to 'static' to ensure we're never stuck in 'flashing' mode.
 	sendEvent(name: "mode", value: "static", isStateChange: false)
-
-	// Reporting
-	int reportIntervalSeconds = reportIntervalMinutes * 60
-	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, 0, reportIntervalSeconds, 1, [:], 200))	// Send switch status.
 
 	// Cleanup
 	removeDataValue("application")

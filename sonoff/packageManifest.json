@@ -5,7 +5,7 @@
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/sonoff",
-	"dateReleased": "2023-12-07",
+	"dateReleased": "2025-03-18",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
@@ -18,11 +18,11 @@
 	"drivers": [
 		{
 			"id": "ceee8f6d-cd38-4308-a16c-9aeabc57e7c3",
-			"name": "Sonoff Thermostatic Radiator Valve TRVZB",
+			"name": "Sonoff Switch Module ZBMINIL2",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/sonoff/drivers/sonoff_trvzb.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/sonoff/drivers/sonoff_switch_module_zbminil2.groovy",
 			"required": false,
-			"version": "0.01"
+			"version": "1.01"
 		}
 	]
 }
