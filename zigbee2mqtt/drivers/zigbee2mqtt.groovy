@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.05 (17th March 2025)"
+@Field String driverVersion = "v2.06 (21st March 2025)"
 
 
 #include BirdsLikeWires.library
@@ -138,6 +138,14 @@ void parse(String description) {
 				if ("${msg.payload.charAt(0)}" == "{") {
 
 					def json = new groovy.json.JsonSlurper().parseText(msg.payload)
+
+					if ("${json.device.type}" == "Unknown" ) {
+
+						logging("${device} : parse() : Ignoring unknown device type.", "debug")
+						return
+
+					}
+
 					def child
 
 					// Here we determine which driver to use based upon the model.
