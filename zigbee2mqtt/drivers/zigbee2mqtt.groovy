@@ -114,17 +114,17 @@ void parse(String description) {
 
 		if (msg.topic.indexOf('bridge') >= 0) {
 
-			logging("${device} : parse() : Bridge message received.", "trace")
+			logging("${device} : parse() : Ignoring bridge message.", "trace")
 			return
 
 		} else if (msg.topic.indexOf('/availability') >= 0) {
 
-			logging("${device} : parse() : Availability message received.", "trace")
+			logging("${device} : parse() : Ignoring availability message.", "trace")
 			return
 
 		} else if (msg.topic.endsWith('/set')) {
 
-			logging("${device} : parse() : Command message received.", "trace")
+			logging("${device} : parse() : Ignoring command message.", "trace")
 			return		
 
 		} else {
@@ -141,14 +141,13 @@ void parse(String description) {
 
 					if ("${json.device.type}" == "Unknown" ) {
 
-						logging("${device} : parse() : Ignoring unknown device type.", "debug")
+						logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
 						return
 
 					}
 
-					def child
-
 					// Here we determine which driver to use based upon the model.
+					def child
 					switch("${json.device.model}") {
 
 						case "E1744":
