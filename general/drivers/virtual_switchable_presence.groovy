@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (8th June 2025)"
+@Field String driverVersion = "v1.07 (8th June 2025)"
 
 
 #include BirdsLikeWires.library
@@ -86,6 +86,8 @@ void updateSpecifics() {
 
 
 void refresh() {
+
+	checkDriver()
 
 	long millisNow = new Date().time
 	updateDurations(millisNow)
