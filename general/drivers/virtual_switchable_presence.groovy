@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (21st June 2024)"
+@Field String driverVersion = "v1.06 (8th June 2025)"
 
 
 #include BirdsLikeWires.library
@@ -61,8 +61,11 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	// We don't check presence, we're informed about it. But we do refresh our values every minute.
+	// Health checks are not required for this driver.
+	unschedule("checkHealthStatus")
 	unschedule("checkPresence")
+
+	// Refresh values every minute.
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
 	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
 
