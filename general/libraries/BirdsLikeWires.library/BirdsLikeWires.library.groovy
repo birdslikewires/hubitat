@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.38 (17th March 2025)
+ *  BirdsLikeWires Library v1.39 (25th July 2025)
  *	
  */
 
@@ -514,27 +514,27 @@ void debounceParentState(String attribute, String state, String message, String 
 }
 
 
-def fetchChild(String namespace, String type, String endpoint) {
-	// Creates and retrieves child devices matched to endpoints.
+def fetchChild(String namespace, String type, String ident) {
+	// Creates and retrieves child devices.
 
 	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
 	// Type will determine the driver to use.
-	// Endpoint is any unique identifier.
+	// Ident is any unique identifier.
 
-	def childDevice = getChildDevice("${device.id}-${endpoint}")
-	def childInitialLabel = (endpoint.contains("-")) ? endpoint.split("-").last() : endpoint
+	def childDevice = getChildDevice("${device.id}-${ident}")
+	def childInitialLabel = (ident.contains("-")) ? ident.split("-").last() : ident
 
-	if (endpoint != "null") {
+	if (ident != "null") {
 
 		if (!childDevice) {
 
-			logging("${device} : Creating child device $device.id-$endpoint", "debug")
+			logging("${device} : Creating child device $device.id-$ident", "debug")
 
-			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${endpoint}", [name: "${type}", label: "${childInitialLabel}", isComponent: false])
+			childDevice = addChildDevice("${namespace}", "${type}", "${device.id}-${ident}", [name: "${type}", label: "${childInitialLabel}", isComponent: false])
 
 		}
 
-		logging("${device} : Retrieved child device $device.id-$endpoint", "debug")
+		logging("${device} : Retrieved child device $device.id-$ident", "debug")
 
 	}
 
