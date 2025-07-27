@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.06 (21st March 2025)"
+@Field String driverVersion = "v2.07 (27th July 2025)"
 
 
 #include BirdsLikeWires.library
@@ -19,7 +19,8 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+				importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy") {
 
 		attribute "healthStatus", "enum", ["offline", "online"]
 
@@ -146,35 +147,39 @@ void parse(String description) {
 
 					}
 
-					// Here we determine which driver to use based upon the model.
+					// Here we create or recall the child device using the device's real IEEE address to avoid rejoin duplicates.
+					// If there's a special driver we can use, we also specify that here... though I may require this to be manual
+					// in the future, as the driver may not be installed, which will only lead to more issues.
+					// In fact, we should really only use the mandatory drivers installed with this routing driver and make
+					// a best effort to choose the right one, then fall back to "device" if we can't work it out.
 					def child
 					switch("${json.device.model}") {
 
 						case "E1744":
-							child = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.ieeeAddr}")
 							break						
 
 						case "E1766":
 						case "E1812":
-							child = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.ieeeAddr}")
 							break
 
 						case "FB20-002":
-							child = fetchChild("BirdsLikeWires","Tuya Remote","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Tuya Remote","${json.device.ieeeAddr}")
 							break
 
 						case "WXKG06LM":
 						case "WXKG07LM":
-							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.ieeeAddr}")
 							break
 
 						case "WXKG11LM":
 						case "WXKG12LM":
-							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.ieeeAddr}")
 							break
 
 						default:
-							child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.networkAddress}")
+							child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
 
 					}
 
