@@ -1,11 +1,11 @@
 /*
  * 
- *  Samotech Switch Module SM308 Driver
+ *  Samotech SM308 Switch Module Driver
  *	
  */
 
 
-@Field String driverVersion = "v1.14 (25th November 2023)"
+@Field String driverVersion = "v1.15 (29th July 2025)"
 @Field boolean debugMode = false
 
 
@@ -21,7 +21,8 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -38,9 +39,10 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "$deviceMan $deviceType SM308", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "$deviceMan $deviceType SM308-S", application: "00"
-		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "$deviceMan $deviceType SM308-2CH", application: "00"
+		// The SM308 is the original model and requires a neutral wire. This was replaced by the SM308-S, which can operate with or without neutral. The SM308-2CH has two relays, but requires neutral.
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "$deviceMan $deviceType SM308"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "$deviceMan $deviceType SM308-S"
+		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "$deviceMan $deviceType SM308-2CH"
 
 	}
 
@@ -58,7 +60,7 @@ preferences {
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false	
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 
 }
 
@@ -261,9 +263,8 @@ void processMap(Map map) {
 			}
 
 		} else if (map.command == "07") {
-			// Relay Configuration
 
-			logging("${device} : Relay Configuration : Successful", "info")
+			processConfigurationResponse(map)
 
 		} else if (map.command == "0A" || map.command == "0B") {
 			// Relay States

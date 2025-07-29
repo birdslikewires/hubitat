@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.39 (25th July 2025)
+ *  BirdsLikeWires Library v1.40 (29th July 2025)
  *	
  */
 
@@ -188,7 +188,7 @@ void checkHealthStatus() {
 	// Check how long ago the health status was updated.
 
 	long millisNow = new Date().time
-	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
+	int uptimeAllowanceMinutes = 20			// Busy hubs can take a while to settle after a reboot.
 
 	if (state.updatedHealthStatus > 0) {
 
@@ -823,7 +823,8 @@ void filterThis(Map map) {
 
 	} else if (map.clusterId == "0013") {
 
-		logging("${device} : Skipped : Device Announce Broadcast", "debug")
+		logging("${device} : Received : Device Announce Broadcast", "debug")
+		refresh()
 
 	} else if (map.clusterId == "0400") {
 

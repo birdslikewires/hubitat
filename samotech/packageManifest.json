@@ -17,8 +17,16 @@
 	],
 	"drivers": [
 		{
+			"id": "efe6b583-d7d5-4acb-8306-9d9f47f70383",
+			"name": "Samotech Dimmer Module SM323",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_dimmer_module_sm323.groovy",
+			"required": false,
+			"version": "1.00"
+		},
+		{
 			"id": "22c40404-a992-4c45-830b-173cae035992",
-			"name": "Samotech Switch SM308",
+			"name": "Samotech Switch Module SM308",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy",
 			"required": false,
