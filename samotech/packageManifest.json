@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_dimmer_module_sm323.groovy",
 			"required": false,
-			"version": "1.01"
+			"version": "1.02"
 		},
 		{
 			"id": "22c40404-a992-4c45-830b-173cae035992",

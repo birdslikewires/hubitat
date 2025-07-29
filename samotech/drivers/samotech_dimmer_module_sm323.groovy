@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (29th July 2025)"
+@Field String driverVersion = "v1.02 (29th July 2025)"
 @Field boolean debugMode = false
 
 
@@ -28,12 +28,12 @@ metadata {
 		capability "Configuration"
 		capability "HealthCheck"
 		capability "Light"
+		capability "PowerMeter"
 		capability "Refresh"
 		capability "Switch"
 		capability "SwitchLevel"
 
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "mode", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -48,6 +48,7 @@ metadata {
 
 preferences {
 	
+	input name: "electricalMeasure", type: "bool", title: "Enable electrical measurement", description: "Requests power, voltage and current reporting. This will not work properly if the module is wired without neutral.", defaultValue: false
 	input name: "levelMax", type: "number", title: "Maximum level", description: "Set the maximum brightness level for the dimmer (1-100%).", range: "1..100", defaultValue: 100
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
@@ -71,20 +72,15 @@ void configureSpecifics() {
 	String deviceModel = getDeviceDataByName('model')
 	device.name = "$deviceMan $deviceType $deviceModel"
 
-	// Always set to 'static' to ensure we're never stuck in 'flashing' mode.
-	sendEvent(name: "mode", value: "static", isStateChange: false)
-
 	// Reporting
 	int reportIntervalSeconds = reportIntervalMinutes * 60
 
 	ArrayList<String> cmds = []
-	//cmds += "zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0006 {${device.zigbeeId}} {}"
+	cmds = zigbee.writeAttribute(0x0006, 0x4003, 0x30, 0xFF)	// If power is lost, return to previous state when re-energised.
 	cmds += zigbee.configureReporting(0x0006, 0x0000, 0x10, 0, reportIntervalSeconds, 0x00)
-	cmds += zigbee.writeAttribute(0x0006, 0x4003, 0x30, 0xFF)	// If power is lost, return to previous state when re-energised.
 	cmds += zigbee.configureReporting(0x0008, 0x0000, 0x20, 0, reportIntervalSeconds, 0x01)
+	cmds += zigbee.configureReporting(0x0B04, 0x050B, 0x29, 0, reportIntervalSeconds, 0x01)
 	sendZigbeeCommands(cmds)
-
-	
 
 }
 
@@ -118,7 +114,6 @@ void refresh() {
 void off() {
 
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}"])
-	sendEvent(name: "mode", value: "static")
 
 }
 
@@ -126,7 +121,6 @@ void off() {
 void on() {
 
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x01 {}"])
-	sendEvent(name: "mode", value: "static")
 
 }
 
@@ -243,6 +237,24 @@ void processMap(Map map) {
 		} else {
 
 			filterThis(map)
+
+		}
+
+	} else if (map.cluster == "0B04") {
+		// Electrical Measurement
+
+		if (settings.electricalMeasure) {
+
+			if (map.attrId == "050B") {
+				// Instantaneous power reading. 
+				int powerValue = zigbee.convertHexToInt(map.value)
+				powerValue = Math.round(powerValue / 10.0)
+				sendEvent(name: "power", value: powerValue, unit: "W")
+			}
+
+		} else {
+
+			return
 
 		}
 
