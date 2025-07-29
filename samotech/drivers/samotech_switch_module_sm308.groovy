@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.15 (29th July 2025)"
+@Field String driverVersion = "v1.16 (30th July 2025)"
 @Field boolean debugMode = false
 
 
@@ -15,7 +15,7 @@ import groovy.transform.Field
 @Field String deviceMan = "Samotech"
 @Field String deviceType = "Switch Module"
 
-@Field int reportIntervalMinutes = 10
+@Field int reportIntervalMinutes = 1
 @Field int checkEveryMinutes = 2
 
 
@@ -39,7 +39,8 @@ metadata {
 			command "testCommand"
 		}
 
-		// The SM308 is the original model and requires a neutral wire. This was replaced by the SM308-S, which can operate with or without neutral. The SM308-2CH has two relays, but requires neutral.
+		// The SM308 is the original model and requires a neutral wire. This was replaced by the SM308-S, which can operate with or without neutral.
+		// The SM308-2CH has two relays, but requires neutral.
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308", deviceJoinName: "$deviceMan $deviceType SM308"
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-S", deviceJoinName: "$deviceMan $deviceType SM308-S"
 		fingerprint profileId: "0104", inClusters: "0000,0003,0004,0005,0006,0702,0B04,0B05,1000", outClusters: "0019", manufacturer: "Samotech", model: "SM308-2CH", deviceJoinName: "$deviceMan $deviceType SM308-2CH"
@@ -97,15 +98,14 @@ void configureSpecifics() {
 
 	// Reporting
 	int reportIntervalSeconds = reportIntervalMinutes * 60
-	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x0010, 0, reportIntervalSeconds, 1, [:], 200))	// Send switch status.
+	sendZigbeeCommands(zigbee.configureReporting(0x0006, 0x0000, 0x10, 0, reportIntervalSeconds, 0x00))
 
 }
 
 
 void updateSpecifics() {
-	// Called by updated() method in BirdsLikeWires.library
 
-	return
+	configureSpecifics()
 
 }
 
@@ -221,8 +221,6 @@ void processMap(Map map) {
 	logging("${device} : processMap() : ${map}", "trace")
 
 	if (map.cluster == "0006" || map.clusterId == "0006") {
-		// Relay configuration and response handling.
-		// State confirmation and command receipts.
 
 		if (map.command == "01") {
 			// Relay States (Refresh)
@@ -268,16 +266,6 @@ void processMap(Map map) {
 
 		} else if (map.command == "0A" || map.command == "0B") {
 			// Relay States
-
-			// Command "0A" is local actuation, command "0B" is remote actuation.
-
-			// Some modules send an "0A" response after being switched remotely, which is a nice confirmation, but not correct behaviour.
-			// Trick is, I've got one SM308-S which does this and one SM308-S which doesn't. Both fresh out of the box.
-
-			// For the time being we're going to treat these as the same.
-			// We'll be sure not to force our event with "isStateChange" as this would lead to double messaging.
-
-			// I'll investigate this with a momentary switch when I get chance.
 
 			String relayActuated = (map.command == "0A") ? map.endpoint : map.sourceEndpoint
 			String relayState = (map.command == "0A") ? map.value : map.data[0]
@@ -327,17 +315,6 @@ void processMap(Map map) {
 			filterThis(map)
 
 		}
-
-	} else if (map.cluster == "0702" || map.clusterId == "0702") {
-
-		def int powerValue = zigbee.convertHexToInt(map.value)
-		// sendEvent(name: "power", value: powerValue, unit: "W", isStateChange: false)
-		// sendEvent(name: "powerWithUnit", value: "${powerValue} W", isStateChange: false)
-		// logging("${device} : power hex value : ${map.value}", "trace")
-		// logging("${device} : power sensor reports : ${powerValue}", "debug")
-
-		logging("${device} : Power messaging seems broken. It looks more like energy logging. Received: ${powerValue} for endpoint ${map.endpoint}.", "debug")
-		filterThis(map)
 
 	} else {
 

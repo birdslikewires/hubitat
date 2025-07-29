@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (29th July 2025)"
+@Field String driverVersion = "v1.03 (30th July 2025)"
 @Field boolean debugMode = false
 
 
@@ -48,7 +48,7 @@ metadata {
 
 preferences {
 	
-	input name: "electricalMeasure", type: "bool", title: "Enable electrical measurement", description: "Requests power, voltage and current reporting. This will not work properly if the module is wired without neutral.", defaultValue: false
+	input name: "electricalMeasure", type: "bool", title: "Enable electrical measurement", description: "Requests power reporting. This will not work properly if the module is wired without neutral.", defaultValue: false
 	input name: "levelMax", type: "number", title: "Maximum level", description: "Set the maximum brightness level for the dimmer (1-100%).", range: "1..100", defaultValue: 100
 
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
@@ -79,15 +79,19 @@ void configureSpecifics() {
 	cmds = zigbee.writeAttribute(0x0006, 0x4003, 0x30, 0xFF)	// If power is lost, return to previous state when re-energised.
 	cmds += zigbee.configureReporting(0x0006, 0x0000, 0x10, 0, reportIntervalSeconds, 0x00)
 	cmds += zigbee.configureReporting(0x0008, 0x0000, 0x20, 0, reportIntervalSeconds, 0x01)
-	cmds += zigbee.configureReporting(0x0B04, 0x050B, 0x29, 0, reportIntervalSeconds, 0x01)
 	sendZigbeeCommands(cmds)
+
+	if (settings.electricalMeasure) {
+		cmds = zigbee.configureReporting(0x0B04, 0x050B, 0x29, 0, reportIntervalSeconds, 0x01)
+		sendZigbeeCommands(cmds)
+	}
 
 }
 
 
 void updateSpecifics() {
 
-	return
+	configureSpecifics()
 
 }
 
