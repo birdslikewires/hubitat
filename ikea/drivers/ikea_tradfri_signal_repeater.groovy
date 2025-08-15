@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.07 (27th August 2023)"
+@Field String driverVersion = "v1.08 (15th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Tradfri Signal Repeater", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater_e1746.groovy") {
+	definition (name: "IKEA Tradfri Signal Repeater", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_signal_repeater.groovy") {
 
 		capability "Configuration"
 		capability "HealthCheck"

@@ -2,16 +2,16 @@
 	"packageName": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.1",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/ikea",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/ikea",
 	"dateReleased": "2021-07-30",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,25 +20,25 @@
 			"id": "cdceaf16-657a-4827-b57a-5eace80bec18",
 			"name": "IKEA Symfonisk Sound Controller E1744",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
 			"required": false,
-			"version": "1.09"
+			"version": "1.10"
 		},
 		{
 			"id": "683107b8-d0b2-4984-9edc-0ecd1d90ac10",
 			"name": "IKEA Tradfri Buttons E1766 / E1812",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_button.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
-			"version": "1.17"
+			"version": "1.18"
 		},
 		{
 			"id": "5f306d7c-655c-41bb-a11d-76456da40b9f",
 			"name": "IKEA Tradfri Signal Repeater E1746",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_signal_repeater.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_signal_repeater.groovy",
 			"required": false,
-			"version": "1.07"
+			"version": "1.08"
 		}
 	]
 }

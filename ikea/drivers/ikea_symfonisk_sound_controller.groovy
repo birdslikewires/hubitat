@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.09 (26th August 2023)"
+@Field String driverVersion = "v1.10 (15th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Symfonisk Sound Controller", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_symfonisk_sound_controller.groovy") {
+	definition (name: "IKEA Symfonisk Sound Controller", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_symfonisk_sound_controller.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

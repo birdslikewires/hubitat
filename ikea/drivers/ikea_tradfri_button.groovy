@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (26th August 2023)"
+@Field String driverVersion = "v1.18 (15th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "IKEA Tradfri Button", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/drivers/ikea_tradfri_shortcut_button.groovy") {
+	definition (name: "IKEA Tradfri Button", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
