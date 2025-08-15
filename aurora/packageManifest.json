@@ -2,16 +2,16 @@
 	"packageName": "Aurora Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/aurora",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/aurora",
 	"dateReleased": "2021-01-17",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "64c05eae-8967-4708-adef-49cc8ffbb9ab",
 			"name": "Aurora Dimmer AU-A1ZB2WDM",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
 			"required": false,
 			"version": "1.08"
 		}

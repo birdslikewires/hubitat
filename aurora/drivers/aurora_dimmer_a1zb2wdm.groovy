@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Aurora Dimmer AU-A1ZB2WDM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy") {
+	definition (name: "Aurora Dimmer AU-A1ZB2WDM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
