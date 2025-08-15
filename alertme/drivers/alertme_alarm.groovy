@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "AlertMe Alarm Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_alarm.groovy") {
+	definition (name: "AlertMe Alarm Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_alarm.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "AlertMe Fob", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_fob.groovy") {
+	definition (name: "AlertMe Fob", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_fob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

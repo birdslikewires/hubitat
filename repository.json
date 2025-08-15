@@ -19,7 +19,7 @@
         "Temperature & Humidity",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/packageManifest.json",
       "description": "Drivers for devices based upon the original AlertMe platform."
     },
     {
@@ -32,7 +32,7 @@
         "Repeaters & Extenders",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/aurora/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/packageManifest.json",
       "description": "Drivers for Aurora devices."
     },
     {
@@ -43,7 +43,7 @@
         "Tools & Utilities",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/packageManifest.json",
       "description": "Virtual Switchable Presence and other utility drivers."
     },
     {
@@ -53,7 +53,7 @@
       "tags": [
         "Energy Monitoring"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/packageManifest.json",
       "description": "Consumer access device drivers for SMETS1 and SMETS2 UK smart meters."
     },
     {
@@ -66,7 +66,7 @@
         "Water Heater",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/packageManifest.json",
       "description": "Drivers for Hive devices."
     },
     {
@@ -77,7 +77,7 @@
         "Buttons",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/ikea/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
       "description": "Drivers for IKEA Tradfri devices."
     },
     {
@@ -89,7 +89,7 @@
         "Repeaters & Extenders",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/packageManifest.json",
       "description": "Drivers for devices based on Lidl's SilverCrest platform."
     },
     {
@@ -102,7 +102,7 @@
         "Repeaters & Extenders",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/salus/packageManifest.json",
       "description": "Drivers for Salus devices."
     },
     {
@@ -114,7 +114,7 @@
         "Repeaters & Extenders",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/packageManifest.json",
       "description": "Drivers for Samotech devices."
     },
     {
@@ -126,7 +126,7 @@
         "Repeaters & Extenders",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/tuya/packageManifest.json",
       "description": "Drivers for devices based on the Tuya platform."
     },
     {
@@ -139,7 +139,7 @@
         "Temperature & Humidity",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/packageManifest.json",
       "description": "Drivers for Xiaomi Aqara and Mijia devices."
     },
     {
@@ -150,7 +150,7 @@
         "MQTT",
         "Zigbee"
       ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/packageManifest.json",
+      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/packageManifest.json",
       "description": "Zigbee2MQTT Routing Driver."
     }
   ]

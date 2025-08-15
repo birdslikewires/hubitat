@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "AlertMe Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/alertme/drivers/alertme_smartplug.groovy") {
+	definition (name: "AlertMe Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_smartplug.groovy") {
 
 		capability "Actuator"
 		capability "Battery"
