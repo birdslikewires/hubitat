@@ -2,16 +2,16 @@
 	"packageName": "General Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/general",
 	"dateReleased": "2023-03-09",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "bb0231d6-9f1c-41dd-99e4-403bdcf37a39",
 			"name": "Virtual Switchable Presence",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/virtual_switchable_presence.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/virtual_switchable_presence.groovy",
 			"required": false,
 			"version": "1.07"
 		},
@@ -28,7 +28,7 @@
 			"id": "82f074bf-3c7e-4867-86f6-f4028a06eebc",
 			"name": "Zigbee2MQTT",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/zigbee2mqtt.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/zigbee2mqtt.groovy",
 			"required": false,
 			"version": "1.05"
 		}

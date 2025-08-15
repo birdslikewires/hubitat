@@ -2,23 +2,23 @@
 	"packageName": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/xiaomi",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/xiaomi",
 	"dateReleased": "2021-12-29",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		},
 		{
 			"id": "5a93cefd-cdf2-4d3b-b99e-226797edec00",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -27,7 +27,7 @@
 			"id": "6e5d1f09-8620-44a1-906c-a0712a323dd0",
 			"name": "Xiaomi Aqara Temperature and Humidity Sensor WSDCGQ11LM",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_temperature_humidity_sensor.groovy",
 			"required": false,
 			"version": "1.15"
 		},
@@ -35,7 +35,7 @@
 			"id": "3cb6a1f1-a3e3-4d9d-9688-384151e1cb67",
 			"name": "Xiaomi Aqara Wireless Mini Switch WXKG11LM / WXKG12LM",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy",
 			"required": false,
 			"version": "1.20"
 		},
@@ -43,7 +43,7 @@
 			"id": "380679c8-c0a7-4dcf-b32a-d90647ff8bd9",
 			"name": "Xiaomi Aqara Wireless Remote Switch WXKG06LM / WXKG07LM",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy",
 			"required": false,
 			"version": "1.19"
 		},
@@ -51,7 +51,7 @@
 			"id": "a45a2a70-3a59-49e8-bbf4-f84dd5a3a9f6",
 			"name": "Xiaomi Mijia Smart Light Sensor GZCGQ01LM",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy",
 			"required": false,
 			"version": "1.17"
 		}

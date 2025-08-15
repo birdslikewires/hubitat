@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/salus/drivers/salus_smart_plug_sp600.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/salus/drivers/salus_smart_plug_sp600.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

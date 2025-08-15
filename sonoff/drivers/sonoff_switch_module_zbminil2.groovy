@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/sonoff/drivers/sonoff_switch_module_zbminil2.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/sonoff/drivers/sonoff_switch_module_zbminil2.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

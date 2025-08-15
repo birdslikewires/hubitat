@@ -17,7 +17,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Virtual Switchable Presence", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/virtual_switchable_presence.groovy") {
+	definition (name: "Virtual Switchable Presence", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/virtual_switchable_presence.groovy") {
 
 		capability "Configuration"
 		capability "PresenceSensor"

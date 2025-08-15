@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Wireless Mini Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy") {
+	definition (name: "Xiaomi Aqara Wireless Mini Switch", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy") {
 
 		capability "AccelerationSensor"
 		capability "Battery"

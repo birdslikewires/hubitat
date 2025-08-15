@@ -20,7 +20,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Mijia Smart Light Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy") {
+	definition (name: "Xiaomi Mijia Smart Light Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

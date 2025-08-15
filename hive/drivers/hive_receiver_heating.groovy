@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Hive Receiver Heating", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy") {
+	definition (name: "Hive Receiver Heating", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver_heating.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

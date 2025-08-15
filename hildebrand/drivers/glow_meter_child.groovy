@@ -7,7 +7,7 @@
 
 metadata {
 
-	definition (name: "Hildebrand Glow Meter", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_meter_child.groovy") {
+	definition (name: "Hildebrand Glow Meter", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_meter_child.groovy") {
 
 		capability "Initialize"
 

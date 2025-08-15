@@ -22,7 +22,7 @@ import groovy.transform.Field
 metadata {
 
 	definition (name: "$deviceMan $deviceType SM323", namespace: "BirdsLikeWires", author: "Andrew Davison",
-		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_dimmer_module.groovy") {
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/drivers/samotech_dimmer_module.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

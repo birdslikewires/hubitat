@@ -2,16 +2,16 @@
 	"packageName": "Lidl Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.1.9",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/lidl",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/lidl",
 	"dateReleased": "2020-12-27",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "59a4fc0a-5013-4b75-820a-aad512c3b942",
 			"name": "Lidl Smart Extension HG06338",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_extension.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/drivers/lidl_smart_extension.groovy",
 			"required": false,
 			"version": "1.13"
 		},
@@ -28,7 +28,7 @@
 			"id": "35214918-e42c-4153-be13-1435500b292c",
 			"name": "Lidl Smart Plug HG06337",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_plug.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/drivers/lidl_smart_plug.groovy",
 			"required": false,
 			"version": "1.12"
 		}

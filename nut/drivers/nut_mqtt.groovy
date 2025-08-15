@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Network UPS Tools MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy") {
+	definition (name: "Network UPS Tools MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt.groovy") {
 
 		command "disconnect"
 

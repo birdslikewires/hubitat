@@ -23,7 +23,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/lidl/drivers/lidl_smart_plug.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/drivers/lidl_smart_plug.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

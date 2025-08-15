@@ -23,7 +23,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy") {
+	definition (name: "$deviceMan $deviceType", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/tuya/drivers/tuya_switch_module_ts0011_ts0012.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

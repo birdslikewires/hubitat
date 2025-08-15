@@ -19,7 +19,8 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "${deviceName}", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_white_spectrum.groovy") {
+	definition (name: "${deviceName}", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_white_spectrum.groovy") {
 
 		capability "Actuator"
 		capability "ColorTemperature"

@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Hive Thermostat", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy") {
+	definition (name: "Hive Thermostat", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy") {
 
 		capability "Battery"
 		capability "Configuration"

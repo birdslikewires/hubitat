@@ -18,7 +18,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Zigbee2MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/drivers/zigbee2mqtt.groovy") {
+	definition (name: "Zigbee2MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/zigbee2mqtt.groovy") {
 
 		attribute "healthStatus", "enum", ["offline", "online"]
 

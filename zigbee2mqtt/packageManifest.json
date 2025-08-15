@@ -2,16 +2,16 @@
 	"packageName": "Zigbee2MQTT Routing from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.3.9",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
 	"releaseNotes": "BREAKING CHANGE! Please check: https://community.hubitat.com/t/release-zigbee2mqtt-routing-driver-v2/145878/8",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/general",
 	"dateReleased": "2024-11-24",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -21,7 +21,7 @@
 			"id": "1f79558f-41c3-43a7-9683-fdda4863350b",
 			"name": "Zigbee2MQTT",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt.groovy",
 			"required": true,
 			"version": "2.07"
 		},
@@ -29,7 +29,7 @@
 			"id": "bc6f635c-9a46-4a6e-92dd-9d3253cd48d2",
 			"name": "Zigbee2MQTT Device Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy",
 			"required": true,
 			"version": "1.06"
 		},
@@ -37,7 +37,7 @@
 			"id": "bf43f6ab-68fc-485f-b277-ac728e3a8eed",
 			"name": "Zigbee2MQTT Nested Dimmer Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy",
 			"required": true,
 			"version": "1.02"
 		},
@@ -45,7 +45,7 @@
 			"id": "cad9d81a-fbe4-44f1-9d28-957e2f96001c",
 			"name": "Zigbee2MQTT Nested Switch Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
 			"required": true,
 			"version": "1.06"
 		},
@@ -53,7 +53,7 @@
 			"id": "b77d9d57-4639-44d3-8e3a-833af58f337a",
 			"name": "Zigbee2MQTT Nested White Spectrum Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/zigbee2mqtt/drivers/zigbee2mqtt_nested_white_spectrum.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_white_spectrum.groovy",
 			"required": true,
 			"version": "1.02"
 		}

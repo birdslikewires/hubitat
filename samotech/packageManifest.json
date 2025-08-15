@@ -2,16 +2,16 @@
 	"packageName": "Samotech Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.1",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/samotech",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/samotech",
 	"dateReleased": "2022-01-06",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "efe6b583-d7d5-4acb-8306-9d9f47f70383",
 			"name": "Samotech Dimmer Module SM323",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_dimmer_module_sm323.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/drivers/samotech_dimmer_module_sm323.groovy",
 			"required": false,
 			"version": "1.03"
 		},
@@ -28,7 +28,7 @@
 			"id": "22c40404-a992-4c45-830b-173cae035992",
 			"name": "Samotech Switch Module SM308",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/samotech/drivers/samotech_switch_module_sm308.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/drivers/samotech_switch_module_sm308.groovy",
 			"required": false,
 			"version": "1.16"
 		}

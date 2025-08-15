@@ -2,16 +2,16 @@
 	"packageName": "Network UPS Tools MQTT Driver from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/general",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/general",
 	"dateReleased": "2022-11-01",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "aa61f365-14fd-4831-a8d9-d852425ddabc",
 			"name": "Network UPS Tools MQTT Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt.groovy",
 			"required": true,
 			"version": "1.05"
 		},
@@ -28,7 +28,7 @@
 			"id": "8e03b3c8-85a3-44d6-b0e7-11a6e6a4335d",
 			"name": "Network UPS Tools MQTT Child Driver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/nut/drivers/nut_mqtt_child.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt_child.groovy",
 			"required": true,
 			"version": "1.00"
 		}

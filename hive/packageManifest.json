@@ -2,16 +2,16 @@
 	"packageName": "Hive Drivers from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
-	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/master",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/master/hive",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/hive",
 	"dateReleased": "2023-03-20",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
 			"name": "library",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/general/libraries/library.zip",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
 			"required": true
 		}
 	],
@@ -20,7 +20,7 @@
 			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",
 			"name": "Hive Receiver",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver.groovy",
 			"required": true,
 			"version": "0.70"
 		},
@@ -28,7 +28,7 @@
 			"id": "2b3da697-9d27-4a91-b714-f884e0f55c89",
 			"name": "Hive Receiver Heating",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_receiver_heating.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver_heating.groovy",
 			"required": true,
 			"version": "0.70"
 		},
@@ -36,7 +36,7 @@
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
 			"name": "Hive Thermostat",
 			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/master/hive/drivers/hive_thermostat.groovy",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy",
 			"required": true,
 			"version": "0.57"
 		}
