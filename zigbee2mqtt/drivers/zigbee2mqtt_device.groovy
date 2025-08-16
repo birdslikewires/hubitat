@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (4th March 2025)"
+@Field String driverVersion = "v1.07 (16th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -58,10 +58,6 @@ void configureSpecifics() {
 	updateDataValue("encoding", "MQTT")
 	updateDataValue("isComponent", "false")
 
-	removeDataValue("ieeeAddr")
-	removeDataValue("label")
-	removeDataValue("name")
-
 }
 
 
@@ -84,9 +80,7 @@ void processMQTT(def json) {
 
 	checkDriver()
 
-	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
-	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
-	sendEvent(name: "powerSource", value:"$powerSource")
+	// Tasks
 
 	long installed = 0
 
@@ -131,6 +125,12 @@ void processMQTT(def json) {
 
 	// NOTE FOR FUTURE ME
 	/// Use 'if (json.update.containsKey('state'))' if checking for nested keys.
+
+	// Admin
+
+	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
+	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
+	sendEvent(name: "powerSource", value:"$powerSource")
 
 	device.name = "${json.device.model}"
 	device.label = "${json.device.friendlyName}"
