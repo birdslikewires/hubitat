@@ -22,6 +22,7 @@ metadata {
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
 		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_twinguard.groovy") {
 
+		capability "AirQuality"
 		capability "Battery"
 		capability "Configuration"
 		capability "IlluminanceMeasurement"
@@ -79,6 +80,7 @@ void processMQTT(def json) {
 	checkDriver()
 
 	// Tasks
+	if (json.aqi) sendEvent(name: "airQualityIndex", value:"${json.aqi}")
 	if (json.humidity) sendEvent(name: "humidity", value:"${json.humidity}", unit: "%rh")
 	if (json.illuminance) sendEvent(name: "illuminance", value:"${json.illuminance}", unit: "lx")
 	if (json.temperature) sendEvent(name: "temperature", value:"${json.temperature}", unit: "°C")
