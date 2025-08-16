@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.40 (29th July 2025)
+ *  BirdsLikeWires Library v1.41 (16th August 2025)
  *	
  */
 
@@ -58,8 +58,14 @@ void configure() {
 	configureSpecifics()
 
 	// Notify.
-	sendEvent(name: "configuration", value: "sent", isStateChange: false)
-	logging("${device} : Configuration : Sent to device.", "info")
+	String encoding = getDataValue("encoding")
+	if ("$encoding" != "MQTT") {
+		sendEvent(name: "configuration", value: "sent", isStateChange: false)
+		logging("${device} : Configuration : Sent to device.", "info")
+	} else {
+		sendEvent(name: "configuration", value: "set", isStateChange: false)
+		logging("${device} : Configuration : Set.", "info")
+	}
 
 	updated()
 	
