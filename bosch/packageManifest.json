@@ -1,0 +1,28 @@
+{
+	"packageName": "Bosch Drivers via Zigbee2MQTT from BirdsLikeWires",
+	"author": "Andrew Davison",
+	"minimumHEVersion": "2.2.1",
+	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/bosch",
+	"dateReleased": "2025-08-16",
+	"bundles": [
+		{
+			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
+			"name": "library",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/libraries/library.zip",
+			"required": true
+		}
+	],
+	"drivers": [
+		{
+			"id": "9f1f7ba2-8883-4c1e-9ad9-ff395fae42a1",
+			"name": "Bosch Twinguard",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_twinguard.groovy",
+			"required": false,
+			"version": "0.01"
+		}
+	]
+}
