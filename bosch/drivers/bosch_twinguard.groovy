@@ -30,6 +30,7 @@ metadata {
 		capability "IlluminanceMeasurement"
 		capability "PowerSource"
 		capability "RelativeHumidityMeasurement"
+		capability "Sensor"
 		capability "SignalStrength"
 		capability "SmokeDetector"
 		capability "TemperatureMeasurement"
@@ -101,13 +102,15 @@ void off() {
 
 void siren() {
 
-	return
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"fire\"}")
 
 }
 
 void strobe() {
 
-	return
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"burglar\"}")
 
 }
 
@@ -140,7 +143,11 @@ void processMQTT(def json) {
 
 			case "fire":
 				alarmState = "siren"
-				break						
+				break
+
+			case "pre_alarm":
+				alarmState = "both"
+				break
 
 			default:
 				alarmState = "off"
