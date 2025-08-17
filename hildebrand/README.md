@@ -8,9 +8,9 @@ However, there is one company, [Hildebrand](http://hildebrand.co.uk/), registere
 
 Search for "**hildebrand**" on Hubitat Package Manager or you can install manually:
 
-- [BirdsLikeWires Library Bundle](https://github.com/birdslikewires/hubitat/blob/master/generic/libraries/BirdsLikeWires.library/BirdsLikeWires.library.groovy) - Bundle URL: [ZIP](https://github.com/birdslikewires/hubitat/raw/master/generic/libraries/library.zip)
-- [Hildebrand Glow MQTT Driver](https://github.com/birdslikewires/hubitat/blob/master/hildebrand/drivers/glow_mqtt.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_mqtt.groovy)
-- [Hildebrand Glow MQTT Driver](https://github.com/birdslikewires/hubitat/blob/master/hildebrand/drivers/glow_meter_child.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/master/hildebrand/drivers/glow_meter_child.groovy)
+- [BirdsLikeWires Library Bundle](https://github.com/birdslikewires/hubitat/blob/main/generic/libraries/BirdsLikeWires.library/BirdsLikeWires.library.groovy) - Bundle URL: [ZIP](https://github.com/birdslikewires/hubitat/raw/main/generic/libraries/library.zip)
+- [Hildebrand Glow MQTT Driver](https://github.com/birdslikewires/hubitat/blob/main/hildebrand/drivers/glow_mqtt.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_mqtt.groovy)
+- [Hildebrand Glow MQTT Driver](https://github.com/birdslikewires/hubitat/blob/main/hildebrand/drivers/glow_meter_child.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_meter_child.groovy)
 
 All three components are required and the Library can be installed on Developer Tools > Bundles > Import ZIP, though HPM is the easier way to go.
 
