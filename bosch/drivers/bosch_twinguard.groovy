@@ -38,6 +38,12 @@ metadata {
 		attribute "siren", "string"
 		attribute "voc", "number"
 
+		command "both", [[name:"Triggers the pre-alarm chirp."]]
+		command "off", [[name:"Stops the any alarm."]]
+		command "siren", [[name:"Triggers the fire alarm siren."]]
+		command "strobe", [[name:"Triggers the burglar alarm siren."]]
+
+
 		if (debugMode) {
 			command "testCommand"
 		}
@@ -74,6 +80,33 @@ void configureSpecifics() {
 
 
 void updateSpecifics() {
+
+	configureSpecifics()
+
+}
+
+void both() {
+
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"pre_alarm\"}")
+
+}
+
+void off() {
+
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"stop\"}")
+	parent.publishMQTT("$ieee", "get", "{\"alarm\": \"\"}")		// Necessary otherwise it doesn't update until the next regular report.
+
+}
+
+void siren() {
+
+	return
+
+}
+
+void strobe() {
 
 	return
 
