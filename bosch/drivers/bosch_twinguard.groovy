@@ -38,11 +38,10 @@ metadata {
 		attribute "siren", "string"
 		attribute "voc", "number"
 
-		command "both", [[name:"Triggers the pre-alarm chirp."]]
-		command "off", [[name:"Stops the any alarm."]]
-		command "siren", [[name:"Triggers the fire alarm siren."]]
-		command "strobe", [[name:"Triggers the burglar alarm siren."]]
-
+		command "both", [[name: "Triggers the pre-alarm chirp."]]
+		command "off", [[name: "Stops any alarm."]]
+		command "siren", [[name: "Triggers the fire alarm siren."]]
+		command "strobe", [[name: "Triggers the burglar alarm siren."]]
 
 		if (debugMode) {
 			command "testCommand"
@@ -129,7 +128,7 @@ void processMQTT(def json) {
 
 	}
 
-
+	// Sirens
 	if (json.siren_state) {
 
 		String alarmState
