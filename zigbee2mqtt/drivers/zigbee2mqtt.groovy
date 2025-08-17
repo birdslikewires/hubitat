@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.07 (27th July 2025)"
+@Field String driverVersion = "v2.08 (17th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -100,6 +100,14 @@ void publish(String ieee, String payload) {
 	// Publishes an MQTT message.
 
 	interfaces.mqtt.publish("zigbee2mqtt/$ieee/set","{$payload}")
+
+}
+
+
+void publishMQTT(String ieee, String getSetGo, String payload) {
+	// Publishes an MQTT message.
+
+	interfaces.mqtt.publish("zigbee2mqtt/$ieee/$getSetGo","$payload")
 
 }
 
