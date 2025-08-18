@@ -82,6 +82,8 @@
 	  "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
 	  "tags": [
 		"Buttons",
+		"MQTT",
+		"Repeaters & Extenders",
 		"Zigbee"
 	  ],
 	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
