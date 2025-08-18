@@ -5,7 +5,7 @@
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
 	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/bosch",
-	"dateReleased": "2025-08-16",
+	"dateReleased": "2025-08-18",
 	"bundles": [
 		{
 			"id": "6dad0c6e-dda7-4bf4-a5a7-76a2b3f3da75",
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_twinguard.groovy",
 			"required": false,
-			"version": "0.01"
+			"version": "1.01"
 		}
 	]
 }
