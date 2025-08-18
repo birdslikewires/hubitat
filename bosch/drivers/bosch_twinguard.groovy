@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (18th August 2025)"
+@Field String driverVersion = "v1.01 (18th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -142,13 +142,13 @@ void processMQTT(def json) {
 	checkDriver()
 
 	// Smoke
-	if (json.smoke) {
+	if ("${json.smoke}" == "true") {
 
 		sendEvent(name: "smoke", value: "detected")
 
 	} else {
 
-		String noSmoke = (json.self_test) ? "tested" : "clear"
+		String noSmoke = ("${json.self_test}" == "true") ? "tested" : "clear"
 		sendEvent(name: "smoke", value: "$noSmoke")
 
 	}
