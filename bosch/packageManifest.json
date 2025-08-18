@@ -3,7 +3,7 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.1",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main/bosch",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/bosch",
 	"dateReleased": "2025-08-18",
 	"bundles": [
