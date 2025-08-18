@@ -1,5 +1,5 @@
 {
-	"packageName": "Zigbee2MQTT Routing from BirdsLikeWires",
+	"packageName": "Zigbee2MQTT Routing v2 from BirdsLikeWires",
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.3.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
