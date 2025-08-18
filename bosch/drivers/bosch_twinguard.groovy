@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.01 (16th August 2025)"
+@Field String driverVersion = "v1.00 (18th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -13,7 +13,6 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 5
-@Field int checkEveryMinutes = 10
 @Field String deviceName = "Bosch Twinguard"
 
 
@@ -27,8 +26,10 @@ metadata {
 		capability "Battery"
 		capability "CarbonDioxideMeasurement"
 		capability "Configuration"
+		capability "HealthCheck"
 		capability "IlluminanceMeasurement"
 		capability "PowerSource"
+		capability "Refresh"
 		capability "RelativeHumidityMeasurement"
 		capability "Sensor"
 		capability "SignalStrength"
@@ -36,6 +37,7 @@ metadata {
 		capability "TemperatureMeasurement"
 
 		attribute "healthStatus", "enum", ["offline", "online"]
+		attribute "selfTest", "enum", ["true", "false"]
 		attribute "siren", "string"
 		attribute "voc", "number"
 
@@ -75,6 +77,7 @@ void configureSpecifics() {
 	updateDataValue("encoding", "MQTT")
 	updateDataValue("isComponent", "false")
 	sendEvent(name: "powerSource", value: "battery")
+	sendEvent(name: "selfTest", value: "false")
 
 }
 
@@ -85,12 +88,29 @@ void updateSpecifics() {
 
 }
 
+
+void refresh() {
+
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "get", "{\"alarm\": \"\"}")		// Any get request seems to trigger a full report.
+
+}
+
+
+void ping() {
+
+	refresh()
+
+}
+
+
 void both() {
 
 	String ieee = getDataValue("ieee")
 	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"pre_alarm\"}")
 
 }
+
 
 void off() {
 
@@ -100,12 +120,14 @@ void off() {
 
 }
 
+
 void siren() {
 
 	String ieee = getDataValue("ieee")
 	parent.publishMQTT("$ieee", "set", "{\"alarm\": \"fire\"}")
 
 }
+
 
 void strobe() {
 
@@ -171,6 +193,17 @@ void processMQTT(def json) {
 	// Device
 	if (json.battery) sendEvent(name: "battery", value: "${json.battery}", unit: "%")
 	if (json.linkquality) sendEvent(name: "lqi", value: "${json.linkquality}")
+
+	if ("${json.self_test}" == "true") {
+		
+		runIn(10,refresh)		// Needs a nudge to update when self-test is complete.
+		sendEvent(name: "selfTest", value: "true")
+
+	} else {
+
+		sendEvent(name: "selfTest", value: "false")
+
+	}
 
 	if (json.device) {
 
