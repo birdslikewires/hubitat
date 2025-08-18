@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.41 (16th August 2025)
+ *  BirdsLikeWires Library v1.42 (18th August 2025)
  *	
  */
 
@@ -51,7 +51,7 @@ void configure() {
 
 	// Schedule health status checking.
 	randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", checkHealthStatus)
+	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
@@ -199,7 +199,7 @@ void checkHealthStatus() {
 	if (state.updatedHealthStatus > 0) {
 
 		long millisElapsed = millisNow - state.updatedHealthStatus
-		long timeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
+		long timeoutMillis = ((reportIntervalMinutes * 2) + 10) * 60000
 		long reportIntervalMillis = reportIntervalMinutes * 60000
 		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
 		BigInteger hubUptime = location.hub.uptime
@@ -230,65 +230,6 @@ void checkHealthStatus() {
 	} else {
 
 		logging("${device} : Health Status : Waiting for first report.", "warn")
-
-	}
-
-}
-
-
-void updatePresence() {
-
-	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
-
-	long millisNow = new Date().time
-	state.presenceUpdated = millisNow
-	sendEvent(name: "presence", value: "present")
-
-}
-
-
-void checkPresence() {
-	// Check how long ago the presence state was updated.
-
-	logging("${device} : Presence : Please update your driver. Device health should be monitored by the healthStatus attribute.", "warn")
-
-	long millisNow = new Date().time
-	int uptimeAllowanceMinutes = 20			// The hub takes a while to settle after a reboot.
-
-	if (state.presenceUpdated > 0) {
-
-		long millisElapsed = millisNow - state.presenceUpdated
-		long presenceTimeoutMillis = ((reportIntervalMinutes * 2) + 20) * 60000
-		long reportIntervalMillis = reportIntervalMinutes * 60000
-		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
-		BigInteger hubUptime = location.hub.uptime
-
-		if (millisElapsed > presenceTimeoutMillis) {
-
-			if (hubUptime > uptimeAllowanceMinutes * 60) {
-
-				sendEvent(name: "presence", value: "not present")
-				logging("${device} : Presence : Not Present! Last report received ${secondsElapsed} seconds ago.", "warn")
-
-			} else {
-
-				logging("${device} : Presence : Ignoring overdue presence reports for ${uptimeAllowanceMinutes} minutes. The hub was rebooted ${hubUptime} seconds ago.", "debug")
-
-			}
-
-		} else {
-
-			sendEvent(name: "presence", value: "present")
-			logging("${device} : Presence : Last presence report ${secondsElapsed} seconds ago.", "debug")
-
-		}
-
-		logging("${device} : checkPresence() : ${millisNow} - ${state.presenceUpdated} = ${millisElapsed}", "trace")
-		logging("${device} : checkPresence() : Report interval is ${reportIntervalMillis} ms, timeout is ${presenceTimeoutMillis} ms.", "trace")
-
-	} else {
-
-		logging("${device} : Presence : Waiting for first presence report.", "warn")
 
 	}
 

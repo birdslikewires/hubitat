@@ -5,19 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.07 (8th June 2025)"
+@Field String driverVersion = "v1.08 (18th August 2025)"
 
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
 @Field boolean debugMode = false
-@Field int checkEveryMinutes = 1
+@Field int reportIntervalMinutes = 1
+@Field String deviceName = "Virtual Switchable Presence"
 
 
 metadata {
 
-	definition (name: "Virtual Switchable Presence", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/virtual_switchable_presence.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/virtual_switchable_presence.groovy") {
 
 		capability "Configuration"
 		capability "PresenceSensor"
@@ -61,13 +63,9 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	// Health checks are not required for this driver.
-	unschedule("checkHealthStatus")
-	unschedule("checkPresence")
-
 	// Refresh values every minute.
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} 0/${checkEveryMinutes} * * * ? *", refresh)
+	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", refresh)
 
 	long millisNow = new Date().time
 	sendEvent(name: "absent", value: 0, isStateChange: false)
@@ -78,7 +76,6 @@ void configureSpecifics() {
 
 
 void updateSpecifics() {
-	// Called by library updated() method.
 
 	return
 
