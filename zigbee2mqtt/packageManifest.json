@@ -4,7 +4,7 @@
 	"minimumHEVersion": "2.3.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
 	"releaseNotes": "BREAKING CHANGE! Please check: https://community.hubitat.com/t/release-zigbee2mqtt-routing-driver-v2/145878/8",
-	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/general",
+	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/zigbee2mqtt",
 	"dateReleased": "2024-11-24",
 	"bundles": [
 		{
