@@ -3,155 +3,157 @@
   "gitHubUrl": "https://github.com/birdslikewires/hubitat",
   "payPalUrl": "https://www.paypal.me/andydavison",
   "packages": [
-    {
-      "id": "a6589963-c0f9-47b7-98ee-8312f4f1bbaf",
-      "name": "AlertMe Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Buttons",
-        "Doors & Windows",
-        "Energy Monitoring",
-        "Lights & Switches",
-        "Monitoring",
-        "Presence & Location",
-        "Repeaters & Extenders",
-        "Safety & Security",
-        "Temperature & Humidity",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/packageManifest.json",
-      "description": "Drivers for devices based upon the original AlertMe platform."
-    },
-    {
-      "id": "8fc85585-cb27-446f-ab26-e8e288df1711",
-      "name": "Aurora Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Buttons",
-        "Lights & Switches",
-        "Repeaters & Extenders",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/packageManifest.json",
-      "description": "Drivers for Aurora devices."
-    },
-    {
-      "id": "071ec430-411e-4321-886a-5785d0b29e4c",
-      "name": "General Drivers from BirdsLikeWires",
-      "category": "Utility",
-      "tags": [
-        "Tools & Utilities",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/packageManifest.json",
-      "description": "Virtual Switchable Presence and other utility drivers."
-    },
-    {
-      "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
-      "name": "Hildebrand Glow Drivers from BirdsLikeWires",
-      "category": "Utility",
-      "tags": [
-        "Energy Monitoring"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/packageManifest.json",
-      "description": "Consumer access device drivers for SMETS1 and SMETS2 UK smart meters."
-    },
-    {
-      "id": "A7ECBF4E-634F-4B5B-BF6B-1D511B830F21",
-      "name": "Hive Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Climate Control",
-        "Temperature & Humidity",
-        "Water Heater",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/packageManifest.json",
-      "description": "Drivers for Hive devices."
-    },
-    {
-      "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
-      "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Buttons",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
-      "description": "Drivers for IKEA Tradfri devices."
-    },
-    {
-      "id": "5d733f43-0047-4da9-9266-144968a1a936",
-      "name": "Lidl Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Lights & Switches",
-        "Repeaters & Extenders",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/packageManifest.json",
-      "description": "Drivers for devices based on Lidl's SilverCrest platform."
-    },
-    {
-      "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",
-      "name": "Salus Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Energy Monitoring",
-        "Lights & Switches",
-        "Repeaters & Extenders",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/salus/packageManifest.json",
-      "description": "Drivers for Salus devices."
-    },
-    {
-      "id": "615188d1-ee93-4d05-a087-db592cfb1463",
-      "name": "Samotech Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Lights & Switches",
-        "Repeaters & Extenders",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/packageManifest.json",
-      "description": "Drivers for Samotech devices."
-    },
-    {
-      "id": "6abb75c5-fbaf-42b6-a065-a92c25455a21",
-      "name": "Tuya Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Lights & Switches",
-        "Repeaters & Extenders",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/tuya/packageManifest.json",
-      "description": "Drivers for devices based on the Tuya platform."
-    },
-    {
-      "id": "def56a54-9e7c-4f7a-8c5b-71f35207499e",
-      "name": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "Buttons",
-        "Lights & Switches",
-        "Temperature & Humidity",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/packageManifest.json",
-      "description": "Drivers for Xiaomi Aqara and Mijia devices."
-    },
-    {
-      "id": "e997d860-30d3-4ca8-b0ba-b1298061318b",
-      "name": "Zigbee2MQTT Routing from BirdsLikeWires",
-      "category": "Control",
-      "tags": [
-        "MQTT",
-        "Zigbee"
-      ],
-      "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/packageManifest.json",
-      "description": "Zigbee2MQTT Routing Driver."
-    }
+	{
+	  "id": "a6589963-c0f9-47b7-98ee-8312f4f1bbaf",
+	  "name": "AlertMe Drivers from BirdsLikeWires",
+	  "tags": [
+		"Buttons",
+		"Doors & Windows",
+		"Energy Monitoring",
+		"Lights & Switches",
+		"Monitoring",
+		"Presence & Location",
+		"Repeaters & Extenders",
+		"Safety & Security",
+		"Temperature & Humidity",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/packageManifest.json",
+	  "description": "Drivers for devices based upon the original AlertMe / Iris V1 platform."
+	},
+	{
+	  "id": "8fc85585-cb27-446f-ab26-e8e288df1711",
+	  "name": "Aurora Drivers from BirdsLikeWires",
+	  "tags": [
+		"Buttons",
+		"Lights & Switches",
+		"Repeaters & Extenders",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/packageManifest.json",
+	  "description": "Drivers for Aurora devices."
+	},
+	{
+	  "id": "ec81f802-219f-43dc-adbd-1c86491276ba",
+	  "name": "Bosch Drivers via Zigbee2MQTT from BirdsLikeWires",
+	  "tags": [
+		"Monitoring",
+		"Multi Sensors",
+		"MQTT",
+		"Safety & Security",
+		"Temperature & Humidity"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/packageManifest.json",
+	  "description": "Drivers for Bosch Smart Home devices connected via Zigbee2MQTT Routing."
+	},
+	{
+	  "id": "071ec430-411e-4321-886a-5785d0b29e4c",
+	  "name": "General Drivers from BirdsLikeWires",
+	  "tags": [
+		"Tools & Utilities"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/packageManifest.json",
+	  "description": "Virtual Switchable Presence and other utility drivers."
+	},
+	{
+	  "id": "33379680-6ab1-4e5d-8efc-a5bc0343ea82",
+	  "name": "Hildebrand Glow Drivers from BirdsLikeWires",
+	  "tags": [
+		"Energy Monitoring",
+		"MQTT"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/packageManifest.json",
+	  "description": "Drivers for Hildebrand's Consumer Access Device for SMETS1 and SMETS2 smart meters in the UK."
+	},
+	{
+	  "id": "A7ECBF4E-634F-4B5B-BF6B-1D511B830F21",
+	  "name": "Hive Drivers from BirdsLikeWires",
+	  "tags": [
+		"Climate Control",
+		"Temperature & Humidity",
+		"Water Heater",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/packageManifest.json",
+	  "description": "Drivers for Hive devices."
+	},
+	{
+	  "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
+	  "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
+	  "tags": [
+		"Buttons",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
+	  "description": "Drivers for IKEA devices, with Zigbee2MQTT Routing support."
+	},
+	{
+	  "id": "5d733f43-0047-4da9-9266-144968a1a936",
+	  "name": "Lidl Drivers from BirdsLikeWires",
+	  "tags": [
+		"Lights & Switches",
+		"Repeaters & Extenders",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/lidl/packageManifest.json",
+	  "description": "Drivers for devices based on Lidl's SilverCrest platform."
+	},
+	{
+	  "id": "73bb04fc-bd8a-455a-9347-4b975d2b269c",
+	  "name": "Salus Drivers from BirdsLikeWires",
+	  "tags": [
+		"Energy Monitoring",
+		"Lights & Switches",
+		"Repeaters & Extenders",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/salus/packageManifest.json",
+	  "description": "Drivers for Salus devices."
+	},
+	{
+	  "id": "615188d1-ee93-4d05-a087-db592cfb1463",
+	  "name": "Samotech Drivers from BirdsLikeWires",
+	  "tags": [
+		"Lights & Switches",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/packageManifest.json",
+	  "description": "Drivers for Samotech devices."
+	},
+	{
+	  "id": "6abb75c5-fbaf-42b6-a065-a92c25455a21",
+	  "name": "Tuya Drivers from BirdsLikeWires",
+	  "tags": [
+		"Lights & Switches",
+		"Repeaters & Extenders",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/tuya/packageManifest.json",
+	  "description": "Drivers for devices based on the Tuya platform."
+	},
+	{
+	  "id": "def56a54-9e7c-4f7a-8c5b-71f35207499e",
+	  "name": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
+	  "tags": [
+		"Buttons",
+		"Lights & Switches",
+		"MQTT",
+		"Temperature & Humidity",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/packageManifest.json",
+	  "description": "Drivers for Xiaomi Aqara and Mijia devices, with Zigbee2MQTT Routing support."
+	},
+	{
+	  "id": "e997d860-30d3-4ca8-b0ba-b1298061318b",
+	  "name": "Zigbee2MQTT Routing from BirdsLikeWires",
+	  "tags": [
+		"MQTT",
+		"Tools & Utilities",
+		"Zigbee"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/packageManifest.json",
+	  "description": "Connects devices communicating via Zigbee2MQTT to Hubitat."
+	}
   ]
 }
