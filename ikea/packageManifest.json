@@ -31,14 +31,6 @@
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
 			"version": "1.18"
-		},
-		{
-			"id": "9951676a-11b7-4bcf-9372-4381ac331c49",
-			"name": "IKEA Tradfri Signal Repeater E1746",
-			"namespace": "BirdsLikeWires",
-			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_signal_repeater.groovy",
-			"required": false,
-			"version": "1.08"
 		}
 	]
 }
