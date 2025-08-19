@@ -19,7 +19,8 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Cube Controller", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_cube_controller.groovy") {
+	definition (name: "Xiaomi Aqara Cube Controller", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_cube_controller.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
