@@ -78,18 +78,6 @@
 	  "description": "Drivers for Hive devices."
 	},
 	{
-	  "id": "ca7b5a8f-cfe0-4d2f-ad38-426034eb9b8b",
-	  "name": "IKEA Symfonisk and Tradfri Drivers from BirdsLikeWires",
-	  "tags": [
-		"Buttons",
-		"MQTT",
-		"Repeaters & Extenders",
-		"Zigbee"
-	  ],
-	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifestArchived.json",
-	  "description": "Drivers for IKEA devices, with Zigbee2MQTT Routing support."
-	},
-	{
 	  "id": "e1083647-4e18-4f5f-9bc8-fe987922dcb1",
 	  "name": "IKEA Drivers via Zigbee2MQTT from BirdsLikeWires",
 	  "tags": [
