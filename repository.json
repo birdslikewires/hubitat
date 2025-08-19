@@ -86,8 +86,19 @@
 		"Repeaters & Extenders",
 		"Zigbee"
 	  ],
-	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifestArchived.json",
 	  "description": "Drivers for IKEA devices, with Zigbee2MQTT Routing support."
+	},
+	{
+	  "id": "e1083647-4e18-4f5f-9bc8-fe987922dcb1",
+	  "name": "IKEA Drivers via Zigbee2MQTT from BirdsLikeWires",
+	  "tags": [
+		"Buttons",
+		"MQTT",
+		"Repeaters & Extenders"
+	  ],
+	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/packageManifest.json",
+	  "description": "Drivers for IKEA devices connected via Zigbee2MQTT Routing."
 	},
 	{
 	  "id": "5d733f43-0047-4da9-9266-144968a1a936",
