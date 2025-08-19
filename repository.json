@@ -134,27 +134,13 @@
 	  "description": "Drivers for devices based on the Tuya platform."
 	},
 	{
-	  "id": "def56a54-9e7c-4f7a-8c5b-71f35207499e",
-	  "name": "Xiaomi Aqara and Mijia Drivers from BirdsLikeWires",
-	  "tags": [
-		"Buttons",
-		"Lights & Switches",
-		"MQTT",
-		"Temperature & Humidity",
-		"Zigbee"
-	  ],
-	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/packageManifestMixed.json",
-	  "description": "Drivers for Xiaomi Aqara and Mijia devices, with Zigbee2MQTT Routing support."
-	},
-	{
 	  "id": "f8c2fa78-3676-4614-826d-2d5f2773c2c4",
 	  "name": "Xiaomi Drivers via Zigbee2MQTT from BirdsLikeWires",
 	  "tags": [
 		"Buttons",
 		"Lights & Switches",
 		"MQTT",
-		"Temperature & Humidity",
-		"Zigbee"
+		"Temperature & Humidity"
 	  ],
 	  "location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/packageManifest.json",
 	  "description": "Drivers for Xiaomi devices connected via Zigbee2MQTT Routing."
