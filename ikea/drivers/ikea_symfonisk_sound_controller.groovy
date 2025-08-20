@@ -83,6 +83,8 @@ void refresh() {
 
 void processMQTT(def json) {
 
+	checkDriver()
+
 	// Process the action first!
 	if (json.action) debounceAction("${json.action}")
 
@@ -100,7 +102,6 @@ void processMQTT(def json) {
 	logging("${device} : parseMQTT : ${json}", "debug")
 
 	updateHealthStatus()
-	checkDriver()
 
 }
 
