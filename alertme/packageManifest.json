@@ -3,7 +3,7 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main/alertme",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/alertme",
 	"dateReleased": "2020-12-21",
 	"bundles": [
