@@ -5,21 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.11 (26th August 2023)"
-
+@Field String driverVersion = "v1.12 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 1
 @Field int occasionalUpdateMinutes = 10
+@Field String deviceName = "Hildebrand Glow"
 
 
 metadata {
 
-	definition (name: "Hildebrand Glow", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_mqtt.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_mqtt.groovy") {
 
 		capability "SignalStrength"
 
@@ -61,7 +61,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
-	device.name = "Hildebrand Glow"
+	device.name = "$deviceName"
 
 	state.occasionalUpdated = 0
 

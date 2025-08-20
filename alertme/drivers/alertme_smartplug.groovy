@@ -5,22 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.56 (13th November 2024)"
-
+@Field String driverVersion = "v1.57 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 2
-@Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
+@Field String deviceName = "AlertMe Smart Plug"
 
 
 metadata {
 
-	definition (name: "AlertMe Smart Plug", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_smartplug.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_smartplug.groovy") {
 
 		capability "Actuator"
 		capability "Battery"
@@ -47,7 +46,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00EF,00EE", outClusters: "", manufacturer: "AlertMe.com", model: "Smart Plug", deviceJoinName: "AlertMe Smart Plug"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00EF,00EE", outClusters: "", manufacturer: "AlertMe.com", model: "Smart Plug", deviceJoinName: "$deviceName"
 		
 	}
 
@@ -75,7 +74,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	device.name = "AlertMe Smart Plug"
+	device.name = "$deviceName"
 	enablePowerControl()
 
 	state.operatingMode = "normal"

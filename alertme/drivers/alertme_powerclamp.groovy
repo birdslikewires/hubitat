@@ -5,22 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.26 (25th August 2023)"
-
+@Field String driverVersion = "v1.27 (25th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 6
-@Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
+@Field String deviceName = "AlertMe Power Clamp"
 
 
 metadata {
 
-	definition (name: "AlertMe Power Clamp", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_powerclamp.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_powerclamp.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -45,8 +44,8 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "AlertMe Power Clamp"
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "AlertMe Power Clamp"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp", deviceJoinName: "$deviceName"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00EF", outClusters: "", manufacturer: "AlertMe.com", model: "Power Clamp Device", deviceJoinName: "$deviceName"
 
 	}
 
@@ -75,7 +74,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	device.name = "AlertMe Power Clamp"
+	device.name = "$deviceName"
 	enablePowerControl()
 
 	state.operatingMode = "normal"

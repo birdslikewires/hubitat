@@ -5,18 +5,15 @@
  */
 
 
-@Field String driverVersion = "v1.16 (30th July 2025)"
+@Field String driverVersion = "v1.17 (20th August 2025)"
 @Field boolean debugMode = false
-
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
+@Field int reportIntervalMinutes = 1
 @Field String deviceMan = "Samotech"
 @Field String deviceType = "Switch Module"
-
-@Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 2
 
 
 metadata {

@@ -5,22 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.29 (25th August 2023)"
-
+@Field String driverVersion = "v1.30 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 6
-@Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
+@Field String deviceName = "AlertMe Button"
 
 
 metadata {
 
-	definition (name: "AlertMe Button", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_button.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_button.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -43,9 +42,9 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Depice", deviceJoinName: "AlertMe Button"
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "AlertMe Button"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Depice", deviceJoinName: "$deviceName"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F2,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "$deviceName"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F1,00F2", outClusters: "", manufacturer: "AlertMe.com", model: "Button Device", deviceJoinName: "$deviceName"
 
 	}
 
@@ -72,7 +71,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	device.name = "AlertMe Button"
+	device.name = "$deviceName"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
 
 	state.operatingMode = "normal"

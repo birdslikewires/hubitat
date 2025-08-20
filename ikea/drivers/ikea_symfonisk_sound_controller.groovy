@@ -5,20 +5,20 @@
  */
 
 
-@Field String driverVersion = "v1.10 (15th August 2025)"
-
+@Field String driverVersion = "v1.11 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
-@Field int checkEveryMinutes = 10
+@Field String deviceName = "IKEA Symfonisk Sound Controller"
 
 
 metadata {
 
-	definition (name: "IKEA Symfonisk Sound Controller", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_symfonisk_sound_controller.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_symfonisk_sound_controller.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -38,9 +38,6 @@ metadata {
 		if (debugMode) {
 			command "testCommand"
 		}
-
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000", outClusters: "0003,0004,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "IKEA Symfonisk Sound Controller", application: "21"
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,1000,FC7C", outClusters: "0003,0004,0005,0006,0008,0019,1000", manufacturer: "IKEA of Sweden", model: "SYMFONISK Sound Controller", deviceJoinName: "IKEA Symfonisk Sound Controller", application: "21"
 
 	}
 

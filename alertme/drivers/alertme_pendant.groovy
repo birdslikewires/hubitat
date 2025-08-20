@@ -5,22 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.06 (25th August 2023)"
-
+@Field String driverVersion = "v1.07 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 2
-@Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
+@Field String deviceName = "AlertMe Pendant"
 
 
 metadata {
 
-	definition (name: "AlertMe Pendant", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_pendant.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_pendant.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -42,7 +41,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00C0", outClusters: "", manufacturer: "AlertMe.com", model: "Care Pendant Device", deviceJoinName: "AlertMe Pendant"
+		fingerprint profileId: "C216", inClusters: "00F0,00C0", outClusters: "", manufacturer: "AlertMe.com", model: "Care Pendant Device", deviceJoinName: "$deviceName"
 
 	}
 
@@ -69,7 +68,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
-	device.name = "AlertMe Pendant"
+	device.name = "$deviceName"
 	sendEvent(name: "numberOfButtons", value: 1, isStateChange: false)
 
 	state.operatingMode = "normal"

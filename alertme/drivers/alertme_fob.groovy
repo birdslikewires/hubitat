@@ -5,22 +5,21 @@
  */
 
 
-@Field String driverVersion = "v1.32 (25th August 2023)"
-
+@Field String driverVersion = "v1.33 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 2
-@Field int checkEveryMinutes = 1
 @Field int rangeEveryHours = 6
+@Field String deviceName = "AlertMe Fob"
 
 
 metadata {
 
-	definition (name: "AlertMe Fob", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_fob.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_fob.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -42,7 +41,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "AlertMe Fob"
+		fingerprint profileId: "C216", inClusters: "00F0,00F3,00F4,00F1", outClusters: "", manufacturer: "AlertMe.com", model: "Keyfob Device", deviceJoinName: "$deviceName"
 
 	}
 
@@ -78,7 +77,7 @@ void configureSpecifics() {
 
 	} else if ("${modelCheck}" == "Keyfob Device") {
 
-		device.name = "AlertMe Fob"
+		device.name = "$deviceName"
 		sendEvent(name: "numberOfButtons", value: 2, isStateChange: false)
 
 		state.lastAwayPress = 0

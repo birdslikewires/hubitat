@@ -5,15 +5,13 @@
  */
 
 
-@Field String driverVersion = "v1.01 (18th March 2025)"
-
+@Field String driverVersion = "v1.02 (18th March 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 10
-@Field int checkEveryMinutes = 2
 @Field String deviceName = "Sonoff Switch Module ZBMINIL2"
 
 
@@ -24,7 +22,6 @@ metadata {
 		capability "Actuator"
 		capability "Configuration"
 		capability "HealthCheck"
-		//capability "Flash"
 		capability "Refresh"
 		capability "Switch"
 
@@ -125,71 +122,6 @@ void on() {
 
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x01 {}"])
 	sendEvent(name: "mode", value: "static")
-
-}
-
-// // // FLASH NOTES - I swear runInMillis is broken and executes the commands immediately.
-// // //               Need to look into an alternative means of providing flash(), if I bother.
-
-void flash() {
-
-	flash(flashRate)
-
-}
-
-
-void flash(BigDecimal thisFlashRate) {
-
-	if (!flashEnabled) {
-		logging("${device} : Flash : Disabled", "warn")
-		return
-	}
-
-	thisFlashRate = (thisFlashRate < 500) ? 500 : thisFlashRate
-	thisFlashRate = (thisFlashRate > 5000) ? 5000 : thisFlashRate
-
-	logging("${device} : Flash : Rate of $thisFlashRate ms", "info")
-	sendEvent(name: "mode", value: "flashing")
-	pauseExecution 200
-    flashOn(thisFlashRate)
-
-}
-
-
-void flashOn(BigDecimal thisFlashRate) {
-
-	String mode = device.currentState("mode").value
-	//def rate = Long.valueOf(thisFlashRate)
-
-	Long rate = 500
-
-	logging("${device} : flashOn : Given rate of ${rate}, mode is '${mode}'.", "debug")
-
-    if (mode != "flashing") return
-
-    runInMillis(rate, flashOff(thisFlashRate))
-
-	//sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x01 {}"])
-
-}
-
-
-void flashOff(BigDecimal thisFlashRate) {
-
-	String mode = device.currentState("mode").value
-	//def rate = Long.valueOf(thisFlashRate)
-
-	Long rate = 500
-
-
-	logging("${device} : flashOff : Given rate of ${rate}, mode is '${mode}'.", "debug")
-
-    if (mode != "flashing") return
-
-	//def rate = Long.valueOf(thisFlashRate)
-    runInMillis(rate, flashOn(thisFlashRate))
-
-	//sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}"])
 
 }
 

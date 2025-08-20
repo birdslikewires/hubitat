@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_symfonisk_sound_controller.groovy",
 			"required": false,
-			"version": "1.10"
+			"version": "1.11"
 		},
 		{
 			"id": "2d69edfe-ba75-44c8-ab7a-418fcac9dfe7",
@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
-			"version": "1.18"
+			"version": "1.19"
 		}
 	]
 }

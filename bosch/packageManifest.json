@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_twinguard.groovy",
 			"required": false,
-			"version": "1.01"
+			"version": "1.02"
 		}
 	]
 }
