@@ -5,20 +5,20 @@
  */
 
 
-@Field String driverVersion = "v1.05 (26th August 2023)"
-
+@Field String driverVersion = "v1.06 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 1
+@Field String deviceName = "Network UPS Tools MQTT"
 
 
 metadata {
 
-	definition (name: "Network UPS Tools MQTT", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt.groovy") {
 
 		command "disconnect"
 
@@ -56,7 +56,7 @@ void testCommand() {
 void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.library
 
-	device.name = "Network UPS Tools MQTT"
+	device.name = "$deviceName"
 
 }
 
@@ -105,7 +105,7 @@ void parse(String description) {
 		logging("${device} : Payload : ${msg.payload}", "trace")
 
 		String upsName = msg.topic.substring(msg.topic.lastIndexOf("/") + 1)
-		def ups = fetchChild("BirdsLikeWires","Network UPS Tools MQTT Device","$upsName")
+		def ups = fetchChild("BirdsLikeWires","$deviceName Device","$upsName")
 
 		def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 		

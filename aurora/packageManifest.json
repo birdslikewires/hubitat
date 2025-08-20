@@ -3,7 +3,7 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.2.8",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main/aurora",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/aurora",
 	"dateReleased": "2021-01-17",
 	"bundles": [
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy",
 			"required": false,
-			"version": "1.08"
+			"version": "1.09"
 		}
 	]
 }

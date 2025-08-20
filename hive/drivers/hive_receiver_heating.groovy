@@ -5,21 +5,21 @@
  */
 
 
-@Field String driverVersion = "v0.70 (6th September 2023)"
+@Field String driverVersion = "v1.00 (20th August 2025)"
 @Field boolean debugMode = false
-
 
 #include BirdsLikeWires.library
 import groovy.json.JsonOutput
 import groovy.transform.Field
 
-@Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 4
+@Field int reportIntervalMinutes = 4
 @Field int receiverEndpoint = 5
+@Field String deviceName = "Hive Receiver Heating"
+
 
 metadata {
 
-	definition (name: "Hive Receiver Heating", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver_heating.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver_heating.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"

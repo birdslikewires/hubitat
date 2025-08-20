@@ -3,7 +3,7 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.1.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
-	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main/tuya",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/tuya",
 	"dateReleased": "2020-12-27",
 	"bundles": [
@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/tuya/drivers/tuya_switch_module.groovy",
 			"required": false,
-			"version": "1.09"
+			"version": "1.10"
 		}
 	]
 }

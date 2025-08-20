@@ -5,16 +5,14 @@
  */
 
 
-@Field String driverVersion = "v0.70 (6th September 2023)"
+@Field String driverVersion = "v1.00 (20th August 2025)"
 @Field boolean debugMode = false
-
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field String deviceName = "Hive Receiver"
 @Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 4
+@Field String deviceName = "Hive Receiver"
 
 
 metadata {

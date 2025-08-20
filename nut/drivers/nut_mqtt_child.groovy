@@ -1,13 +1,22 @@
 /*
  * 
- *  Network UPS Tools MQTT Child Driver v1.00 (1st November 2022)
+ *  Network UPS Tools MQTT Child Driver
  *	
  */
 
 
+@Field String driverVersion = "v1.01 (20th August 2025)"
+@Field boolean debugMode = false
+
+import groovy.transform.Field
+
+@Field String deviceName = "Network UPS Tools MQTT Device"
+
+
 metadata {
 
-	definition (name: "Network UPS Tools MQTT Device", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_meter_child.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_meter_child.groovy") {
 
 		capability "Initialize"
 

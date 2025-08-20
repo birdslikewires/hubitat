@@ -5,20 +5,20 @@
  */
 
 
-@Field String driverVersion = "v1.08 (26th August 2023)"
-
+@Field String driverVersion = "v1.09 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 10
-@Field int checkEveryMinutes = 4
+@Field String deviceName = "Aurora Dimmer AU-A1ZB2WDM"
 
 
 metadata {
 
-	definition (name: "Aurora Dimmer AU-A1ZB2WDM", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/aurora/drivers/aurora_dimmer_a1zb2wdm.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -37,7 +37,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "8E63", inClusters: "0000, 0003, 0004, 0005, 0006, 0008", outClusters: "0019", manufacturer: "Aurora", model: "WallDimmerMaster", deviceJoinName: "Aurora Dimmer AU-A1ZB2WDM"
+		fingerprint profileId: "8E63", inClusters: "0000, 0003, 0004, 0005, 0006, 0008", outClusters: "0019", manufacturer: "Aurora", model: "WallDimmerMaster", deviceJoinName: "$deviceName"
 
 	}
 
@@ -62,7 +62,7 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	device.name = "Aurora Dimmer AU-A1ZB2WDM"
+	device.name = "$deviceName"
 
 	int reportDelay = reportIntervalMinutes * 60
 

@@ -5,20 +5,20 @@
  */
 
 
-@Field String driverVersion = "v0.57 (3rd September 2023)"
+@Field String driverVersion = "v1.00 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 4
 @Field BigDecimal batteryLow = 4.7
+@Field String deviceName = "Hive Thermostat"
 
 
 metadata {
 
-	definition (name: "Hive Thermostat", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -61,7 +61,7 @@ void configureSpecifics() {
 	requestBasic()
 
 	String modelCheck = "${getDeviceDataByName('model')}"
-	device.name = "Hive Thermostat ${modelCheck}"
+	device.name = "$deviceName ${modelCheck}"
 
 	// Configure reporting
 	ArrayList<String> cmds = []

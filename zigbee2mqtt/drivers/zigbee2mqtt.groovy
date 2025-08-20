@@ -5,13 +5,12 @@
  */
 
 
-@Field String driverVersion = "v2.09 (20th August 2025)"
-
+@Field String driverVersion = "v2.10 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
 @Field String deviceName = "Zigbee2MQTT"
 

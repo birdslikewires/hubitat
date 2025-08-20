@@ -5,22 +5,20 @@
  */
 
 
-@Field String driverVersion = "v1.17 (26th August 2023)"
-
+@Field String driverVersion = "v1.18 (20th August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
-#include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 60
-@Field int checkEveryMinutes = 10
 @Field int luxTolerance = 100
+@Field String deviceName = "Xiaomi Mijia Smart Light Sensor"
 
 
 metadata {
 
-	definition (name: "Xiaomi Mijia Smart Light Sensor", namespace: "BirdsLikeWires", author: "Andrew Davison",
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
 		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_mijia_smart_light_sensor.groovy") {
 
 		capability "Battery"
@@ -83,7 +81,7 @@ void configureSpecifics() {
 	sendZigbeeCommands(cmds)
  
 	// Set device name.
-	device.name = "Xiaomi Mijia Smart Light Sensor GZCGQ01LM"
+	device.name = "$deviceName GZCGQ01LM"
 
 	// Set device data.
 

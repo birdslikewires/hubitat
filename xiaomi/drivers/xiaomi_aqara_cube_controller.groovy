@@ -5,21 +5,19 @@
  */
 
 
-@Field String driverVersion = "v1.04 (26th August 2023)"
-
+@Field String driverVersion = "v0.05 (26th August 2025)"
+@Field boolean debugMode = true
 
 #include BirdsLikeWires.library
-#include BirdsLikeWires.xiaomi
 import groovy.transform.Field
 
-@Field boolean debugMode = true
 @Field int reportIntervalMinutes = 60
-@Field int checkEveryMinutes = 10
+@Field String deviceName = "Xiaomi Aqara Cube Controller"
 
 
 metadata {
 
-	definition (name: "Xiaomi Aqara Cube Controller", namespace: "BirdsLikeWires", author: "Andrew Davison",
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
 		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_cube_controller.groovy") {
 
 		capability "Battery"
@@ -62,7 +60,7 @@ void configureSpecifics() {
 	
 	updateDataValue("encoding", "xiaomi")
 
-	device.name = "Xiaomi Aqara Cube Controller MFKZQ01LM"
+	device.name = "$deviceName MFKZQ01LM"
 
 }
 
