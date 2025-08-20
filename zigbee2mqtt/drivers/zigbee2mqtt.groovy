@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.08 (17th August 2025)"
+@Field String driverVersion = "v2.09 (20th August 2025)"
 
 
 #include BirdsLikeWires.library
@@ -13,7 +13,6 @@ import groovy.transform.Field
 
 @Field boolean debugMode = false
 @Field int reportIntervalMinutes = 1
-@Field int checkEveryMinutes = 1
 @Field String deviceName = "Zigbee2MQTT"
 
 
@@ -155,48 +154,12 @@ void parse(String description) {
 
 					}
 
-					// Here we create or recall the child device using the device's real IEEE address to avoid rejoin duplicates.
-					// If there's a special driver we can use, we also specify that here... though I may require this to be manual
-					// in the future, as the driver may not be installed, which will only lead to more issues.
-					// In fact, we should really only use the mandatory drivers installed with this routing driver and make
-					// a best effort to choose the right one, then fall back to "device" if we can't work it out.
-					def child
-					switch("${json.device.model}") {
-
-						case "E1744":
-							child = fetchChild("BirdsLikeWires","IKEA Symfonisk Sound Controller","${json.device.ieeeAddr}")
-							break						
-
-						case "E1766":
-						case "E1812":
-							child = fetchChild("BirdsLikeWires","IKEA Tradfri Button","${json.device.ieeeAddr}")
-							break
-
-						case "FB20-002":
-							child = fetchChild("BirdsLikeWires","Tuya Remote","${json.device.ieeeAddr}")
-							break
-
-						case "WXKG06LM":
-						case "WXKG07LM":
-							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Remote Switch","${json.device.ieeeAddr}")
-							break
-
-						case "WXKG11LM":
-						case "WXKG12LM":
-							child = fetchChild("BirdsLikeWires","Xiaomi Aqara Wireless Mini Switch","${json.device.ieeeAddr}")
-							break
-
-						default:
-							child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
-
-					}
-
-					// Hand off the payload.
+					def child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
 					child.processMQTT(json)
 
 				} else {
 
-					logging("${device} : Payload : Contained something other than JSON.", "debug")
+					logging("${device} : Payload : Contained something that we can't interpret.", "debug")
 					return
 
 				}
