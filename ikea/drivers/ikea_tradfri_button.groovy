@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.20 (20th August 2025)"
+@Field String driverVersion = "v1.21 (21st August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -17,7 +17,8 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -26,10 +27,9 @@ metadata {
 		capability "Momentary"
 		capability "PushableButton"
 		capability "ReleasableButton"
-		capability "Refresh"
 		capability "SwitchLevel"
 
-		attribute "batteryState", "string"
+		attribute "action", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
@@ -59,7 +59,7 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	sendEvent(name: "level", value: 0, isStateChange: false)
+	return
 
 }
 
@@ -71,19 +71,70 @@ void updateSpecifics() {
 }
 
 
-void refresh() {
-
-	logging("${device} : Refreshed", "info")
-
-}
-
-
 void processMQTT(def json) {
 
 	checkDriver()
 
-	// Process the action first!
-	if (json.action) debounceAction("${json.action}")
+	// Tasks
+
+	if (json.action) {
+
+		withDebounce("${json.device.networkAddress}", 200, {
+
+			switch("${json.action}") {
+
+				case "on":
+					logging("${device} : Action : Button 1 Pressed", "info")
+					sendEvent(name: "pushed", value: 1, isStateChange: true)
+					break
+
+				case "off":
+					logging("${device} : Action : Button 1 Double Pressed", "info")
+					sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+					break
+
+				case "open":
+					state.levelChangeStart = now()
+					logging("${device} : Action : Button 1 Pressed", "info")
+					sendEvent(name: "pushed", value: 1, isStateChange: true)
+					break
+
+				case "close":
+					logging("${device} : Action : Button 2 Pressed", "info")
+					sendEvent(name: "pushed", value: 2, isStateChange: true)
+					break
+
+				case "stop":
+					logging("${device} : Action : Button 1 Released", "info")
+					sendEvent(name: "released", value: 1, isStateChange: true)
+					levelChange(140)
+					break
+
+				case "brightness_move_up":
+					state.levelChangeStart = now()
+					logging("${device} : Action : Button 1 Held", "info")
+					sendEvent(name: "held", value: 1, isStateChange: true)
+					break
+
+				case "brightness_stop":
+					logging("${device} : Action : Button 1 Released", "info")
+					sendEvent(name: "released", value: 1, isStateChange: true)
+					levelChange(180)
+					break
+
+				default:
+					logging("${device} : Action : Type '${json.action}' is an unknown action.", "warn")
+					break
+
+			}
+
+			sendEvent(name: "action", value: "${json.action}", isStateChange: true)
+
+		})
+
+	}
+
+	// Admin
 
 	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
 
@@ -110,67 +161,5 @@ void processMQTT(def json) {
 	logging("${device} : parseMQTT : ${json}", "debug")
 
 	updateHealthStatus()
-
-}
-
-
-@Field static Boolean debounceActionParsing = false
-void debounceAction(String action) {
-
-	if (debounceActionParsing) {
-		logging("${device} : parseMQTT : DEBOUNCED", "debug")
-		return
-	}
-	debounceActionParsing = true
-
-	switch(action) {
-
-		case "on":
-			logging("${device} : Action : Button 1 Pressed", "info")
-			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			break
-
-		case "off":
-			logging("${device} : Action : Button 1 Double Pressed", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
-			break
-
-		case "open":
-			state.levelChangeStart = now()
-			logging("${device} : Action : Button 1 Pressed", "info")
-			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			break
-
-		case "close":
-			logging("${device} : Action : Button 2 Pressed", "info")
-			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			break
-
-		case "stop":
-			logging("${device} : Action : Button 1 Released", "info")
-			sendEvent(name: "released", value: 1, isStateChange: true)
-			levelChange(140)
-			break
-
-		case "brightness_move_up":
-			state.levelChangeStart = now()
-			logging("${device} : Action : Button 1 Held", "info")
-			sendEvent(name: "held", value: 1, isStateChange: true)
-			break
-
-		case "brightness_stop":
-			logging("${device} : Action : Button 1 Released", "info")
-			sendEvent(name: "released", value: 1, isStateChange: true)
-			levelChange(180)
-			break
-
-		default:
-			logging("${device} : Action : Type '$action' is an unknown action.", "warn")
-			break
-
-	}
-
-	pauseExecution 200
-	debounceActionParsing = false
 
 }

@@ -26,11 +26,11 @@
 		},
 		{
 			"id": "2d69edfe-ba75-44c8-ab7a-418fcac9dfe7",
-			"name": "IKEA Tradfri Buttons E1766 / E1812",
+			"name": "IKEA Tradfri Button E1766 / E1812",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/ikea/drivers/ikea_tradfri_button.groovy",
 			"required": false,
-			"version": "1.20"
+			"version": "1.21"
 		}
 	]
 }
