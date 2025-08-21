@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.42 (18th August 2025)
+ *  BirdsLikeWires Library v1.43 (21st August 2025)
  *	
  */
 
@@ -152,7 +152,7 @@ void levelChange(int multiplier, String direction) {
 
 void levelEvent(int levelChange, String direction) {
 
-	int initialLevel = device.currentState("level").value.toInteger()
+	int initialLevel = device.currentState("level") ? device.currentState("level").value.toInteger() : 0
 
 	int newLevel = 0
 
@@ -457,6 +457,27 @@ void debounceParentState(String attribute, String state, String message, String 
 
 	pauseExecution duration
 	debouncingParentState = false
+
+}
+
+
+void withDebounce(String id, long debouncePeriod, Closure closure) {
+
+    if (!state.debounceTimestamps) state.debounceTimestamps = [:]
+
+    def lastExecutionTime = state.debounceTimestamps[id] ?: 0
+    def currentTime = now()
+
+    if (currentTime - lastExecutionTime >= debouncePeriod) {
+
+        state.debounceTimestamps[id] = currentTime
+        closure.call()
+
+    } else {
+
+        logging("${device} : Action : '$id' DEBOUNCED", "debug")
+
+    }
 
 }
 

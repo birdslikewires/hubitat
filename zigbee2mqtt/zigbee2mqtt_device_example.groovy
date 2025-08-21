@@ -53,6 +53,8 @@ void testCommand() {
 
 void configureSpecifics() {
 
+	device.name = "$deviceName"
+
 	updateDataValue("encoding", "MQTT")
 	updateDataValue("isComponent", "false")
 
