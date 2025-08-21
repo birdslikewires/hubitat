@@ -151,8 +151,8 @@ void processMQTT(def json) {
 	}
 
 	String deviceNameFull = "$deviceName ${json.device.model}"
-	if ("${device.name}" != "$deviceNameFull") device.name = "$deviceNameFull"
-	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+	device.name = "$deviceNameFull"
+	device.label = "${json.device.friendlyName}"
 
 	updateDataValue("encoding", "MQTT")
 	updateDataValue("manufacturer", "${json.device.manufacturerName}")
