@@ -5,13 +5,12 @@
  */
 
 
-@Field String driverVersion = "v1.21 (19th August 2025)"
-
+@Field String driverVersion = "v1.22 (21st August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
 @Field String deviceName = "Xiaomi Aqara Wireless Mini Switch"
 
@@ -32,6 +31,7 @@ metadata {
 		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
 		capability "VoltageMeasurement"
 
+		attribute "action", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
@@ -85,8 +85,72 @@ void accelerationInactive() {
 
 void processMQTT(def json) {
 
-	// Process the action first!
-	if (json.action) debounceAction("${json.action}")
+	checkDriver()
+
+	// Tasks
+
+	if (json.action) {
+
+		withDebounce("${json.device.networkAddress}", 200, {
+
+			switch("${json.action}") {
+
+				case "single":
+					logging("${device} : Action : Button 1 Pressed", "info")
+					sendEvent(name: "pushed", value: 1, isStateChange: true)
+					break
+
+				case "double":
+					logging("${device} : Action : Button 2 Pressed", "info")
+					sendEvent(name: "pushed", value: 2, isStateChange: true)
+					logging("${device} : Action : Button Double Tapped", "info")
+					sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+					break
+
+				case "triple":
+					logging("${device} : Action : Button 3 Pressed", "info")
+					sendEvent(name: "pushed", value: 3, isStateChange: true)
+					break
+
+				case "quadruple":
+					logging("${device} : Action : Button 4 Pressed", "info")
+					sendEvent(name: "pushed", value: 4, isStateChange: true)
+					break
+
+				case "hold":
+					state.levelChangeStart = now()
+					logging("${device} : Action : Button Held", "info")
+					sendEvent(name: "held", value: 1, isStateChange: true)
+					sendEvent(name: "pushed", value: 3, isStateChange: true)
+					break
+
+				case "release":
+					logging("${device} : Action : Button Released", "info")
+					sendEvent(name: "released", value: 1, isStateChange: true)
+					sendEvent(name: "pushed", value: 4, isStateChange: true)
+					levelChange(160)
+					break
+
+				case "shake":
+					logging("${device} : Action : Button Shaken", "info")
+					sendEvent(name: "acceleration", value: "active", isStateChange: true)
+					sendEvent(name: "pushed", value: 5, isStateChange: true)
+					runIn(4,accelerationInactive)
+					break
+
+				default:
+					logging("${device} : Action : '$action' is an unknown action.", "info")
+					break
+
+			}
+
+			sendEvent(name: "action", value: "${json.action}", isStateChange: true)
+
+		})
+
+	}
+
+	// Admin
 
 	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
 
@@ -119,71 +183,5 @@ void processMQTT(def json) {
 
 	updateHealthStatus()
 	checkDriver()
-
-}
-
-
-@Field static Boolean debounceActionParsing = false
-void debounceAction(String action) {
-
-	if (debounceActionParsing) {
-		logging("${device} : parseMQTT : DEBOUNCED", "debug")
-		return
-	}
-	debounceActionParsing = true
-
-	switch(action) {
-
-		case "single":
-			logging("${device} : Action : Button 1 Pressed", "info")
-			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			break
-
-		case "double":
-			logging("${device} : Action : Button 2 Pressed", "info")
-			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			logging("${device} : Action : Button Double Tapped", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
-			break
-
-		case "triple":
-			logging("${device} : Action : Button 3 Pressed", "info")
-			sendEvent(name: "pushed", value: 3, isStateChange: true)
-			break
-
-		case "quadruple":
-			logging("${device} : Action : Button 4 Pressed", "info")
-			sendEvent(name: "pushed", value: 4, isStateChange: true)
-			break
-
-		case "hold":
-			state.levelChangeStart = now()
-			logging("${device} : Action : Button Held", "info")
-			sendEvent(name: "held", value: 1, isStateChange: true)
-			sendEvent(name: "pushed", value: 3, isStateChange: true)
-			break
-
-		case "release":
-			logging("${device} : Action : Button Released", "info")
-			sendEvent(name: "released", value: 1, isStateChange: true)
-			sendEvent(name: "pushed", value: 4, isStateChange: true)
-			levelChange(160)
-			break
-
-		case "shake":
-			logging("${device} : Action : Button Shaken", "info")
-			sendEvent(name: "acceleration", value: "active", isStateChange: true)
-			sendEvent(name: "pushed", value: 5, isStateChange: true)
-			runIn(4,accelerationInactive)
-			break
-
-		default:
-			logging("${device} : Action : '$action' is an unknown action.", "info")
-			break
-
-	}
-
-	pauseExecution 200
-	debounceActionParsing = false
 
 }
