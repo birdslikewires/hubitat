@@ -1,6 +1,6 @@
 # Bosch Drivers for Hubitat via Zigbee2MQTT
 
-**IN DEVELOPMENT**
+<span style="background:#d3f8b6">MQTT</span>
 
 ---
 
