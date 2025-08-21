@@ -139,7 +139,7 @@ void processMQTT(def json) {
 					break
 
 				default:
-					logging("${device} : Action : '$action' is an unknown action.", "info")
+					logging("${device} : Action : '${json.action}' is an unknown action.", "warn")
 					break
 
 			}
