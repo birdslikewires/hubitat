@@ -38,7 +38,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy",
 			"required": false,
-			"version": "1.20"
+			"version": "1.21"
 		}
 	]
 }

@@ -5,13 +5,12 @@
  */
 
 
-@Field String driverVersion = "v1.20 (19th August 2025)"
-
+@Field String driverVersion = "v1.21 (21st August 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field boolean debugMode = false
 @Field int reportIntervalMinutes = 50
 @Field String deviceName = "Xiaomi Aqara Wireless Remote Switch"
 
@@ -29,6 +28,7 @@ metadata {
 		capability "ReleasableButton"
 		capability "VoltageMeasurement"
 
+		attribute "action", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
@@ -74,8 +74,77 @@ void updateSpecifics() {
 
 void processMQTT(def json) {
 
-	// Process the action first!
-	if (json.action) debounceAction("${json.action}")
+	checkDriver()
+
+	// Tasks
+
+	if (json.action) {
+
+		withDebounce("${json.device.networkAddress}", 200, {
+
+			switch("${json.action}") {
+
+				case "single":
+				case "single_left":
+					logging("${device} : Action : Button 1 Pressed", "info")
+					sendEvent(name: "pushed", value: 1, isStateChange: true)
+					break
+
+				case "double":
+				case "double_left":
+					logging("${device} : Action : Button 1 Double Pressed", "info")
+					sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
+					break
+
+				case "hold":
+				case "hold_left":
+					logging("${device} : Action : Button 1 Held", "info")
+					sendEvent(name: "held", value: 1, isStateChange: true)
+					break
+
+				case "single_right":
+					logging("${device} : Action : Button 2 Pressed", "info")
+					sendEvent(name: "pushed", value: 2, isStateChange: true)
+					break
+
+				case "double_right":
+					logging("${device} : Action : Button 2 Double Pressed", "info")
+					sendEvent(name: "doubleTapped", value: 2, isStateChange: true)
+					break
+
+				case "hold_right":
+					logging("${device} : Action : Button 2 Held", "info")
+					sendEvent(name: "held", value: 2, isStateChange: true)
+					break
+
+				case "single_both":
+					logging("${device} : Action : Button 3 Pressed", "info")
+					sendEvent(name: "pushed", value: 3, isStateChange: true)
+					break
+
+				case "double_both":
+					logging("${device} : Action : Button 1 Double Pressed", "info")
+					sendEvent(name: "doubleTapped", value: 3, isStateChange: true)
+					break
+
+				case "hold_both":
+					logging("${device} : Action : Button 1 Held", "info")
+					sendEvent(name: "held", value: 3, isStateChange: true)
+					break
+
+				default:
+					logging("${device} : Action : '${json.action}' is an unknown action.", "warn")
+					break
+
+			}
+
+			sendEvent(name: "action", value: "${json.action}", isStateChange: true)
+
+		})
+
+	}
+
+	// Admin
 
 	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
 
@@ -107,77 +176,5 @@ void processMQTT(def json) {
 	logging("${device} : parseMQTT : ${json}", "debug")
 
 	updateHealthStatus()
-	checkDriver()
-
-}
-
-
-@Field static Boolean debounceActionParsing = false
-void debounceAction(String action) {
-
-	if (debounceActionParsing) {
-		logging("${device} : parseMQTT : DEBOUNCED", "debug")
-		return
-	}
-	debounceActionParsing = true
-
-	switch(action) {
-
-		case "single":
-		case "single_left":
-			logging("${device} : Action : Button 1 Pressed", "info")
-			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			break
-
-		case "double":
-		case "double_left":
-			logging("${device} : Action : Button 1 Double Pressed", "info")
-			sendEvent(name: "doubleTapped", value: 1, isStateChange: true)
-			break
-
-		case "hold":
-		case "hold_left":
-			logging("${device} : Action : Button 1 Held", "info")
-			sendEvent(name: "held", value: 1, isStateChange: true)
-			break
-
-		case "single_right":
-			logging("${device} : Action : Button 2 Pressed", "info")
-			sendEvent(name: "pushed", value: 2, isStateChange: true)
-			break
-
-		case "double_right":
-			logging("${device} : Action : Button 2 Double Pressed", "info")
-			sendEvent(name: "doubleTapped", value: 2, isStateChange: true)
-			break
-
-		case "hold_right":
-			logging("${device} : Action : Button 2 Held", "info")
-			sendEvent(name: "held", value: 2, isStateChange: true)
-			break
-
-		case "single_both":
-			logging("${device} : Action : Button 3 Pressed", "info")
-			sendEvent(name: "pushed", value: 3, isStateChange: true)
-			break
-
-		case "double_both":
-			logging("${device} : Action : Button 1 Double Pressed", "info")
-			sendEvent(name: "doubleTapped", value: 3, isStateChange: true)
-			break
-
-		case "hold_both":
-			logging("${device} : Action : Button 1 Held", "info")
-			sendEvent(name: "held", value: 3, isStateChange: true)
-			break
-
-		default:
-			logging("${device} : Action : '$action' is an unknown action.", "info")
-			break
-
-	}
-
-	pauseExecution 200
-	debounceActionParsing = false
 
 }

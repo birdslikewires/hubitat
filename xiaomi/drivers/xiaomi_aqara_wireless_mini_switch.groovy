@@ -28,7 +28,6 @@ metadata {
 		capability "PushableButton"
 		capability "ReleasableButton"
 		capability "SwitchLevel"
-		//capability "TemperatureMeasurement"	// Just because you can doesn't mean you should.
 		capability "VoltageMeasurement"
 
 		attribute "action", "string"
@@ -182,6 +181,5 @@ void processMQTT(def json) {
 	logging("${device} : parseMQTT : ${json}", "debug")
 
 	updateHealthStatus()
-	checkDriver()
 
 }
