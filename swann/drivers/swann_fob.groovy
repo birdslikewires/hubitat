@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.01 (21st August 2025)"
+@Field String driverVersion = "v0.02 (21st August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -83,16 +83,19 @@ void processMQTT(def json) {
 			switch("${json.action}") {
 
 				case "home":
+				case "disarm":
 					logging("${device} : Action : Button 1 Pressed", "info")
 					sendEvent(name: "pushed", value: 1, isStateChange: true)
 					break
 
 				case "away":
+				case "arm_all_zones":
 					logging("${device} : Action : Button 2 Pressed", "info")
 					sendEvent(name: "pushed", value: 2, isStateChange: true)
 					break
 
 				case "sleep":
+				case "arm_night_zones":
 					logging("${device} : Action : Button 3 Pressed", "info")
 					sendEvent(name: "pushed", value: 3, isStateChange: true)
 					break
@@ -103,7 +106,7 @@ void processMQTT(def json) {
 					break
 
 				default:
-					logging("${device} : Action : '${json.action}' is an unknown action.", "info")
+					logging("${device} : Action : '${json.action}' is an unknown action.", "warn")
 					break
 
 			}
