@@ -11,7 +11,7 @@
 #include BirdsLikeWires.library
 import groovy.transform.Field
 
-@Field int reportIntervalMinutes = 50
+@Field int reportIntervalMinutes = 240
 @Field String deviceName = "IKEA Symfonisk Sound Controller"
 
 
