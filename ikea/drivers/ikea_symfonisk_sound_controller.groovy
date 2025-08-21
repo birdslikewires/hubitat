@@ -90,7 +90,7 @@ void processMQTT(def json) {
 
 	if (json.action) {
 
-		withDebounce("${json.device.networkAddress}", 200, {
+		withDebounce("${json.device.networkAddress}", 400, {
 
 			switch("${json.action}") {
 
@@ -132,11 +132,11 @@ void processMQTT(def json) {
 
 					if (buttonNumber == 2) {
 
-						levelChange(100,"increase")
+						levelChange(120,"increase")
 
 					} else {
 
-						levelChange(100,"decrease")
+						levelChange(120,"decrease")
 
 					}
 
