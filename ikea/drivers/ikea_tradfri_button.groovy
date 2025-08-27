@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.21 (21st August 2025)"
+@Field String driverVersion = "v1.22 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -59,7 +59,7 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	return
+	updateDataValue("encoding", "MQTT")
 
 }
 
@@ -136,7 +136,7 @@ void processMQTT(def json) {
 
 	// Admin
 
-	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+	if (json.battery) sendEvent(name: "battery", value:"${json.battery}", unit: "%")
 
 	switch("${json.device.model}") {
 
@@ -152,14 +152,10 @@ void processMQTT(def json) {
 
 	String deviceNameFull = "$deviceName ${json.device.model}"
 	device.name = "$deviceNameFull"
-	device.label = "${json.device.friendlyName}"
 
-	updateDataValue("encoding", "MQTT")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
-
-	logging("${device} : parseMQTT : ${json}", "debug")
-
+	mqttProcessBasics()
 	updateHealthStatus()
+
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }

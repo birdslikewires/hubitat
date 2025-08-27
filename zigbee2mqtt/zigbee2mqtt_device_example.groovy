@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.01 (16th August 2025)"
+@Field String driverVersion = "v0.02 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -53,10 +53,7 @@ void testCommand() {
 
 void configureSpecifics() {
 
-	device.name = "$deviceName"
-
-	updateDataValue("encoding", "MQTT")
-	updateDataValue("isComponent", "false")
+	updateDataValue("encoding", "MQTT")		// Must be set here for the remainder of configure() to work.
 
 }
 
@@ -77,19 +74,11 @@ void processMQTT(def json) {
 
 	// Admin
 
-	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
-	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
-	sendEvent(name: "powerSource", value:"$powerSource")
+	device.name = "${json.device.model}"	// Not handled in mqttProcessBasics() because custom drivers may want to display this differently.
 
-	device.name = "${json.device.model}"
-	device.label = "${json.device.friendlyName}"
-
-	updateDataValue("ieee", "${json.device.ieeeAddr}")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
-
-	logging("${device} : parseMQTT : ${json}", "debug")
-
+	mqttProcessBasics()
 	updateHealthStatus()
+
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }

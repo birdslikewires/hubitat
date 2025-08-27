@@ -31,7 +31,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy",
 			"required": true,
-			"version": "1.08"
+			"version": "1.09"
 		},
 		{
 			"id": "bf43f6ab-68fc-485f-b277-ac728e3a8eed",

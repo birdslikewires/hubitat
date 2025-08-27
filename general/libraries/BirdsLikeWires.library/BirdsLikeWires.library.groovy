@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.44 (27th August 2025)
+ *  BirdsLikeWires Library v1.45 (27th August 2025)
  *	
  */
 
@@ -62,6 +62,7 @@ void configure() {
 		sendEvent(name: "configuration", value: "sent", isStateChange: false)
 		logging("${device} : Configuration : Sent to device.", "info")
 	} else {
+		updateDataValue("isComponent", "false")
 		sendEvent(name: "configuration", value: "set", isStateChange: false)
 		logging("${device} : Configuration : Set.", "info")
 	}
@@ -892,6 +893,22 @@ void mqttClientStatus(String status) {
 		logging("${device} : mqttClientStatus : ${status}", "error")
 
 	}
+
+}
+
+
+void mqttProcessBasics() {
+	// These values are always present in a Zigbee2MQTT device message.
+
+	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
+	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
+	sendEvent(name: "powerSource", value:"$powerSource")
+
+	device.label = "${json.device.friendlyName}"
+
+	updateDataValue("ieee", "${json.device.ieeeAddr}")
+	updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	updateDataValue("model", "${json.device.model}")
 
 }
 

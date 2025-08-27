@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.08 (20th August 2025)"
+@Field String driverVersion = "v1.09 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -54,7 +54,6 @@ void testCommand() {
 void configureSpecifics() {
 
 	updateDataValue("encoding", "MQTT")
-	updateDataValue("isComponent", "false")
 
 }
 
@@ -121,24 +120,13 @@ void processMQTT(def json) {
 
 	}
 
-	// NOTE FOR FUTURE ME
-	/// Use 'if (json.update.containsKey('state'))' if checking for nested keys.
-
 	// Admin
 
-	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
-	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
-	sendEvent(name: "powerSource", value:"$powerSource")
-
 	device.name = "${json.device.model}"
-	device.label = "${json.device.friendlyName}"
 
-	updateDataValue("ieee", "${json.device.ieeeAddr}")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
-
-	logging("${device} : processMQTT : ${json}", "trace")
-
+	mqttProcessBasics()
 	updateHealthStatus()
+
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }
