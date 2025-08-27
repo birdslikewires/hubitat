@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (20th August 2025)"
+@Field String driverVersion = "v1.04 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -27,10 +27,6 @@ metadata {
 		capability "Switch"
 		capability "SwitchLevel"
 
-		if (debugMode) {
-			command "testCommand"
-		}
-
 	}
 
 }
@@ -42,13 +38,6 @@ preferences {
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
-}
-
-
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
-
 }
 
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.10 (20th August 2025)"
+@Field String driverVersion = "v2.11 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -24,10 +24,6 @@ metadata {
 
 		command "disconnect"
 
-		if (debugMode) {
-			command "testCommand"
-		}
-
 	}
 
 }
@@ -42,13 +38,6 @@ preferences {
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
-
-}
-
-
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
 
 }
 
@@ -112,7 +101,6 @@ void publishMQTT(String ieee, String getSetGo, String payload) {
 
 void parse(String description) {
 
-	updateHealthStatus()
 	checkDriver()
 
 	try {
@@ -140,7 +128,7 @@ void parse(String description) {
 
 			if ("${msg.payload}" != "") {
 
-				logging("${device} : Payload : ${msg.payload}", "trace")
+				logging("${device} : Payload : ${msg.payload}", "debug")
 
 				if ("${msg.payload.charAt(0)}" == "{") {
 
@@ -153,7 +141,23 @@ void parse(String description) {
 
 					}
 
-					def child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
+					// Determine if there's an included generic type driver we can use based upon the presence of certain keys.
+
+					///  There's always a chance here that the first message we see won't contain the correct key, and once the child
+					///  is created the driver will never be altered from here. In that case the driver would have to be set manually.
+
+					def child
+
+					if (json.containsKey('occupancy')) {
+
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
+
+					} else {
+
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
+
+					}
+					
 					child.processMQTT(json)
 
 				} else {
@@ -172,5 +176,7 @@ void parse(String description) {
 		logging("${device} : ${e.message}.", "error")
 
 	}
+
+	updateHealthStatus()
 
 }

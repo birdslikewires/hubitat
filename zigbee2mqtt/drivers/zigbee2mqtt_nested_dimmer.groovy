@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (20th August 2025)"
+@Field String driverVersion = "v1.04 (27th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -25,10 +25,6 @@ metadata {
 		capability "Switch"
 		capability "SwitchLevel"
 
-		if (debugMode) {
-			command "testCommand"
-		}
-
 	}
 
 }
@@ -43,20 +39,12 @@ preferences {
 }
 
 
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
-
-}
-
-
 void configureSpecifics() {
 
 	updateDataValue("isComponent", "false")
-
 	removeDataValue("label")
 	removeDataValue("name")
-
+	
 }
 
 
@@ -118,7 +106,7 @@ void processMQTT(def json) {
 	String capSwitchState = switchState.capitalize()
 	logging("${device} : Switch : $capSwitchState at $currentLevel%", "info")
 
-	if ("${device.name}" != "${deviceName}") device.name = "${deviceName}"
+	device.name = "${deviceName}"
 
 	updateHealthStatus()
 
