@@ -49,8 +49,8 @@ void configure() {
 
 	// Schedule health status checking.
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
-	reportIntervalMinutes = Math.min(Math.max(1, reportIntervalMinutes), 59)
-	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", checkHealthStatus)
+	int reportIntervalMinutesClamped = Math.min(Math.max(1, reportIntervalMinutes), 59)
+	schedule("${randomSixty} 0/${reportIntervalMinutesClamped} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
