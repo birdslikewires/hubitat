@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.43 (21st August 2025)
+ *  BirdsLikeWires Library v1.44 (27th August 2025)
  *	
  */
 
@@ -39,8 +39,6 @@ void installed() {
 
 void configure() {
 
-	int randomSixty
-
 	// Tidy up.
 	unschedule()
 	state.clear()
@@ -50,7 +48,8 @@ void configure() {
 	sendEvent(name: "healthStatus", value: "online", isStateChange: false)
 
 	// Schedule health status checking.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
+	int randomSixty = Math.abs(new Random().nextInt() % 60)
+	reportIntervalMinutes = Math.min(Math.max(1, reportIntervalMinutes), 59)
 	schedule("${randomSixty} 0/${reportIntervalMinutes} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
