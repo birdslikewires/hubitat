@@ -3,7 +3,7 @@
 	"author": "Andrew Davison",
 	"minimumHEVersion": "2.3.9",
 	"licenseFile": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/LICENSE.md",
-	"releaseNotes": "BREAKING CHANGE! Please check: https://community.hubitat.com/t/release-zigbee2mqtt-routing-driver-v2/145878/8",
+	"releaseNotes": "Please check: https://github.com/birdslikewires/hubitat/commits/main/zigbee2mqtt",
 	"documentationLink": "https://github.com/birdslikewires/hubitat/tree/main/zigbee2mqtt",
 	"dateReleased": "2024-11-24",
 	"bundles": [
@@ -39,7 +39,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_motion.groovy",
 			"required": true,
-			"version": "1.01"
+			"version": "1.02"
 		},
 		{
 			"id": "bf43f6ab-68fc-485f-b277-ac728e3a8eed",

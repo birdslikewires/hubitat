@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (28th August 2025)"
+@Field String driverVersion = "v1.02 (28th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -64,25 +64,21 @@ void processMQTT(def json) {
 
 	// Tasks
 
-	if (json.occupancy) {
+	if (json.containsKey('occupancy')) {
 
-		withDebounce("${json.device.networkAddress}", 200, {
+		switch("${json.occupancy}") {
 
-			switch("${json.occupancy}") {
+			case "true":
+				logging("${device} : Motion : Active", "info")
+				sendEvent(name: "motion", value: "active", isStateChange: true)
+				break
 
-				case "true":
-					logging("${device} : Motion : Active", "info")
-					sendEvent(name: "motion", value: "active", isStateChange: true)
-					break
+			default:
+				logging("${device} : Motion : Inactive", "info")
+				sendEvent(name: "motion", value: "inactive")
+				break
 
-				default:
-					logging("${device} : Motion : Inactive", "info")
-					sendEvent(name: "motion", value: "inactive")
-					break
-
-			}
-
-		})
+		}
 
 	}
 
