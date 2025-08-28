@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.13 (21st August 2025)"
+@Field String driverVersion = "v1.14 (28th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -26,7 +26,6 @@ metadata {
 		capability "HoldableButton"
 		capability "Momentary"
 		capability "PushableButton"
-		capability "Refresh"
 		capability "ReleasableButton"
 		capability "SwitchLevel"
 
@@ -35,10 +34,6 @@ metadata {
 		attribute "direction", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 		attribute "levelChange", "integer"
-
-		if (debugMode) {
-			command "testCommand"
-		}
 
 	}
 
@@ -54,16 +49,9 @@ preferences {
 }
 
 
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
-
-}
-
-
 void configureSpecifics() {
 
-	return
+	updateDataValue("encoding", "MQTT")
 
 }
 
@@ -71,13 +59,6 @@ void configureSpecifics() {
 void updateSpecifics() {
 
 	return
-
-}
-
-
-void refresh() {
-
-	logging("${device} : Refreshed", "info")
 
 }
 
@@ -155,20 +136,15 @@ void processMQTT(def json) {
 	}
 
 	// Admin
-
-	sendEvent(name: "battery", value:"${json.battery}", unit: "%")
-	sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
 	
-	String deviceName = "Symfonisk Sound Controller E1744"
-	device.name = "$deviceName"
-	device.label = "${json.device.friendlyName}"
+	String deviceNameFull = "$deviceName ${json.device.model}"
+	device.name = "$deviceNameFull"
+	sendEvent(name: "battery", value: "${json.battery ?: 0}", unit: "%")
+	sendEvent(name: "numberOfButtons", value: 3, isStateChange: false)
 
-	updateDataValue("encoding", "MQTT")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
-
-	logging("${device} : parseMQTT : ${json}", "debug")
-
+	mqttProcessBasics(json)
 	updateHealthStatus()
+
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }
