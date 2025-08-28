@@ -31,7 +31,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_device.groovy",
 			"required": true,
-			"version": "1.10"
+			"version": "1.11"
 		},
 		{
 			"id": "b6ea10aa-46c8-4c49-b52e-ae5e5fafd37f",
@@ -39,7 +39,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_motion.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.01"
 		},
 		{
 			"id": "bf43f6ab-68fc-485f-b277-ac728e3a8eed",

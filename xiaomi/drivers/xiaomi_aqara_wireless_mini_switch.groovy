@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.23 (27th August 2025)"
+@Field String driverVersion = "v1.24 (28th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -33,10 +33,6 @@ metadata {
 		attribute "action", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
-		if (debugMode) {
-			command "testCommand"
-		}
-
 	}
 
 }
@@ -48,13 +44,6 @@ preferences {
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
-}
-
-
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
-
 }
 
 
@@ -170,7 +159,7 @@ void processMQTT(def json) {
 	String deviceNameFull = "$deviceName ${json.device.model}"
 	device.name = "$deviceNameFull"
 
-	mqttProcessBasics()
+	mqttProcessBasics(json)
 	updateHealthStatus()
 
 	logging("${device} : processMQTT : ${json}", "debug")

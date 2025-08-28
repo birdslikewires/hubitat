@@ -74,9 +74,9 @@ void processMQTT(def json) {
 
 	// Admin
 
-	device.name = "${json.device.model}"	// Not handled in mqttProcessBasics() because custom drivers may want to display this differently.
+	device.name = "${json.device.model}"	// Not handled in mqttProcessBasics(json) because custom drivers may want to display this differently.
 
-	mqttProcessBasics()
+	mqttProcessBasics(json)
 	updateHealthStatus()
 
 	logging("${device} : processMQTT : ${json}", "debug")

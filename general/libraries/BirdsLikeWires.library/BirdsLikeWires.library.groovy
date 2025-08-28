@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.45 (27th August 2025)
+ *  BirdsLikeWires Library v1.46 (28th August 2025)
  *	
  */
 
@@ -897,7 +897,7 @@ void mqttClientStatus(String status) {
 }
 
 
-void mqttProcessBasics() {
+void mqttProcessBasics(def json) {
 	// These values are always present in a Zigbee2MQTT device message.
 
 	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.21 (21st August 2025)"
+@Field String driverVersion = "v1.22 (28th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -31,10 +31,6 @@ metadata {
 		attribute "action", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
-		if (debugMode) {
-			command "testCommand"
-		}
-
 	}
 
 }
@@ -49,18 +45,9 @@ preferences {
 }
 
 
-void testCommand() {
-
-	logging("${device} : Test Command", "info")
-	
-}
-
-
 void configureSpecifics() {
 
-	removeDataValue("isComponent")
-	removeDataValue("label")
-	removeDataValue("name")
+	updateDataValue("encoding", "MQTT")
 
 }
 
@@ -166,15 +153,11 @@ void processMQTT(def json) {
 	}
 
 	String deviceNameFull = "$deviceName ${json.device.model}"
-	if ("${device.name}" != "$deviceNameFull") device.name = "$deviceNameFull"
-	if ("${device.label}" != "${json.device.friendlyName}") device.label = "${json.device.friendlyName}"
+	device.name = "$deviceNameFull"
 
-	updateDataValue("encoding", "MQTT")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
-
-	logging("${device} : parseMQTT : ${json}", "debug")
-
+	mqttProcessBasics(json)
 	updateHealthStatus()
+
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }

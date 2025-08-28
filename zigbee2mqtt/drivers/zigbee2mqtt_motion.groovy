@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (27th August 2025)"
+@Field String driverVersion = "v1.01 (28th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -92,7 +92,7 @@ void processMQTT(def json) {
 
 	device.name = "${json.device.model}"
 
-	mqttProcessBasics()
+	mqttProcessBasics(json)
 	updateHealthStatus()
 
 	logging("${device} : processMQTT : ${json}", "debug")

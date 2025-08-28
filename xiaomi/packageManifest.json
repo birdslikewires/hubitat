@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_mini_switch.groovy",
 			"required": false,
-			"version": "1.23"
+			"version": "1.24"
 		},
 		{
 			"id": "b7d423f1-24ad-4c63-9bc3-745ab027498d",
@@ -38,7 +38,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/xiaomi/drivers/xiaomi_aqara_wireless_remote_switch.groovy",
 			"required": false,
-			"version": "1.21"
+			"version": "1.22"
 		}
 	]
 }
