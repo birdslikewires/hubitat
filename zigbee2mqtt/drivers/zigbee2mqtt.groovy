@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.11 (27th August 2025)"
+@Field String driverVersion = "v2.12 (30th August 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -141,17 +141,25 @@ void parse(String description) {
 
 					}
 
-					// Determine if there's an included generic type driver we can use based upon the presence of certain keys.
+					// Determine if there's an included generic driver we can use based upon the presence of certain keys.
 
 					///  There's always a chance here that the first message we see won't contain the correct key, and once the child
-					///  is created the driver will never be altered from here. In that case the driver would have to be set manually.
+					///  is created the driver will never be altered from here. In that case the driver would need to be changed manually.
 
 					def child
 
-					if (json.containsKey('occupancy')) {
+					if (json.containsKey('soil_moisture')) {
+
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Moisture","${json.device.ieeeAddr}")
+
+					} else if (json.containsKey('occupancy')) {
 
 						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
 
+					} else if (json.containsKey('humidity') && json.containsKey('temperature'))  {
+
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
+					
 					} else {
 
 						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
