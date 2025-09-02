@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.12 (30th August 2025)"
+@Field String driverVersion = "v2.13 (2nd September 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -156,7 +156,7 @@ void parse(String description) {
 
 						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
 
-					} else if (json.containsKey('humidity') && json.containsKey('temperature'))  {
+					} else if (json.containsKey('humidity') && json.containsKey('temperature') || json.containsKey('local_temperature')) {
 
 						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
 					

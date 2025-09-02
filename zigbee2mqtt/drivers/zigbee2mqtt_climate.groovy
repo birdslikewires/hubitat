@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (29th August 2025)"
+@Field String driverVersion = "v1.01 (2nd September 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -71,7 +71,12 @@ void processMQTT(def json) {
 	
 	}
 
-	if (json.containsKey('temperature')) {
+	if (json.containsKey('local_temperature')) {
+
+		logging("${device} : Temperature : ${json.local_temperature}°C", "info")
+		sendEvent(name: "temperature", value:"${json.local_temperature}", unit: "°C")
+	
+	} else if (json.containsKey('temperature')) {
 
 		logging("${device} : Temperature : ${json.temperature}°C", "info")
 		sendEvent(name: "temperature", value:"${json.temperature}", unit: "°C")
