@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.25 (19th October 2025)"
+@Field String driverVersion = "v1.26 (19th October 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -25,8 +25,10 @@ metadata {
 		capability "DoubleTapableButton"
 		capability "HoldableButton"
 		capability "Momentary"
+		capability "PowerSource"
 		capability "PushableButton"
 		capability "ReleasableButton"
+		capability "SignalStrength"
 		capability "SwitchLevel"
 
 		attribute "action", "string"
