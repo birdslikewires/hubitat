@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.46 (28th August 2025)
+ *  BirdsLikeWires Library v1.47 (19th October 2025)
  *	
  */
 
@@ -463,19 +463,20 @@ void debounceParentState(String attribute, String state, String message, String 
 
 void withDebounce(String id, long debouncePeriod, Closure closure) {
 
-    if (!state.debounceTimestamps) state.debounceTimestamps = [:]
+    if (!state.debounceTimestamps) state.debounceTimestamps[id] = 0
 
-    def lastExecutionTime = state.debounceTimestamps[id] ?: 0
+    def lastExecTime = state.debounceTimestamps[id]
     def currentTime = now()
+	def thisExecTime = currentTime - lastExecTime
 
-    if (currentTime - lastExecutionTime >= debouncePeriod) {
+    if (thisExecTime >= debouncePeriod || thisExecTime < 0) {
 
         state.debounceTimestamps[id] = currentTime
         closure.call()
 
     } else {
 
-        logging("${device} : Action : '$id' DEBOUNCED", "debug")
+        logging("${device} : Debounced : Message from device '$id' received $thisExecTime ms after the last. Debounce window is $debouncePeriod ms.", "info")
 
     }
 

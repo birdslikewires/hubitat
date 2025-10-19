@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.13 (2nd September 2025)"
+@Field String driverVersion = "v2.14 (19th October 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -120,7 +120,12 @@ void parse(String description) {
 		} else if (msg.topic.endsWith('/set')) {
 
 			logging("${device} : parse() : Ignoring command message.", "trace")
-			return		
+			return
+
+		} else if ("${msg.payload.charAt(0)}" != "{") {
+
+			logging("${device} : parse() : Ignoring payload with no JSON formatting.", "trace")
+			return
 
 		} else {
 
@@ -130,50 +135,41 @@ void parse(String description) {
 
 				logging("${device} : Payload : ${msg.payload}", "debug")
 
-				if ("${msg.payload.charAt(0)}" == "{") {
+				def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 
-					def json = new groovy.json.JsonSlurper().parseText(msg.payload)
+				if ("${json.device.type}" == "Unknown" ) {
 
-					if ("${json.device.type}" == "Unknown" ) {
-
-						logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
-						return
-
-					}
-
-					// Determine if there's an included generic driver we can use based upon the presence of certain keys.
-
-					///  There's always a chance here that the first message we see won't contain the correct key, and once the child
-					///  is created the driver will never be altered from here. In that case the driver would need to be changed manually.
-
-					def child
-
-					if (json.containsKey('soil_moisture')) {
-
-						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Moisture","${json.device.ieeeAddr}")
-
-					} else if (json.containsKey('occupancy')) {
-
-						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
-
-					} else if (json.containsKey('humidity') && json.containsKey('temperature') || json.containsKey('local_temperature')) {
-
-						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
-					
-					} else {
-
-						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
-
-					}
-					
-					child.processMQTT(json)
-
-				} else {
-
-					logging("${device} : Payload : Contained something that we can't interpret.", "debug")
+					logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
 					return
 
 				}
+
+				// Determine if there's an included generic driver we can use based upon the presence of certain keys.
+
+				///  There's always a chance here that the first message we see won't contain the correct key, and once the child
+				///  is created the driver will never be altered from here. In that case the driver would need to be changed manually.
+
+				def child
+
+				if (json.containsKey('soil_moisture')) {
+
+					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Moisture","${json.device.ieeeAddr}")
+
+				} else if (json.containsKey('occupancy')) {
+
+					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
+
+				} else if (json.containsKey('humidity') && json.containsKey('temperature') || json.containsKey('local_temperature')) {
+
+					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
+				
+				} else {
+
+					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
+
+				}
+				
+				child.processMQTT(json)
 
 			}
 

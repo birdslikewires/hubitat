@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.24 (28th August 2025)"
+@Field String driverVersion = "v1.25 (19th October 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -79,7 +79,7 @@ void processMQTT(def json) {
 
 	if (json.action) {
 
-		withDebounce("${json.device.networkAddress}", 200, {
+		withDebounce("${json.device.networkAddress}", 100, {
 
 			switch("${json.action}") {
 
