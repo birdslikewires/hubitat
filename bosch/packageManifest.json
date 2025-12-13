@@ -17,6 +17,14 @@
 	],
 	"drivers": [
 		{
+			"id": "cbebe7ef-e30c-4b67-bd34-d66344926f8a",
+			"name": "Bosch Room Thermostat II",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_room_thermostat_ii.groovy",
+			"required": false,
+			"version": "1.00"
+		},
+		{
 			"id": "9f1f7ba2-8883-4c1e-9ad9-ff395fae42a1",
 			"name": "Bosch Twinguard",
 			"namespace": "BirdsLikeWires",
