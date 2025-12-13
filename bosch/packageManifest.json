@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_room_thermostat_ii.groovy",
 			"required": false,
-			"version": "1.00"
+			"version": "1.01"
 		},
 		{
 			"id": "9f1f7ba2-8883-4c1e-9ad9-ff395fae42a1",
@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_twinguard.groovy",
 			"required": false,
-			"version": "1.02"
+			"version": "1.03"
 		}
 	]
 }

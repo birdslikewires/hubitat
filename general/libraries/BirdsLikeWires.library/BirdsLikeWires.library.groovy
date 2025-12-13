@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.48 (19th October 2025)
+ *  BirdsLikeWires Library v1.49 (13th December 2025)
  *	
  */
 
@@ -902,11 +902,13 @@ void mqttClientStatus(String status) {
 
 
 void mqttProcessBasics(def json) {
-	// These values are always present in a Zigbee2MQTT device message.
 
 	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
+
 	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
 	sendEvent(name: "powerSource", value:"$powerSource")
+
+	if (json.battery) sendEvent(name: "battery", value: "${json.battery}", unit: "%")
 
 	device.label = "${json.device.friendlyName}"
 

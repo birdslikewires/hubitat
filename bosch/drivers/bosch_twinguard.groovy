@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (20th August 2025)"
+@Field String driverVersion = "v1.03 (13th December 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -190,9 +190,6 @@ void processMQTT(def json) {
 	if (json.voc) sendEvent(name: "voc", value: "${json.voc}", unit: "µg/m³")
 
 	// Device
-	if (json.battery) sendEvent(name: "battery", value: "${json.battery}", unit: "%")
-	if (json.linkquality) sendEvent(name: "lqi", value: "${json.linkquality}")
-
 	if ("${json.self_test}" == "true") {
 		
 		runIn(10,refresh)		// Needs a nudge to update when self-test is complete.
@@ -204,16 +201,9 @@ void processMQTT(def json) {
 
 	}
 
-	if (json.device) {
-
-		if (json.device.friendlyName) device.label = "${json.device.friendlyName}"
-		if (json.device.manufacturerName) updateDataValue("manufacturer", "${json.device.manufacturerName}")
-		if (json.device.model) updateDataValue("model", "${json.device.model}")
-
-	}
-
-	logging("${device} : parseMQTT : ${json}", "debug")
-
+	// Admin
+	mqttProcessBasics(json)
 	updateHealthStatus()
+	logging("${device} : processMQTT : ${json}", "debug")
 
 }

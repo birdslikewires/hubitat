@@ -5,8 +5,8 @@
  */
 
 
-@Field String driverVersion = "v1.00 (13th December 2025)"
-@Field boolean debugMode = true
+@Field String driverVersion = "v1.01 (13th December 2025)"
+@Field boolean debugMode = false
 
 #include BirdsLikeWires.library
 import groovy.transform.Field
@@ -29,9 +29,12 @@ metadata {
 		capability "SignalStrength"
 		capability "TemperatureMeasurement"
 
+		attribute "displayBrightness", "number"
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "localTemperature", "number"
-		attribute "remoteTemperature", "number"
+		attribute "temperatureLocal", "number"
+		attribute "temperatureRemote", "number"
+
+		command "displayOn"
 
 		if (debugMode) {
 			command "testCommand"
@@ -44,6 +47,8 @@ metadata {
 
 preferences {
 	
+	input name: "remoteAsPrimary", type: "bool", title: "Use remote sensor for primary temperature reading.", defaultValue: false
+
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
@@ -98,18 +103,29 @@ void off() {
 }
 
 
+void displayOn() {
+
+	int currentBrightness = device.currentState("displayBrightness").value.toInteger()
+	String ieee = getDataValue("ieee")
+	parent.publishMQTT("$ieee", "set", "{\"display_brightness\": $currentBrightness}")
+
+}
+
+
 void processMQTT(def json) {
 
 	checkDriver()
 
 	// Environmental
 	if (json.humidity) sendEvent(name: "humidity", value: "${json.humidity}", unit: "%rh")
-	if (json.cable_sensor_temperature) sendEvent(name: "remoteTemperature", value: "${json.cable_sensor_temperature}", unit: "°C")
-	if (json.local_temperature) sendEvent(name: "localTemperature", value: "${json.local_temperature}", unit: "°C")
+	if (json.cable_sensor_temperature) sendEvent(name: "temperatureRemote", value: "${json.cable_sensor_temperature}", unit: "°C")
+	if (json.local_temperature) sendEvent(name: "temperatureLocal", value: "${json.local_temperature}", unit: "°C")
+
+	BigDecimal primaryTemperature = remoteAsPrimary ? json.cable_sensor_temperature : json.local_temperature
+	sendEvent(name: "temperature", value: "${primaryTemperature}", unit: "°C")
 
 	// Device
-	if (json.battery) sendEvent(name: "battery", value: "${json.battery}", unit: "%")
-	if (json.linkquality) sendEvent(name: "lqi", value: "${json.linkquality}")
+	if (json.display_brightness) sendEvent(name: "displayBrightness", value: "${json.display_brightness}")
 
 	// Admin
 	mqttProcessBasics(json)
