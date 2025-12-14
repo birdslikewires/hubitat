@@ -149,27 +149,31 @@ void parse(String description) {
 				///  There's always a chance here that the first message we see won't contain the correct key, and once the child
 				///  is created the driver will never be altered from here. In that case the driver would need to be changed manually.
 
-				def child
+				if (json.device) {
 
-				if (json.containsKey('soil_moisture')) {
+					def child
 
-					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Moisture","${json.device.ieeeAddr}")
+					if (json.containsKey('soil_moisture')) {
 
-				} else if (json.containsKey('occupancy')) {
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Moisture","${json.device.ieeeAddr}")
 
-					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
+					} else if (json.containsKey('occupancy')) {
 
-				} else if (json.containsKey('humidity') && json.containsKey('temperature') || json.containsKey('local_temperature')) {
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Motion","${json.device.ieeeAddr}")
 
-					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
-				
-				} else {
+					} else if (json.containsKey('humidity') && json.containsKey('temperature') || json.containsKey('local_temperature')) {
 
-					child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Climate","${json.device.ieeeAddr}")
+					
+					} else {
+
+						child = fetchChild("BirdsLikeWires","Zigbee2MQTT Device","${json.device.ieeeAddr}")
+
+					}
+					
+					child.processMQTT(json)
 
 				}
-				
-				child.processMQTT(json)
 
 			}
 
