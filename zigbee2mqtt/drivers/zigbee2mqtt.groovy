@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.14 (19th October 2025)"
+@Field String driverVersion = "v2.15 (14th December 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -137,7 +137,7 @@ void parse(String description) {
 
 				def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 
-				if ("${json.device.type}" == "Unknown" ) {
+				if (json.device) && ("${json.device.type}" == "Unknown" ) {
 
 					logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
 					return
