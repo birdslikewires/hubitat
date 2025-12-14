@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.49 (13th December 2025)
+ *  BirdsLikeWires Library v1.50 (14th December 2025)
  *	
  */
 
@@ -912,9 +912,9 @@ void mqttProcessBasics(def json) {
 
 	device.label = "${json.device.friendlyName}"
 
-	updateDataValue("ieee", "${json.device.ieeeAddr}")
-	updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	updateDataValue("model", "${json.device.model}")
+	if (json.device.ieeeAddr) updateDataValue("ieee", "${json.device.ieeeAddr}")
+	if (json.device.manufacturerName) updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	if (json.device.model) updateDataValue("model", "${json.device.model}")
 
 }
 

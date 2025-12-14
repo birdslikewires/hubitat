@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.15 (14th December 2025)"
+@Field String driverVersion = "v2.16 (14th December 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -137,7 +137,7 @@ void parse(String description) {
 
 				def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 
-				if (json.device && "${json.device.type}" == "Unknown" ) {
+				if (json.device.ieeeAddr && "${json.device.type}" == "Unknown" ) {
 
 					logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
 					return
@@ -149,7 +149,7 @@ void parse(String description) {
 				///  There's always a chance here that the first message we see won't contain the correct key, and once the child
 				///  is created the driver will never be altered from here. In that case the driver would need to be changed manually.
 
-				if (json.device) {
+				if (json.device.ieeeAddr) {
 
 					def child
 
