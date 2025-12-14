@@ -137,7 +137,7 @@ void parse(String description) {
 
 				def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 
-				if (json.device) && ("${json.device.type}" == "Unknown" ) {
+				if (json.device && "${json.device.type}" == "Unknown" ) {
 
 					logging("${device} : Ignoring device at address ${json.device.ieeeAddr} due to unknown type.", "warn")
 					return
