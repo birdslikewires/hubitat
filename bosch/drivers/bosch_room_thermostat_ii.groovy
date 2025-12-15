@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (13th December 2025)"
+@Field String driverVersion = "v1.02 (14th December 2025)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -20,6 +20,7 @@ metadata {
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
 		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/bosch/drivers/bosch_room_thermostat_ii.groovy") {
 
+		capability "Actuator"
 		capability "Configuration"
 		capability "HealthCheck"
 		capability "PowerSource"
