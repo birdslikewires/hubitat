@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/general/drivers/virtual_switchable_presence.groovy",
 			"required": false,
-			"version": "1.08"
+			"version": "1.09"
 		}
 	]
 }
