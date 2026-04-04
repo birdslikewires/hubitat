@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (28th August 2025)"
+@Field String driverVersion = "v1.12 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -82,7 +82,7 @@ void processMQTT(def json) {
 	// We have to check because the first burst of messages show the building of the device.
 	// Multiple relay devices will build one relay at a time, meaning we end up with duplicate children.
 
-		def child
+		com.hubitat.app.ChildDeviceWrapper child
 
 		if ("${json}".indexOf('state_l') >= 0) {
 

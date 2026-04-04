@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v2.16 (14th December 2025)"
+@Field String driverVersion = "v2.17 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -151,7 +151,7 @@ void parse(String description) {
 
 				if (json.device.ieeeAddr) {
 
-					def child
+					com.hubitat.app.ChildDeviceWrapper child
 
 					if (json.containsKey('soil_moisture')) {
 
