@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.29 (20th August 2025)"
+@Field String driverVersion = "v1.30 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -149,7 +149,7 @@ void off() {
 
 	// Convert seconds to multiple of 0.2s, or use 0.2s if duration is zero.
 	BigInteger dur = state.lastDuration * 5
-	String[] durHex = dur > 0 ? dur.toString(16).toUpperCase().padLeft(4,'0') : [0,0,0,0]
+	String durHex = dur > 0 ? dur.toString(16).toUpperCase().padLeft(4,'0') : "0000"
 
 	def cmds = new ArrayList<String>()
 	// clear sequence, set RGB to 00 00 00, dwell indefinitely, transition as configured, add to sequence
@@ -241,7 +241,7 @@ void setHue(BigDecimal hue) {
 
 	state.lastHue = hue <= 100 ? hue : 100
 
-	logging("${device} : Set Hue : Saved hue (${hueSafe}).", "info")
+	logging("${device} : Set Hue : Saved hue (${state.lastHue}).", "info")
 
 }
 
@@ -249,7 +249,7 @@ void setSaturation(BigDecimal sat) {
 
 	state.lastSaturation = sat <= 100 ? sat : 100
 
-	logging("${device} : Set Saturation : Saved saturation (${satSafe}).", "info")
+	logging("${device} : Set Saturation : Saved saturation (${state.lastSaturation}).", "info")
 
 }
 
