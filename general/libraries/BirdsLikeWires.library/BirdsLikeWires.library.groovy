@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.51 (4th April 2026)
+ *  BirdsLikeWires Library v1.52 (4th April 2026)
  *	
  */
 
@@ -468,9 +468,9 @@ void withDebounce(String id, long debouncePeriod, Closure closure) {
 		state.debounceTimestamps[id] = 0
 	}
 
-    def lastExecTime = state.debounceTimestamps[id]
-    def currentTime = now()
-	def thisExecTime = currentTime - lastExecTime
+    long lastExecTime = state.debounceTimestamps[id]
+    long currentTime = now()
+	long thisExecTime = currentTime - lastExecTime
 
     if (thisExecTime >= debouncePeriod || thisExecTime < 0) {
 
@@ -486,15 +486,15 @@ void withDebounce(String id, long debouncePeriod, Closure closure) {
 }
 
 
-def fetchChild(String namespace, String type, String ident) {
+com.hubitat.app.ChildDeviceWrapper fetchChild(String namespace, String type, String ident) {
 	// Creates and retrieves child devices.
 
 	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
 	// Type will determine the driver to use.
 	// Ident is any unique identifier.
 
-	def childDevice = getChildDevice("${device.id}-${ident}")
-	def childInitialLabel = (ident.contains("-")) ? ident.split("-").last() : ident
+	com.hubitat.app.ChildDeviceWrapper childDevice = getChildDevice("${device.id}-${ident}")
+	String childInitialLabel = (ident.contains("-")) ? ident.split("-").last() : ident
 
 	if (ident != "null") {
 
@@ -515,13 +515,13 @@ def fetchChild(String namespace, String type, String ident) {
 }
 
 
-def fetchChildStates(String state, String requestor) {
+List<String> fetchChildStates(String state, String requestor) {
 	// Retrieves requested states of child devices.
 
 	logging("${device} : fetchChildStates() : Called by $requestor", "debug")
 
-	def childStates = []
-	def children = getChildDevices()
+	List<String> childStates = []
+	List children = getChildDevices()
 
 	children.each {child->
 
@@ -549,7 +549,7 @@ void deleteChildren() {
 
 	logging("${device} : deleteChildren() : Deleting rogue children.", "debug")
 
-	def children = getChildDevices()
+	List children = getChildDevices()
     children.each {child->
   		deleteChildDevice(child.deviceNetworkId)
     }
@@ -557,7 +557,7 @@ void deleteChildren() {
 }
 
 
-void componentRefresh(com.hubitat.app.DeviceWrapper childDevice) {
+void componentRefresh(com.hubitat.app.ChildDeviceWrapper childDevice) {
 
 	logging("componentRefresh() from $childDevice.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he rattr 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
@@ -565,7 +565,7 @@ void componentRefresh(com.hubitat.app.DeviceWrapper childDevice) {
 }
 
 
-void componentOn(com.hubitat.app.DeviceWrapper childDevice) {
+void componentOn(com.hubitat.app.ChildDeviceWrapper childDevice) {
 
 	logging("componentOn() from $childDevice.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x01 {}"])
@@ -573,7 +573,7 @@ void componentOn(com.hubitat.app.DeviceWrapper childDevice) {
 }
 
 
-void componentOff(com.hubitat.app.DeviceWrapper childDevice) {
+void componentOff(com.hubitat.app.ChildDeviceWrapper childDevice) {
 
 	logging("componentOff() from $childDevice.deviceNetworkId", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x${childDevice.deviceNetworkId.split("-")[1]} 0x0006 0x00 {}"])
@@ -592,11 +592,11 @@ private String flipLittleEndian(Map map, String attribute) {
 }
 
 
-private String[] millisToDhms(BigInteger millisToParse) {
+private List millisToDhms(BigInteger millisToParse) {
 
 	long secondsToParse = millisToParse / 1000
 
-	def dhms = []
+	List dhms = []
 	dhms.add(secondsToParse % 60)
 	secondsToParse = secondsToParse / 60
 	dhms.add(secondsToParse % 60)
@@ -629,7 +629,7 @@ private Integer hexToPercentage(String hex) {
 
 	String safeHex = hex.take(2)
     Integer pc = Integer.parseInt(safeHex, 16) << 21 >> 21
-	return pc / 2.55
+	return (pc / 2.55) as Integer
 
 }
 
@@ -901,7 +901,7 @@ void mqttClientStatus(String status) {
 }
 
 
-void mqttProcessBasics(def json) {
+void mqttProcessBasics(Map json) {
 
 	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
 
@@ -919,9 +919,9 @@ void mqttProcessBasics(def json) {
 }
 
 
-def mqttGetStateType() {
+String mqttGetStateType() {
 
-	def details = "${device.deviceNetworkId}".split('-')
+	String[] details = "${device.deviceNetworkId}".split('-')
 	String stateType = ("${details[-2]}".toInteger() > 1) ? "state_l${details[-1]}" : "state"
 	return stateType
 

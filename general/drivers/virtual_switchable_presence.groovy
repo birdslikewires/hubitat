@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.09 (15th December 2025)"
+@Field String driverVersion = "v1.10 (4th April 2026)"
 
 
 #include BirdsLikeWires.library
@@ -146,7 +146,7 @@ void updateDurations(long millisNow) {
 			long wentAbsent = Long.valueOf(device.currentState("absent").value)
 			long durationAbsent = millisNow - wentAbsent
 
-			def newDhmsUptime = []
+			List newDhmsUptime = []
 			newDhmsUptime = millisToDhms(durationAbsent)
 			String timeAbsent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
@@ -159,7 +159,7 @@ void updateDurations(long millisNow) {
 			long wentPresent = Long.valueOf(device.currentState("present").value)
 			long durationPresent = millisNow - wentPresent
 
-			def newDhmsUptime = []
+			List newDhmsUptime = []
 			newDhmsUptime = millisToDhms(durationPresent)
 			String timePresent = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
