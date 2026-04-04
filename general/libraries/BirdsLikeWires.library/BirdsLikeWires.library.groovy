@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.52 (4th April 2026)
+ *  BirdsLikeWires Library v1.53 (4th April 2026)
  *	
  */
 
@@ -486,15 +486,16 @@ void withDebounce(String id, long debouncePeriod, Closure closure) {
 }
 
 
-com.hubitat.app.ChildDeviceWrapper fetchChild(String namespace, String type, String ident) {
+com.hubitat.app.ChildDeviceWrapper fetchChild(String namespace, String type, String ident, String label = null) {
 	// Creates and retrieves child devices.
 
 	// Namespace is required for custom child drivers. Use "hubitat" for system drivers.
 	// Type will determine the driver to use.
 	// Ident is any unique identifier.
+	// Label is optional; if not provided, the label is derived from the ident.
 
 	com.hubitat.app.ChildDeviceWrapper childDevice = getChildDevice("${device.id}-${ident}")
-	String childInitialLabel = (ident.contains("-")) ? ident.split("-").last() : ident
+	String childInitialLabel = label ?: ((ident.contains("-")) ? ident.split("-").last() : ident)
 
 	if (ident != "null") {
 
