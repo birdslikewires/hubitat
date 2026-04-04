@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.17 (20th August 2025)"
+@Field String driverVersion = "v1.18 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -178,7 +178,7 @@ void flashOn() {
 void flashOff() {
 
 	String mode = device.currentState("mode").value
-	logging("${device} : flashOn : Mode is ${mode}", "debug")
+	logging("${device} : flashOff : Mode is ${mode}", "debug")
 
     if (mode != "flashing") return
 	runInMillis((flashRate ?: 1000).toInteger(), flashOn)
@@ -226,10 +226,10 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"off"]])
 
-					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					List currentChildStates = fetchChildStates("switch","${childDevice.id}")
 					logging("${device} : currentChildStates : ${childDevice.id} ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
@@ -248,7 +248,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
@@ -271,10 +271,10 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
+					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"off"]])
 
-					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					List currentChildStates = fetchChildStates("switch","${childDevice.id}")
 					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
@@ -294,7 +294,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
+					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.04 (20th August 2025)"
+@Field String driverVersion = "v1.05 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -19,7 +19,7 @@ import groovy.transform.Field
 metadata {
 
 	definition (name: "$deviceMan $deviceType SM323", namespace: "BirdsLikeWires", author: "Andrew Davison",
-		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/drivers/samotech_dimmer_module.groovy") {
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/samotech/drivers/samotech_dimmer_module_sm323.groovy") {
 
 		capability "Actuator"
 		capability "Configuration"
@@ -72,8 +72,7 @@ void configureSpecifics() {
 	// Reporting
 	int reportIntervalSeconds = reportIntervalMinutes * 60
 
-	ArrayList<String> cmds = []
-	cmds = zigbee.writeAttribute(0x0006, 0x4003, 0x30, 0xFF)	// If power is lost, return to previous state when re-energised.
+	ArrayList<String> cmds = zigbee.writeAttribute(0x0006, 0x4003, 0x30, 0xFF)	// If power is lost, return to previous state when re-energised.
 	cmds += zigbee.configureReporting(0x0006, 0x0000, 0x10, 0, reportIntervalSeconds, 0x00)
 	cmds += zigbee.configureReporting(0x0008, 0x0000, 0x20, 0, reportIntervalSeconds, 0x01)
 	sendZigbeeCommands(cmds)
@@ -114,6 +113,7 @@ void refresh() {
 
 void off() {
 
+	logging("${device} : off()", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x00 {}"])
 
 }
@@ -121,6 +121,7 @@ void off() {
 
 void on() {
 
+	logging("${device} : on()", "debug")
 	sendZigbeeCommands(["he cmd 0x${device.deviceNetworkId} 0x01 0x0006 0x01 {}"])
 
 }
@@ -183,14 +184,17 @@ void processMap(Map map) {
 		if (map.command == "01" || map.command == "0A") {
 			// Relay States
 
+			boolean isDigital = state.lastDigitalCommand && (now() - (state.lastDigitalCommand as Long)) < 500
+			String eventType = isDigital ? "digital" : "physical"
+
 			if (map.value == "00") {
 
-				sendEvent(name: "switch", value: "off")
+				sendEvent(name: "switch", value: "off", type: eventType)
 				logging("${device} : Switch : Off", "info")
 
 			} else {
 
-				sendEvent(name: "switch", value: "on")
+				sendEvent(name: "switch", value: "on", type: eventType)
 				logging("${device} : Switch : On", "info")
 
 			}
@@ -198,6 +202,12 @@ void processMap(Map map) {
 		} else if (map.command == "07") {
 
 			processConfigurationResponse(map)
+
+		} else if (map.command == "0B") {
+			// Default Response - device is ACKing a command sent from Hubitat, so next state change is digital
+
+			state.lastDigitalCommand = now()
+			logging("${device} : Digital Command : Acknowledged by device.", "debug")
 
 		} else if (map.command == "00") {
 
@@ -215,10 +225,10 @@ void processMap(Map map) {
 		if (map.command == "01" || map.command == "0A") {
 			// Reading
 
-			def maxLevelPercent = (settings.levelMax as Integer) ?: 100
+			Integer maxLevelPercent = (settings.levelMax as Integer) ?: 100
 			int currentLevel = hexToPercentage("${map.value}")
-			def scaledPercentage = Math.round((currentLevel / (maxLevelPercent as Double)) * 100.0)
-			scaledPercentage = Math.min(100, Math.max(0, scaledPercentage))
+			long scaledPercentage = Math.round((currentLevel / maxLevelPercent.toDouble()) * 100.0)
+			scaledPercentage = Math.min(100L, Math.max(0L, scaledPercentage))
 			scaledPercentage = scaledPercentage >= 98 ? 100 : scaledPercentage
 
 			if (currentLevel > maxLevelPercent) {
@@ -248,8 +258,7 @@ void processMap(Map map) {
 
 			if (map.attrId == "050B") {
 				// Instantaneous power reading. 
-				int powerValue = zigbee.convertHexToInt(map.value)
-				powerValue = Math.round(powerValue / 10.0)
+				int powerValue = Math.round(zigbee.convertHexToInt(map.value) / 10.0) as int
 				sendEvent(name: "power", value: powerValue, unit: "W")
 			}
 
