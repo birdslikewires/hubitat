@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.57 (20th August 2025)"
+@Field String driverVersion = "v1.58 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -270,7 +270,7 @@ void processMap(Map map) {
 			BigInteger uptimeValue = new BigInteger(uptimeValueHex, 16)
 			logging("${device} : uptime counter reports : ${uptimeValue}", "debug")
 
-			def newDhmsUptime = []
+			List newDhmsUptime = []
 			newDhmsUptime = millisToDhms(uptimeValue * 1000)
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
