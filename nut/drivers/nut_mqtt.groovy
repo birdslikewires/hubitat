@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.06 (20th August 2025)"
+@Field String driverVersion = "v1.07 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -105,7 +105,7 @@ void parse(String description) {
 		logging("${device} : Payload : ${msg.payload}", "trace")
 
 		String upsName = msg.topic.substring(msg.topic.lastIndexOf("/") + 1)
-		def ups = fetchChild("BirdsLikeWires","$deviceName Device","$upsName")
+		com.hubitat.app.ChildDeviceWrapper ups = fetchChild("BirdsLikeWires","$deviceName Device","$upsName")
 
 		def json = new groovy.json.JsonSlurper().parseText(msg.payload)
 		
