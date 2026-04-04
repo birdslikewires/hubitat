@@ -7,7 +7,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (4th April 2026)"
+@Field String driverVersion = "v1.12 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -245,9 +245,9 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"off"]])
-					def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					List<String> currentChildStates = fetchChildStates("switch","${childDevice.id}")
 
 					if (currentChildStates.every{it == "off"}) {
 						logging("${device} : Switch : All Off", "info")
@@ -265,7 +265,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					def childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
@@ -301,9 +301,9 @@ void processMap(Map map) {
 
 			if (state.relayCount > 1) {
 
-				def childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
+				com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 				childDevice.parse([[name:"switch", value:"${relayOnOff}"]])
-				def currentChildStates = fetchChildStates("switch","${childDevice.id}")
+				List<String> currentChildStates = fetchChildStates("switch","${childDevice.id}")
 
 				// You need all of them off to be off, but only one to be on to be on. ;)
 				if (relayOnOff == "off" && currentChildStates.every{it == "off"}) {
