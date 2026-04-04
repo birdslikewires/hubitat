@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (4th April 2026)"
+@Field String driverVersion = "v1.02 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -227,8 +227,8 @@ void setThermostatMode(int childEndpoint, String thermostatMode) {
 
 void setThermostatModeWithSafety(int childEndpoint, String thermostatMode) {
 
-	def currentOverrideMinutes = fetchChildStates("overrideMinutes","${childEndpoint}")
-	def currentThermostatMode = fetchChildStates("thermostatMode","${childEndpoint}")
+	List<String> currentOverrideMinutes = fetchChildStates("overrideMinutes","${childEndpoint}")
+	List<String> currentThermostatMode = fetchChildStates("thermostatMode","${childEndpoint}")
 
 	if (currentOverrideMinutes[0] != "0" || currentThermostatMode[0] == "auto") {
 
@@ -352,7 +352,7 @@ void parse(String description) {
 
 	if (descriptionMap) {
 
-		def child
+		com.hubitat.app.ChildDeviceWrapper child
 
 		if ("${descriptionMap.endpoint}" == "06") {
 
