@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.22 (28th August 2025)"
+@Field String driverVersion = "v1.23 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -110,12 +110,12 @@ void processMQTT(def json) {
 					break
 
 				case "double_both":
-					logging("${device} : Action : Button 1 Double Pressed", "info")
+					logging("${device} : Action : Button 3 Double Pressed", "info")
 					sendEvent(name: "doubleTapped", value: 3, isStateChange: true)
 					break
 
 				case "hold_both":
-					logging("${device} : Action : Button 1 Held", "info")
+					logging("${device} : Action : Button 3 Held", "info")
 					sendEvent(name: "held", value: 3, isStateChange: true)
 					break
 
