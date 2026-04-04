@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.09 (20th August 2025)"
+@Field String driverVersion = "v1.10 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -47,8 +47,8 @@ metadata {
 preferences {
 	
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
-	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: true
-	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: true
+	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
+	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
 	
 }
 
