@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.12 (20th August 2025)"
+@Field String driverVersion = "v1.13 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -153,8 +153,8 @@ void parse(String description) {
 		
 		logging("${device} : JSON : ${json}", "debug")
 
-		def eleMeter = fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Electricity")
-		def gasMeter = fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Gas")
+		com.hubitat.app.ChildDeviceWrapper eleMeter = fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Electricity")
+		com.hubitat.app.ChildDeviceWrapper gasMeter = fetchChild("BirdsLikeWires","Hildebrand Glow Meter","Gas")
 
 		if (settings?.cloudActive) {
 
