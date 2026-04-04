@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (20th August 2025)"
+@Field String driverVersion = "v1.02 (4th April 2026)"
 @Field boolean debugMode = false
 
 import groovy.transform.Field
@@ -16,7 +16,7 @@ import groovy.transform.Field
 metadata {
 
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
-		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hildebrand/drivers/glow_meter_child.groovy") {
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/nut/drivers/nut_mqtt_child.groovy") {
 
 		capability "Initialize"
 
