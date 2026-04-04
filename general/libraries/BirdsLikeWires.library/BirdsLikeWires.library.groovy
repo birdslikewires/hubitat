@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.50 (14th December 2025)
+ *  BirdsLikeWires Library v1.51 (4th April 2026)
  *	
  */
 
@@ -380,7 +380,7 @@ void processDescriptors(Map map) {
 void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecimal batteryVoltageScaleMin, BigDecimal batteryVoltageScaleMax) {
 	// Report the battery voltage and calculated percentage.
 
-	if ($batteryVoltageHex == "") {
+	if (batteryVoltageHex == "") {
 		// Ignore empty nonsense.
 		logging("${device} : batteryVoltageHex : skipping anomolous reading.", "debug")
 		return
@@ -437,7 +437,7 @@ void reportToDev(map) {
 
 	if (map.endpoint == null) return		// If the message doesn't even have an endpoint, it's garbage. Discard!
 
-	if (map.data != null) String dataCount = "${map.data.length} bits of "
+	String dataCount = map.data != null ? "${map.data.length} bits of " : ""
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
 	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${dataCount}data: ${map.data}", "warn")
@@ -864,7 +864,7 @@ void mqttConnect() {
 		}
 
 		String clientID = "hubitat-" + device.deviceNetworkId
-		mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
+		String mqttBrokerUrl = "tcp://" + state.mqttBroker + ":1883"
 		mqttInt.connect(mqttBrokerUrl, clientID, settings?.mqttUser, settings?.mqttPass)
 		pauseExecution(500)
 		mqttInt.subscribe(state.mqttTopic)
@@ -922,7 +922,7 @@ void mqttProcessBasics(def json) {
 def mqttGetStateType() {
 
 	def details = "${device.deviceNetworkId}".split('-')
-	String stateType = ("${details[-2]}" > 1) ? "state_l${details[-1]}" : "state"
+	String stateType = ("${details[-2]}".toInteger() > 1) ? "state_l${details[-1]}" : "state"
 	return stateType
 
 }
