@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v0.02 (21st August 2025)"
+@Field String driverVersion = "v0.03 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -18,7 +18,7 @@ import groovy.transform.Field
 metadata {
 
 	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison",
-		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/swann/swann_fob.groovy") {
+		importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/swann/drivers/swann_fob.groovy") {
 
 		capability "Configuration"
 		capability "PowerSource"
