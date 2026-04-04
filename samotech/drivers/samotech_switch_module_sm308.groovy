@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.18 (4th April 2026)"
+@Field String driverVersion = "v1.19 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -226,10 +226,10 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"off"]])
 
-					List currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					List<String> currentChildStates = fetchChildStates("switch","${childDevice.id}")
 					logging("${device} : currentChildStates : ${childDevice.id} ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
@@ -248,7 +248,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
@@ -271,10 +271,10 @@ void processMap(Map map) {
 
 				if (state.relayCount > 1) {
 
-					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"off"]])
 
-					List currentChildStates = fetchChildStates("switch","${childDevice.id}")
+					List<String> currentChildStates = fetchChildStates("switch","${childDevice.id}")
 					logging("${device} : currentChildStates : ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
@@ -294,7 +294,7 @@ void processMap(Map map) {
 			} else {
 
 				if (state.relayCount > 1) {
-					Object childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childDevice.parse([[name:"switch", value:"on"]])
 				}
 
