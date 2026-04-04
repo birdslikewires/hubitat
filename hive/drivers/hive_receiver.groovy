@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (20th August 2025)"
+@Field String driverVersion = "v1.01 (4th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -179,7 +179,7 @@ void heat(int childEndpoint) {
 void setHeatingSetpoint(int childEndpoint, BigDecimal temperature) {
 
 	// Convert from degF.
-	if ("${location.temperatureScale}" == "F") temperature = (temperature / 1.8) - 32
+	if ("${location.temperatureScale}" == "F") temperature = (temperature - 32) / 1.8
 	
 	(temperature < 5) ? temperature = 1 : temperature		// Anything lower than 5degC is frost protect mode.
 	(temperature > 32) ? temperature = 32 : temperature		// Anything higher than 32degC is not supported.
