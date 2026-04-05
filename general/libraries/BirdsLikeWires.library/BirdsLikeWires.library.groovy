@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.53 (4th April 2026)
+ *  BirdsLikeWires Library v1.54 (5th April 2026)
  *	
  */
 
@@ -185,7 +185,7 @@ void updateHealthStatus() {
 
 	long millisNow = new Date().time
 	state.updatedHealthStatus = millisNow
-	sendEvent(name: "healthStatus", value: "online")
+	sendEvent(name: "healthStatus", value: "online", isStateChange: false)
 
 }
 
@@ -455,7 +455,12 @@ void debounceParentState(String attribute, String state, String message, String 
 	sendEvent(name: "$attribute", value: "$state")
 	logging("${device} : $message", "$level")
 
-	pauseExecution duration
+	runInMillis(duration, "clearDebounceParentState")
+
+}
+
+void clearDebounceParentState() {
+
 	debouncingParentState = false
 
 }
@@ -526,9 +531,6 @@ List<String> fetchChildStates(String state, String requestor) {
 
 	children.each {child->
 
-		// Give things a chance!
-		pauseExecution(100)
-	
 		// Grabs the requested state from the child device.
 		String childState = child.currentValue("${state}")
 

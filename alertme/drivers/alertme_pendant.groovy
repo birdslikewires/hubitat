@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.07 (20th August 2025)"
+@Field String driverVersion = "v1.08 (5th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -105,6 +105,13 @@ void on() {
 }
 
 
+void alertmeCareResponse() {
+
+	alertmeCare(3)		// Notifies the user that the system has received the panic call with two beeps and continuous red flashing.
+
+}
+
+
 void processMap(Map map) {
 
 	if (map.clusterId == "0006") {
@@ -121,8 +128,7 @@ void processMap(Map map) {
 
 			logging("${device} : Trigger : Pendant Button Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
-			pauseExecution(2000)
-			alertmeCare(3)		// Notifies the user that the system has received the panic call with two beeps and continuous red flashing.
+			runInMillis(2000, "alertmeCareResponse")
 
 		} else {
 
