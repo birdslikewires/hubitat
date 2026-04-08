@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.55 (8th April 2026)
+ *  BirdsLikeWires Library v1.56 (8th April 2026)
  *	
  */
 
@@ -184,7 +184,9 @@ void levelEvent(int levelChange, String direction) {
 void updateHealthStatus() {
 
 	long millisNow = new Date().time
-	state.updatedHealthStatus = millisNow
+	if (millisNow - (state.updatedHealthStatus ?: 0) > 30000) {
+		state.updatedHealthStatus = millisNow
+	}
 	if (device.currentValue("healthStatus") != "online") {
 		sendEvent(name: "healthStatus", value: "online")
 	}
