@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.18 (29th July 2024)
+ *  BirdsLikeWires AlertMe Library v1.19 (8th April 2026)
  *	
  */
 
@@ -226,7 +226,7 @@ void alertmeDeviceStatus(Map map) {
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
+	if (batteryVoltage != device.currentValue("voltage")) sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 	BigDecimal batteryPercentage = 0
 	BigDecimal batteryVoltageScaleMin = 2.80
@@ -252,18 +252,17 @@ void alertmeDeviceStatus(Map map) {
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		}
 
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "discharging"
+		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
 
+		String newBatteryState = "discharging"
 		if ("$modelCheck" == "SmartPlug" && batteryVoltage > batteryVoltageScaleMax) {
 			if (state.supplyPresent == "true") {
-				state.battery = "charged"
-			} 
-		} else {
-			if (state.supplyPresent == "true") {
-				state.battery = "charging"
-			} 
+				newBatteryState = "charged"
+			}
+		} else if (state.supplyPresent == "true") {
+			newBatteryState = "charging"
 		}
+		if (state.battery != newBatteryState) state.battery = newBatteryState
 
 	} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -273,8 +272,8 @@ void alertmeDeviceStatus(Map map) {
 
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "exhausted"
+		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+		if (state.battery != "exhausted") state.battery = "exhausted"
 
 	} else {
 
@@ -285,8 +284,8 @@ void alertmeDeviceStatus(Map map) {
 
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "fault"
+		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+		if (state.battery != "fault") state.battery = "fault"
 
 	}
 
@@ -300,7 +299,7 @@ void alertmeDeviceStatus(Map map) {
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		logging("${device} : Temperature : $temperatureCelsius°C", "info")
-		sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		if (temperatureCelsius != device.currentValue("temperature")) sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
 
 	}
 
@@ -319,7 +318,7 @@ void alertmeDiscovery(Map map) {
 		int lqiRanging = 0
 		lqiRangingHex = map.data[0]
 		lqiRanging = zigbee.convertHexToInt(lqiRangingHex)
-		sendEvent(name: "lqi", value: lqiRanging)
+		if (lqiRanging != device.currentValue("lqi")) sendEvent(name: "lqi", value: lqiRanging)
 		logging("${device} : lqiRanging : ${lqiRanging}", "debug")
 
 		if (map.data[1] == "77") {

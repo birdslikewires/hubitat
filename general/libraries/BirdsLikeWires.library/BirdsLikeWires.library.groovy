@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.56 (8th April 2026)
+ *  BirdsLikeWires Library v1.57 (8th April 2026)
  *	
  */
 
@@ -910,18 +910,23 @@ void mqttClientStatus(String status) {
 
 void mqttProcessBasics(Map json) {
 
-	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
+	Integer newLqi = "${json.linkquality}".toInteger()
+	if (newLqi != device.currentValue("lqi")) sendEvent(name: "lqi", value: newLqi)
 
 	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
-	sendEvent(name: "powerSource", value:"$powerSource")
+	if (powerSource != device.currentValue("powerSource")) sendEvent(name: "powerSource", value: "$powerSource")
 
-	if (json.battery) sendEvent(name: "battery", value: "${json.battery}", unit: "%")
+	if (json.battery) {
+		Integer newBattery = "${json.battery}".toInteger()
+		if (newBattery != device.currentValue("battery")) sendEvent(name: "battery", value: newBattery, unit: "%")
+	}
 
-	device.label = "${json.device.friendlyName}"
+	String friendlyName = "${json.device.friendlyName}"
+	if (device.label != friendlyName) device.label = friendlyName
 
-	if (json.device.ieeeAddr) updateDataValue("ieee", "${json.device.ieeeAddr}")
-	if (json.device.manufacturerName) updateDataValue("manufacturer", "${json.device.manufacturerName}")
-	if (json.device.model) updateDataValue("model", "${json.device.model}")
+	if (json.device.ieeeAddr && getDataValue("ieee") != "${json.device.ieeeAddr}") updateDataValue("ieee", "${json.device.ieeeAddr}")
+	if (json.device.manufacturerName && getDataValue("manufacturer") != "${json.device.manufacturerName}") updateDataValue("manufacturer", "${json.device.manufacturerName}")
+	if (json.device.model && getDataValue("model") != "${json.device.model}") updateDataValue("model", "${json.device.model}")
 
 }
 
