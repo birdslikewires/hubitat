@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.54 (5th April 2026)
+ *  BirdsLikeWires Library v1.55 (8th April 2026)
  *	
  */
 
@@ -185,7 +185,9 @@ void updateHealthStatus() {
 
 	long millisNow = new Date().time
 	state.updatedHealthStatus = millisNow
-	sendEvent(name: "healthStatus", value: "online", isStateChange: false)
+	if (device.currentValue("healthStatus") != "online") {
+		sendEvent(name: "healthStatus", value: "online")
+	}
 
 }
 
