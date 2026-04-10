@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.57 (8th April 2026)
+ *  BirdsLikeWires Library v1.58 (10th April 2026)
  *	
  */
 
@@ -200,9 +200,10 @@ void checkHealthStatus() {
 	long millisNow = new Date().time
 	int uptimeAllowanceMinutes = 20			// Busy hubs can take a while to settle after a reboot.
 
-	if (state.updatedHealthStatus > 0) {
+	long storedHealthStatus = (state.updatedHealthStatus ?: 0) as long
+	if (storedHealthStatus > 0) {
 
-		long millisElapsed = millisNow - state.updatedHealthStatus
+		long millisElapsed = millisNow - storedHealthStatus
 		long timeoutMillis = ((reportIntervalMinutes * 2) + 10) * 60000
 		long reportIntervalMillis = reportIntervalMinutes * 60000
 		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
@@ -228,7 +229,7 @@ void checkHealthStatus() {
 
 		}
 
-		logging("${device} : checkHealthStatus() : ${millisNow} - ${state.updatedHealthStatus} = ${millisElapsed}", "trace")
+		logging("${device} : checkHealthStatus() : ${millisNow} - ${storedHealthStatus} = ${millisElapsed}", "trace")
 		logging("${device} : checkHealthStatus() : Report interval is ${reportIntervalMillis} ms, timeout is ${timeoutMillis} ms.", "trace")
 
 	} else {
@@ -474,10 +475,12 @@ void withDebounce(String id, long debouncePeriod, Closure closure) {
 
 	if (!state.debounceTimestamps) {
 		state.debounceTimestamps = [:]
+	}
+	if (!state.debounceTimestamps.containsKey(id)) {
 		state.debounceTimestamps[id] = 0
 	}
 
-    long lastExecTime = state.debounceTimestamps[id]
+    long lastExecTime = state.debounceTimestamps[id] as long
     long currentTime = now()
 	long thisExecTime = currentTime - lastExecTime
 
