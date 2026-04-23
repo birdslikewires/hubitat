@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.59 (23rd April 2026)
+ *  BirdsLikeWires Library v1.60 (23rd April 2026)
  *	
  */
 
@@ -538,7 +538,6 @@ List<String> fetchChildStates(String state, String requestor) {
 
 	children.each {child->
 
-		pauseExecution(50)
 		String childState = child.currentValue("${state}")
 
 		if ("${child.id}" != "${requestor}") {
