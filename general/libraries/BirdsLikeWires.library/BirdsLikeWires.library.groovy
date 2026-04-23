@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.58 (10th April 2026)
+ *  BirdsLikeWires Library v1.59 (23rd April 2026)
  *	
  */
 
@@ -538,7 +538,7 @@ List<String> fetchChildStates(String state, String requestor) {
 
 	children.each {child->
 
-		// Grabs the requested state from the child device.
+		pauseExecution(50)
 		String childState = child.currentValue("${state}")
 
 		if ("${child.id}" != "${requestor}") {
@@ -913,8 +913,7 @@ void mqttClientStatus(String status) {
 
 void mqttProcessBasics(Map json) {
 
-	Integer newLqi = "${json.linkquality}".toInteger()
-	if (newLqi != device.currentValue("lqi")) sendEvent(name: "lqi", value: newLqi)
+	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
 
 	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
 	if (powerSource != device.currentValue("powerSource")) sendEvent(name: "powerSource", value: "$powerSource")
