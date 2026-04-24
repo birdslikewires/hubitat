@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.33 (23rd April 2026)"
+@Field String driverVersion = "v1.34 (24th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -291,6 +291,13 @@ void lampSeqSleepy() {
 	sendZigbeeCommands(cmds)
 
 	logging("${device} : Lamp : Sleepy", "info")
+
+}
+
+
+void processMap(Map map) {
+
+	logging("${device} : processMap() : Unhandled cluster ${map.clusterId}.", "trace")
 
 }
 

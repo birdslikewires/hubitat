@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.19 (8th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.20 (24th April 2026)
  *	
  */
 
@@ -148,7 +148,7 @@ void parse(String description) {
 				// Discovery Cluster
 				alertmeDiscovery(descriptionMap)
 
-			} else if (descriptionMap.clusterId == "8001" || descriptionMap.clusterId == "8032" || descriptionMap.clusterId == "8038") {
+			} else if (descriptionMap.clusterId == "0013" || descriptionMap.clusterId == "8001" || descriptionMap.clusterId == "8032" || descriptionMap.clusterId == "8038") {
 
 				// Various status messages that we don't need to deal with.
 				alertmeSkip(descriptionMap.clusterId)

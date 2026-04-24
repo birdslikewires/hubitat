@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.35 (23rd April 2026)"
+@Field String driverVersion = "v1.36 (24th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -105,5 +105,12 @@ void processStatus(ZoneStatus status) {
 		sendEvent(name: "sound", value: "not detected", isStateChange: true)
 
 	}
+
+}
+
+
+void processMap(Map map) {
+
+	logging("${device} : processMap() : Unhandled cluster ${map.clusterId}.", "trace")
 
 }
