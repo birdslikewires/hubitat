@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.21 (25th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.22 (25th April 2026)
  *	
  */
 
@@ -234,9 +234,9 @@ void alertmeDeviceStatus(Map map) {
 
 	if ("$modelCheck" == "SmartPlug") {
 
-		// A good three-cell 3.6 V NiMH battery will sit between 4.10 V and 4.25 V while charging.
+		// NiMH backup battery; fully charged plugs observed between 4.15 V and 4.30 V.
 		batteryVoltageScaleMin = 4.10
-		batteryVoltageScaleMax = 4.15
+		batteryVoltageScaleMax = 4.25
 
 	}
 
@@ -255,11 +255,7 @@ void alertmeDeviceStatus(Map map) {
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
 
 		String newBatteryState = "discharging"
-		if ("$modelCheck" == "SmartPlug" && batteryVoltage > batteryVoltageScaleMax) {
-			if (state.supplyPresent == "true") {
-				newBatteryState = "charged"
-			}
-		} else if (state.supplyPresent == "true") {
+		if ("$modelCheck" == "SmartPlug" && state.supplyPresent) {
 			newBatteryState = "charging"
 		}
 		if (state.battery != newBatteryState) {
