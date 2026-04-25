@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.33 (25th April 2026)"
+@Field String driverVersion = "v1.34 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -118,7 +118,7 @@ void processMap(Map map) {
 			powerValue = powerValue * sensorCorrectionMultiplier
 			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
 
-			sendEvent(name: "power", value: powerValue, unit: "W")
+			if (powerValue != device.currentValue("power")) sendEvent(name: "power", value: powerValue, unit: "W")
 			logging("${device} : Power : ${powerValue} W", "info")
 
 		} else if (map.command == "82") {
@@ -139,7 +139,7 @@ void processMap(Map map) {
 
 			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
 
-			sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+			if (energyValueDecimal != device.currentValue("energy")) sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
 
 			// Uptime
 

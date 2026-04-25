@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.62 (25th April 2026)
+ *  BirdsLikeWires Library v1.63 (25th April 2026)
  *	
  */
 
@@ -224,7 +224,7 @@ void checkHealthStatus() {
 
 		} else {
 
-			sendEvent(name: "healthStatus", value: "online")
+			if (device.currentValue("healthStatus") != "online") sendEvent(name: "healthStatus", value: "online")
 			logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "debug")
 
 		}

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.67 (25th April 2026)"
+@Field String driverVersion = "v1.68 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -172,8 +172,8 @@ void processMap(Map map) {
 					
 				}
 
-				sendEvent(name: "powerSource", value: "mains")
-				sendEvent(name: "tamper", value: "clear")
+				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
+				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 				state.mismatch = false
 				state.supplyPresent = true
 
@@ -200,14 +200,18 @@ void processMap(Map map) {
 			if (switchStateHex == "01") {
 
 				state.relayClosed = true
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch : On", "info")
+				if (device.currentValue("switch") != "on") {
+					sendEvent(name: "switch", value: "on")
+					logging("${device} : Switch : On", "info")
+				}
 
 			} else {
 
 				state.relayClosed = false
-				sendEvent(name: "switch", value: "off")
-				logging("${device} : Switch : Off", "info")
+				if (device.currentValue("switch") != "off") {
+					sendEvent(name: "switch", value: "off")
+					logging("${device} : Switch : Off", "info")
+				}
 
 			}
 
@@ -261,7 +265,7 @@ void processMap(Map map) {
 
 			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
 
-			sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+			if (energyValueDecimal != device.currentValue("energy")) sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
 
 			// Uptime
 
