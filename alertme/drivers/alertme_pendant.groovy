@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.13 (25th April 2026)"
+@Field String driverVersion = "v1.14 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -74,8 +74,8 @@ void configureSpecifics() {
 	state.operatingMode = "normal"
 
 	// Schedule ranging report.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	int randomSixty = Math.abs(new Random().nextInt() % 60)
+	int randomTwentyFour = Math.abs(new Random().nextInt() % 24)
 	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
 
 }
@@ -114,13 +114,7 @@ void alertmeCareResponse() {
 
 void processMap(Map map) {
 
-	if (map.clusterId == "0006") {
-
-		// Match Descriptor Request Response
-		logging("${device} : Sending Match Descriptor Response", "debug")
-		sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x8006 {00 00 00 01 02} {0xC216}"])
-
-	} else if (map.clusterId == "00C0") {
+	if (map.clusterId == "00C0") {
 
 		// Pendant trigger message.
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.68 (25th April 2026)"
+@Field String driverVersion = "v1.69 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -80,8 +80,8 @@ void configureSpecifics() {
 	state.operatingMode = "normal"
 
 	// Schedule ranging report.
-	randomSixty = Math.abs(new Random().nextInt() % 60)
-	randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	int randomSixty = Math.abs(new Random().nextInt() % 60)
+	int randomTwentyFour = Math.abs(new Random().nextInt() % 24)
 	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
 
 }
