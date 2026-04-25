@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.60 (23rd April 2026)
+ *  BirdsLikeWires Library v1.61 (25th April 2026)
  *	
  */
 
@@ -419,7 +419,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		}
 
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
 		state.battery = "discharging"
 
 	} else {
@@ -430,7 +430,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		sendEvent(name: "battery", value:batteryPercentage, unit: "%")
+		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
 		state.battery = "exhausted"
 
 	}
@@ -805,7 +805,6 @@ void filterThis(Map map) {
 	} else if (map.clusterId == "0013") {
 
 		logging("${device} : Received : Device Announce Broadcast", "debug")
-		refresh()
 
 	} else if (map.clusterId == "0400") {
 
