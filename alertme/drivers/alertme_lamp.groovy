@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.34 (24th April 2026)"
+@Field String driverVersion = "v1.35 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -148,7 +148,7 @@ void updateSpecifics() {
 void off() {
 
 	// Convert seconds to multiple of 0.2s, or use 0.2s if duration is zero.
-	BigInteger dur = state.lastDuration * 5
+	BigInteger dur = (state.lastDuration ?: 0) * 5
 	String durHex = dur > 0 ? dur.toString(16).toUpperCase().padLeft(4,'0') : "0000"
 
 	def cmds = new ArrayList<String>()
@@ -168,7 +168,7 @@ void on() {
 
 	// The RGB LEDs in these lamps are not calibrated so you will get colour variations and potentially some flickering at certain values.
 
-	def hsl = [state.lastHue,state.lastSaturation,state.lastLevel]
+	def hsl = [(state.lastHue ?: 0) as BigDecimal, (state.lastSaturation ?: 0) as BigDecimal, (state.lastLevel ?: 100) as BigDecimal]
 	def rgb = hubitat.helper.ColorUtils.hsvToRGB(hsl)
 
 	// Limit maximum values for code safety.
@@ -188,7 +188,7 @@ void on() {
 
 
 	// Convert seconds to multiple of 0.2s, or use 0.2s if duration is zero.
-	BigDecimal dur = state.lastDuration / 0.2
+	BigDecimal dur = (state.lastDuration ?: 0) / 0.2
 	String[] durHex = dur > 0 ? dur.toBigInteger().toString(16).toUpperCase().padLeft(4,'0') : [0,0,0,0]
 
 	def cmds = new ArrayList<String>()
@@ -254,6 +254,13 @@ void setSaturation(BigDecimal sat) {
 }
 
 
+void setLevel(BigDecimal level) {
+
+	setLevel(level, 0)
+
+}
+
+
 void setLevel(BigDecimal level, BigDecimal duration) {
 
 	state.lastLevel = level <= 100 ? level : 100
@@ -271,6 +278,7 @@ void setLevel(BigDecimal level, BigDecimal duration) {
 void lampSeqRGB() {
 
 	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 01 01} {0xC216}")		// enable sequence mode
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 FF 00 00 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 00 FF 00 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 1A 00 08 00 00 00 FF 01 01} {0xC216}")
@@ -285,6 +293,7 @@ void lampSeqRGB() {
 void lampSeqSleepy() {
 
 	def cmds = new ArrayList<String>()
+	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 04 01 01} {0xC216}")		// enable sequence mode
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 14 00 06 00 06 0A 0A 00 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 01 0F 00 01 00 58 7F 7F 01 01} {0xC216}")
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 FD 01} {0xC216}")

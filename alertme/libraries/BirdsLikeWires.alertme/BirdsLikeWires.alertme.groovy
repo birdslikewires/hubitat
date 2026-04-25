@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.20 (24th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.21 (25th April 2026)
  *	
  */
 
@@ -181,9 +181,9 @@ void alertmeCare(Integer cmd) {
 	// 0x03 = Help called - two beeps and continuous red flashing.
 	// 0x04 = Help coming - three beeps and continuous green flashing.
 
-	cluster = 0x00C0
-	attributeId = 0x020
-	dataType = DataType.ENUM8
+	Integer cluster = 0x00C0
+	Integer attributeId = 0x020
+	Integer dataType = DataType.ENUM8
 	sendZigbeeCommands(zigbee.writeAttribute(cluster, attributeId, dataType, cmd, [destEndpoint :0x02]))
 	logging("${device} : Care Command 0x0${cmd} Sent", "debug")
 
@@ -220,7 +220,7 @@ void alertmeDeviceStatus(Map map) {
 			logging("${device} : Early firmware requires batteryVoltage correction!", "debug")
 		}
 	} else {
-		logging("${device} : Model and firmware data incomplete for this SmartPlug.", "debug")
+		logging("${device} : Model and firmware data incomplete.", "debug")
 	}
 
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
@@ -262,7 +262,10 @@ void alertmeDeviceStatus(Map map) {
 		} else if (state.supplyPresent == "true") {
 			newBatteryState = "charging"
 		}
-		if (state.battery != newBatteryState) state.battery = newBatteryState
+		if (state.battery != newBatteryState) {
+			state.battery = newBatteryState
+			sendEvent(name: "batteryState", value: newBatteryState)
+		}
 
 	} else if (batteryVoltage < batteryVoltageScaleMin) {
 
@@ -273,7 +276,10 @@ void alertmeDeviceStatus(Map map) {
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
-		if (state.battery != "exhausted") state.battery = "exhausted"
+		if (state.battery != "exhausted") {
+			state.battery = "exhausted"
+			sendEvent(name: "batteryState", value: "exhausted")
+		}
 
 	} else {
 
@@ -285,7 +291,10 @@ void alertmeDeviceStatus(Map map) {
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
-		if (state.battery != "fault") state.battery = "fault"
+		if (state.battery != "fault") {
+			state.battery = "fault"
+			sendEvent(name: "batteryState", value: "fault")
+		}
 
 	}
 

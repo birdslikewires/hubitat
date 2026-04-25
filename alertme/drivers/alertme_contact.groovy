@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.25 (24th April 2026)"
+@Field String driverVersion = "v1.26 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -19,7 +19,7 @@ import groovy.transform.Field
 
 metadata {
 
-	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_alarm.groovy") {
+	definition (name: "$deviceName", namespace: "BirdsLikeWires", author: "Andrew Davison", importUrl: "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_contact.groovy") {
 
 		capability "Battery"
 		capability "Configuration"
@@ -89,7 +89,7 @@ void updateSpecifics() {
 }
 
 
-def processStatus(ZoneStatus status) {
+void processStatus(ZoneStatus status) {
 
 	if (status.isAlarm1Set() || status.isAlarm2Set()) {
 

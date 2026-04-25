@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.32 (24th April 2026)"
+@Field String driverVersion = "v1.33 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -75,7 +75,6 @@ void configureSpecifics() {
 	// Called by main configure() method in BirdsLikeWires.alertme
 
 	device.name = "$deviceName"
-	enablePowerControl()
 
 	state.operatingMode = "normal"
 
@@ -101,7 +100,7 @@ void processMap(Map map) {
 
 		// Power and energy messages.
 
-		BigDecimal sensorCorrectionMultiplier = sensorCorrection.toBigDecimal()
+		BigDecimal sensorCorrectionMultiplier = (sensorCorrection ?: 1.0).toBigDecimal()
 
 		if (map.command == "81") {
 

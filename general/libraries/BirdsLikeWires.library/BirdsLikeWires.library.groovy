@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.61 (25th April 2026)
+ *  BirdsLikeWires Library v1.62 (25th April 2026)
  *	
  */
 
@@ -131,7 +131,7 @@ void levelChange(int multiplier) {
 void levelChange(int multiplier, String direction) {
 	// Work out the level we should report based upon a hold duration.
 
-	long millisActive = now() - state.levelChangeStart
+	long millisActive = now() - (state.levelChangeStart ?: 0)
 	if (millisActive > 6000) {
 		millisActive = 0				// In case we don't receive a 'released' message.
 	}
@@ -264,16 +264,9 @@ void requestBasic() {
 	// this may be advantageous in putting some of their devices into the correct mode.
 	ArrayList<String> cmds = []
 	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe])
+	cmds += "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}"
+	cmds += "he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
 	sendZigbeeCommands(cmds)
-	pauseExecution(500)
-
-	// Request software build and simple descriptor data.
-	sendZigbeeCommands([
-
-		"he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}",
-		"he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
-
-	])
 
 }
 
