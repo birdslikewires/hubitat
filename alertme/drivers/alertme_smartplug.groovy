@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.69 (25th April 2026)"
+@Field String driverVersion = "v1.70 (25th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -144,20 +144,20 @@ void processMap(Map map) {
 
 				sendEvent(name: "powerSource", value: "battery", isStateChange: true)
 				sendEvent(name: "tamper", value: "detected", isStateChange: true)
-				state.battery = "discharging"
-				state.supplyPresent = false
+				if (state.battery != "discharging") state.battery = "discharging"
+				if (state.supplyPresent) state.supplyPresent = false
 
 				// Whether this is a problem!
 
 				if (powerStateHex == "02") {
 
 					logging("${device} : Supply : Incoming supply failure with relay open.", "warn")
-					state.mismatch = true
+					if (!state.mismatch) state.mismatch = true
 
 				} else {
 
 					logging("${device} : Supply : Incoming supply failure with relay closed. CANNOT POWER LOAD!", "warn")
-					state.mismatch = true
+					if (!state.mismatch) state.mismatch = true
 
 				}
 
@@ -168,14 +168,14 @@ void processMap(Map map) {
 				if (state.supplyPresent) {
 
 					logging("${device} : Supply : incoming mains supply : present", "debug")
-					state.battery = "charging"
-					
+					if (state.battery != "charging") state.battery = "charging"
+
 				}
 
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
-				state.mismatch = false
-				state.supplyPresent = true
+				if (state.mismatch) state.mismatch = false
+				if (!state.supplyPresent) state.supplyPresent = true
 
 			} else {
 
@@ -185,9 +185,9 @@ void processMap(Map map) {
 
 				sendEvent(name: "powerSource", value: "mains")
 				sendEvent(name: "tamper", value: "clear", isStateChange: true)
-				state.battery = "charging"
-				state.mismatch = false
-				state.supplyPresent = true
+				if (state.battery != "charging") state.battery = "charging"
+				if (state.mismatch) state.mismatch = false
+				if (!state.supplyPresent) state.supplyPresent = true
 				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 
 			}
