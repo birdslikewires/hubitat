@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.63 (25th April 2026)
+ *  BirdsLikeWires Library v1.64 (26th April 2026)
  *	
  */
 
@@ -176,7 +176,7 @@ void levelEvent(int levelChange, String direction) {
 
 	logging("${device} : levelEvent : Got level of '${levelChange}', sending ${newLevel}%", "debug")
 
-	sendEvent(name: "level", value: newLevel)
+	if (newLevel != device.currentValue("level")) sendEvent(name: "level", value: newLevel)
 
 }
 
@@ -213,7 +213,7 @@ void checkHealthStatus() {
 
 			if (hubUptime > uptimeAllowanceMinutes * 60) {
 
-				sendEvent(name: "healthStatus", value: "offline")
+				if (device.currentValue("healthStatus") != "offline") sendEvent(name: "healthStatus", value: "offline")
 				logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "warn")
 
 			} else {
@@ -395,7 +395,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
-	sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
+	if (batteryVoltage != device.currentValue("voltage")) sendEvent(name: "voltage", value: batteryVoltage, unit: "V")
 
 	BigDecimal batteryPercentage = 0
 
@@ -413,7 +413,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 		}
 
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "discharging"
+		if (state.battery != "discharging") state.battery = "discharging"
 
 	} else {
 
@@ -424,7 +424,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		state.battery = "exhausted"
+		if (state.battery != "exhausted") state.battery = "exhausted"
 
 	}
 
@@ -904,7 +904,8 @@ void mqttClientStatus(String status) {
 
 void mqttProcessBasics(Map json) {
 
-	sendEvent(name: "lqi", value: "${json.linkquality}".toInteger())
+	Integer newLqi = "${json.linkquality}".toInteger()
+	if (newLqi != device.currentValue("lqi")) sendEvent(name: "lqi", value: newLqi)
 
 	String powerSource = "${json.device.powerSource}".toLowerCase().contains("mains") ? "mains" : "battery"
 	if (powerSource != device.currentValue("powerSource")) sendEvent(name: "powerSource", value: "$powerSource")
