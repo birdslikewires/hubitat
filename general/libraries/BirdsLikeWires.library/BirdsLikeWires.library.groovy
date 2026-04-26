@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.64 (26th April 2026)
+ *  BirdsLikeWires Library v1.65 (26th April 2026)
  *	
  */
 
@@ -50,7 +50,8 @@ void configure() {
 	// Schedule health status checking.
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
 	int reportIntervalMinutesClamped = Math.min(Math.max(1, reportIntervalMinutes), 59)
-	schedule("${randomSixty} 0/${reportIntervalMinutesClamped} * * * ? *", checkHealthStatus)
+	int randomMinute = Math.abs(new Random().nextInt() % reportIntervalMinutesClamped)
+	schedule("${randomSixty} ${randomMinute}/${reportIntervalMinutesClamped} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
