@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.23 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.24 (28th April 2026)
  *	
  */
 
@@ -259,8 +259,7 @@ void alertmeDeviceStatus(Map map) {
 		if ("$modelCheck" == "SmartPlug" && device.currentValue("powerSource") == "mains") {
 			newBatteryState = "charging"
 		}
-		if (state.battery != newBatteryState) {
-			state.battery = newBatteryState
+		if (device.currentValue("batteryState") != newBatteryState) {
 			sendEvent(name: "batteryState", value: newBatteryState)
 		}
 
@@ -275,8 +274,7 @@ void alertmeDeviceStatus(Map map) {
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		}
-		if (state.battery != "exhausted") {
-			state.battery = "exhausted"
+		if (device.currentValue("batteryState") != "exhausted") {
 			sendEvent(name: "batteryState", value: "exhausted")
 		}
 
@@ -292,8 +290,7 @@ void alertmeDeviceStatus(Map map) {
 			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		}
-		if (state.battery != "fault") {
-			state.battery = "fault"
+		if (device.currentValue("batteryState") != "fault") {
 			sendEvent(name: "batteryState", value: "fault")
 		}
 

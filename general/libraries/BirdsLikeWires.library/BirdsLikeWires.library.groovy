@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires Library v1.65 (26th April 2026)
+ *  BirdsLikeWires Library v1.66 (28th April 2026)
  *	
  */
 
@@ -414,7 +414,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 		}
 
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		if (state.battery != "discharging") state.battery = "discharging"
+		if (device.currentValue("batteryState") != "discharging") sendEvent(name: "batteryState", value: "discharging")
 
 	} else {
 
@@ -425,7 +425,7 @@ void reportBattery(String batteryVoltageHex, int batteryVoltageDivisor, BigDecim
 		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
 		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
 		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value:batteryPercentage, unit: "%")
-		if (state.battery != "exhausted") state.battery = "exhausted"
+		if (device.currentValue("batteryState") != "exhausted") sendEvent(name: "batteryState", value: "exhausted")
 
 	}
 

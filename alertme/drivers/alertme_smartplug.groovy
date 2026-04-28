@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.73 (28th April 2026)"
+@Field String driverVersion = "v1.74 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -40,6 +40,7 @@ metadata {
 		command "rangingMode"
 		//command "quietMode"
 
+		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 		attribute "uptimeReadable", "string"
 
@@ -145,7 +146,7 @@ void processMap(Map map) {
 
 				if (device.currentValue("powerSource") != "battery") sendEvent(name: "powerSource", value: "battery")
 				if (device.currentValue("tamper") != "detected") sendEvent(name: "tamper", value: "detected")
-				if (state.battery != "discharging") state.battery = "discharging"
+				if (device.currentValue("batteryState") != "discharging") sendEvent(name: "batteryState", value: "discharging")
 
 				// Whether this is a problem!
 
@@ -166,7 +167,7 @@ void processMap(Map map) {
 				if (device.currentValue("powerSource") == "mains") {
 
 					logging("${device} : Supply : incoming mains supply : present", "debug")
-					if (state.battery != "charging") state.battery = "charging"
+					if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
 
 				}
 
@@ -181,7 +182,7 @@ void processMap(Map map) {
 
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
-				if (state.battery != "charging") state.battery = "charging"
+				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
 				unschedule(enablePowerControl)
 				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 

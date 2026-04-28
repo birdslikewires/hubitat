@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (20th August 2025)"
+@Field String driverVersion = "v1.01 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -26,6 +26,7 @@ metadata {
 		capability "TemperatureMeasurement"
 		capability "VoltageMeasurement"
 
+		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
 
 		if (debugMode) {
