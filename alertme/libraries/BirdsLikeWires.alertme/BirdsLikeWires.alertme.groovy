@@ -256,7 +256,7 @@ void alertmeDeviceStatus(Map map) {
 		}
 
 		String newBatteryState = "discharging"
-		if ("$modelCheck" == "SmartPlug" && state.supplyPresent) {
+		if ("$modelCheck" == "SmartPlug" && device.currentValue("powerSource") == "mains") {
 			newBatteryState = "charging"
 		}
 		if (state.battery != newBatteryState) {

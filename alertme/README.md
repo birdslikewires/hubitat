@@ -52,7 +52,7 @@ The *Power Clamp* is a device for measuring power usage on an AC circuit, using 
 
 - [AlertMe Smart Plug](https://github.com/birdslikewires/hubitat/blob/main/alertme/drivers/alertme_smartplug.groovy) - Import URL: [RAW](https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_smartplug.groovy)
 
-The *Smart Plug* is a sophisticated remote-control power monitoring passthrough. We support relay on and off, power usage in Watts, power summary in Kilowatt-hours, battery presence, voltage, percentage and charging state, supply presence and state mismatch (for warning when there is load demand but the supply has failed). These outlets also act as repeaters on mains and battery power, so their feature set is pretty much the best I've ever found.
+The *Smart Plug* is a sophisticated remote-control power monitoring passthrough. We support relay on and off, power usage in Watts, power summary in Kilowatt-hours, battery presence, voltage, percentage, charging state, and supply presence. The "tamper" state is used to indicate when a plug is powered on, but the mains supply has failed. These outlets also act as repeaters on mains and battery power, so their feature set is pretty much the best I've ever found.
 
 ## Device Maintenance
 

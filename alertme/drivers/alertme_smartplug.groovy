@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.72 (28th April 2026)"
+@Field String driverVersion = "v1.73 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -146,19 +146,16 @@ void processMap(Map map) {
 				if (device.currentValue("powerSource") != "battery") sendEvent(name: "powerSource", value: "battery")
 				if (device.currentValue("tamper") != "detected") sendEvent(name: "tamper", value: "detected")
 				if (state.battery != "discharging") state.battery = "discharging"
-				if (state.supplyPresent) state.supplyPresent = false
 
 				// Whether this is a problem!
 
 				if (powerStateHex == "02") {
 
 					logging("${device} : Supply : Incoming supply failure with relay open.", "warn")
-					if (!state.mismatch) state.mismatch = true
 
 				} else {
 
 					logging("${device} : Supply : Incoming supply failure with relay closed. CANNOT POWER LOAD!", "warn")
-					if (!state.mismatch) state.mismatch = true
 
 				}
 
@@ -166,7 +163,7 @@ void processMap(Map map) {
 
 				// Supply present.
 
-				if (state.supplyPresent) {
+				if (device.currentValue("powerSource") == "mains") {
 
 					logging("${device} : Supply : incoming mains supply : present", "debug")
 					if (state.battery != "charging") state.battery = "charging"
@@ -175,8 +172,6 @@ void processMap(Map map) {
 
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
-				if (state.mismatch) state.mismatch = false
-				if (!state.supplyPresent) state.supplyPresent = true
 
 			} else {
 
@@ -187,8 +182,6 @@ void processMap(Map map) {
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 				if (state.battery != "charging") state.battery = "charging"
-				if (state.mismatch) state.mismatch = false
-				if (!state.supplyPresent) state.supplyPresent = true
 				unschedule(enablePowerControl)
 				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 
@@ -201,7 +194,6 @@ void processMap(Map map) {
 
 			if (switchStateHex == "01") {
 
-				state.relayClosed = true
 				if (device.currentValue("switch") != "on") {
 					sendEvent(name: "switch", value: "on")
 					logging("${device} : Switch : On", "info")
@@ -209,7 +201,6 @@ void processMap(Map map) {
 
 			} else {
 
-				state.relayClosed = false
 				if (device.currentValue("switch") != "off") {
 					sendEvent(name: "switch", value: "off")
 					logging("${device} : Switch : Off", "info")
