@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.38 (25th April 2026)"
+@Field String driverVersion = "v1.39 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -94,15 +94,19 @@ void processStatus(ZoneStatus status) {
 
 	if (status.isAlarm1Set() || status.isAlarm2Set()) {
 
-		logging("${device} : Sound : Detected", "info")
-		sendEvent(name: "motion", value: "active", isStateChange: true)
-		sendEvent(name: "sound", value: "detected", isStateChange: true)
+		if (device.currentValue("motion") != "active") sendEvent(name: "motion", value: "active")
+		if (device.currentValue("sound") != "detected") {
+			sendEvent(name: "sound", value: "detected")
+			logging("${device} : Sound : Detected", "info")
+		}
 
 	} else {
 
-		logging("${device} : Sound : Not Detected", "info")
-		sendEvent(name: "motion", value: "inactive", isStateChange: true)
-		sendEvent(name: "sound", value: "not detected", isStateChange: true)
+		if (device.currentValue("motion") != "inactive") sendEvent(name: "motion", value: "inactive")
+		if (device.currentValue("sound") != "not detected") {
+			sendEvent(name: "sound", value: "not detected")
+			logging("${device} : Sound : Not Detected", "info")
+		}
 
 	}
 

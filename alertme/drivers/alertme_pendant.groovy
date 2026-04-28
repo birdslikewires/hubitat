@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.14 (25th April 2026)"
+@Field String driverVersion = "v1.15 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -122,6 +122,7 @@ void processMap(Map map) {
 
 			logging("${device} : Trigger : Pendant Button Pressed", "info")
 			sendEvent(name: "pushed", value: 1, isStateChange: true)
+			unschedule(alertmeCareResponse)
 			runInMillis(2000, "alertmeCareResponse")
 
 		} else {

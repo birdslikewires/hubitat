@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.22 (25th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.23 (28th April 2026)
  *	
  */
 
@@ -246,13 +246,14 @@ void alertmeDeviceStatus(Map map) {
 		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
 
-		if (batteryPercentage > 20) {
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
-		} else {
-			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+		if (batteryPercentage != device.currentValue("battery")) {
+			sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+			if (batteryPercentage > 20) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
+			} else {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			}
 		}
-
-		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
 
 		String newBatteryState = "discharging"
 		if ("$modelCheck" == "SmartPlug" && state.supplyPresent) {
@@ -269,9 +270,11 @@ void alertmeDeviceStatus(Map map) {
 
 		batteryPercentage = 0
 
-		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
-		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+		if (batteryPercentage != device.currentValue("battery")) {
+			sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+		}
 		if (state.battery != "exhausted") {
 			state.battery = "exhausted"
 			sendEvent(name: "batteryState", value: "exhausted")
@@ -284,9 +287,11 @@ void alertmeDeviceStatus(Map map) {
 
 		batteryPercentage = 0
 
-		logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
-		logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-		if (batteryPercentage != device.currentValue("battery")) sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+		if (batteryPercentage != device.currentValue("battery")) {
+			sendEvent(name: "battery", value: batteryPercentage, unit: "%")
+			logging("${device} : Battery : Exhausted battery requires replacement.", "warn")
+			logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+		}
 		if (state.battery != "fault") {
 			state.battery = "fault"
 			sendEvent(name: "batteryState", value: "fault")
@@ -303,8 +308,10 @@ void alertmeDeviceStatus(Map map) {
 		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue) / 16
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-		logging("${device} : Temperature : $temperatureCelsius°C", "info")
-		if (temperatureCelsius != device.currentValue("temperature")) sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+		if (temperatureCelsius != device.currentValue("temperature")) {
+			sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
+			logging("${device} : Temperature : $temperatureCelsius°C", "info")
+		}
 
 	}
 
@@ -405,8 +412,10 @@ void alertmeTamper(Map map) {
 
 		if (map.data[0] == "02") {
 
-			logging("${device} : Tamper : Detected", "warn")
-			sendEvent(name: "tamper", value: "detected")
+			if (device.currentValue("tamper") != "detected") {
+				sendEvent(name: "tamper", value: "detected")
+				logging("${device} : Tamper : Detected", "warn")
+			}
 
 		} else {
 
@@ -418,8 +427,10 @@ void alertmeTamper(Map map) {
 
 		if (map.data[0] == "01") {
 
-			logging("${device} : Tamper : Cleared", "info")
-			sendEvent(name: "tamper", value: "clear")
+			if (device.currentValue("tamper") != "clear") {
+				sendEvent(name: "tamper", value: "clear")
+				logging("${device} : Tamper : Cleared", "info")
+			}
 
 		} else {
 

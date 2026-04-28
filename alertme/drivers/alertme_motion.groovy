@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.32 (25th April 2026)"
+@Field String driverVersion = "v1.33 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -94,13 +94,17 @@ void processStatus(ZoneStatus status) {
 
 	if (status.isAlarm1Set() || status.isAlarm2Set()) {
 
-		logging("${device} : Motion : Active", "info")
-		sendEvent(name: "motion", value: "active", isStateChange: true)
+		if (device.currentValue("motion") != "active") {
+			sendEvent(name: "motion", value: "active")
+			logging("${device} : Motion : Active", "info")
+		}
 
 	} else {
 
-		logging("${device} : Motion : Inactive", "info")
-		sendEvent(name: "motion", value: "inactive", isStateChange: true)
+		if (device.currentValue("motion") != "inactive") {
+			sendEvent(name: "motion", value: "inactive")
+			logging("${device} : Motion : Inactive", "info")
+		}
 
 	}
 
