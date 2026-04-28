@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.67 (28th April 2026)
+ *  BirdsLikeWires Library v1.68 (28th April 2026)
  *	
  */
 
@@ -31,7 +31,7 @@ void installed() {
 	// Runs after first installation.
 	long millis = now()
 	updateDataValue("installed", "${millis}")
-	logging("${device} : Installed", "info")
+	logging("${device} : Installed", "debug")
 	configure()
 
 }
@@ -61,11 +61,11 @@ void configure() {
 	String encoding = getDataValue("encoding")
 	if ("$encoding" != "MQTT") {
 		sendEvent(name: "configuration", value: "sent", isStateChange: false)
-		logging("${device} : Configuration : Sent to device.", "info")
+		logging("${device} : Configuration : Sent to device.", "debug")
 	} else {
 		updateDataValue("isComponent", "false")
 		sendEvent(name: "configuration", value: "set", isStateChange: false)
-		logging("${device} : Configuration : Set.", "info")
+		logging("${device} : Configuration : Set.", "debug")
 	}
 
 	updated()
@@ -87,7 +87,7 @@ void updated() {
 
 	updateSpecifics()
 
-	logging("${device} : Preferences updated.", "info")
+	logging("${device} : Preferences updated.", "debug")
 
 	loggingStatus()
 
@@ -789,9 +789,9 @@ private boolean logWarnOncePerWindow(String key, String message, Integer windowM
 
 void loggingStatus() {
 
-	log.info  "${device} :  Info Logging : ${infoLogging == true}"
-	log.debug "${device} : Debug Logging : ${debugLogging == true}"
-	log.trace "${device} : Trace Logging : ${traceLogging == true}"
+	logging("${device} : Info Logging : ${infoLogging == true}", "debug")
+	logging("${device} : Debug Logging : ${debugLogging == true}", "debug")
+	logging("${device} : Trace Logging : ${traceLogging == true}", "debug")
 
 }
 

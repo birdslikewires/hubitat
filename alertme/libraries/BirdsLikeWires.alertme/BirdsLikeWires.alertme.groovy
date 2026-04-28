@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.27 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.28 (28th April 2026)
  *	
  */
 
@@ -37,7 +37,7 @@ void lockedMode() {
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 02 01} {0xC216}"])
 
-	logging("${device} : Operation : Locked", "info")
+	logging("${device} : Operation : Locked", "debug")
 
 }
 
@@ -52,7 +52,7 @@ void normalMode() {
 	("${modelCheck}" == "SmartPlug") ?: cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
 	sendZigbeeCommands(cmds)
 
-	logging("${device} : Operation : Normal", "info")
+	logging("${device} : Operation : Normal", "debug")
 
 }
 
@@ -64,7 +64,7 @@ void rangingMode() {
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
 
-	logging("${device} : Operation : Ranging", "info")
+	logging("${device} : Operation : Ranging", "debug")
 
 }
 
@@ -76,7 +76,7 @@ void quietMode() {
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 03 01} {0xC216}"])
 
-	logging("${device} : Operation : Quiet", "info")
+	logging("${device} : Operation : Quiet", "debug")
 
 }
 
