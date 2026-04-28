@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.18 (20th August 2025)"
+@Field String driverVersion = "v1.19 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -137,13 +137,17 @@ void processMap(map) {
 
 			if (map.value == "01") {
 
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch : On", "info")
+				if (device.currentValue("switch") != "on") {
+					sendEvent(name: "switch", value: "on")
+					logging("${device} : Switch : On", "info")
+				}
 
 			} else {
 
-				sendEvent(name: "switch", value: "off")
-				logging("${device} : Switch : Off", "info")
+				if (device.currentValue("switch") != "off") {
+					sendEvent(name: "switch", value: "off")
+					logging("${device} : Switch : Off", "info")
+				}
 
 			}
 
@@ -161,11 +165,11 @@ void processMap(map) {
 
 			if (powerStateHex == "01") {
 
-				sendEvent(name: "switch", value: "on")
+				if (device.currentValue("switch") != "on") sendEvent(name: "switch", value: "on")
 
 			} else {
 
-				sendEvent(name: "switch", value: "off")
+				if (device.currentValue("switch") != "off") sendEvent(name: "switch", value: "off")
 
 			}
 

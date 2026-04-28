@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (8th April 2026)"
+@Field String driverVersion = "v1.04 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -66,16 +66,21 @@ void processMQTT(def json) {
 
 	if (json.containsKey('occupancy')) {
 
+		String previousMotion = "${device.currentValue("motion")}"
 		switch("${json.occupancy}") {
 
 			case "true":
-				logging("${device} : Motion : Active", "info")
-				sendEvent(name: "motion", value: "active", isStateChange: true)
+				if (previousMotion != "active") {
+					sendEvent(name: "motion", value: "active")
+					logging("${device} : Motion : Active", "info")
+				}
 				break
 
 			default:
-				logging("${device} : Motion : Inactive", "info")
-				sendEvent(name: "motion", value: "inactive")
+				if (previousMotion != "inactive") {
+					sendEvent(name: "motion", value: "inactive")
+					logging("${device} : Motion : Inactive", "info")
+				}
 				break
 
 		}
@@ -84,9 +89,11 @@ void processMQTT(def json) {
 
 	// Admin
 
-	if (json.battery) sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+	if (json.battery && "${json.battery}" != "${device.currentValue("battery")}") {
+		sendEvent(name: "battery", value:"${json.battery}", unit: "%")
+	}
 
-	device.name = "${json.device.model}"
+	if (json.device?.model && device.name != "${json.device.model}") device.name = "${json.device.model}"
 
 	mqttProcessBasics(json)
 	updateHealthStatus()

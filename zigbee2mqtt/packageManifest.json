@@ -47,7 +47,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_moisture.groovy",
 			"required": true,
-			"version": "1.03"
+			"version": "1.04"
 		},
 		{
 			"id": "b6ea10aa-46c8-4c49-b52e-ae5e5fafd37f",
@@ -71,7 +71,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_switch.groovy",
 			"required": true,
-			"version": "1.09"
+			"version": "1.10"
 		},
 		{
 			"id": "b77d9d57-4639-44d3-8e3a-833af58f337a",
