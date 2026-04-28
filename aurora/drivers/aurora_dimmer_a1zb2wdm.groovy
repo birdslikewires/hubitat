@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.11 (28th April 2026)"
+@Field String driverVersion = "v1.12 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -242,9 +242,10 @@ void processMap(map) {
 
 			// Reading
 
+			Object previousLevel = device.currentValue("level")
 			int currentLevel = hexToPercentage("${map.value}")
-			sendEvent(name: "level", value: "${currentLevel}")
-			if (hasSignificantIntegerChange(device.currentValue("level"), currentLevel, levelInfoLogDelta)) {
+			if (currentLevel != previousLevel) sendEvent(name: "level", value: "${currentLevel}")
+			if (hasSignificantIntegerChange(previousLevel, currentLevel, levelInfoLogDelta)) {
 				logging("${device} : Level : ${currentLevel}", "info")
 			}
 

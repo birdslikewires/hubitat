@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (28th April 2026)"
+@Field String driverVersion = "v1.02 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -238,21 +238,23 @@ void processMap(Map map) {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			if (temperatureType == "heatingSetpoint" || hasSignificantDecimalChange(device.currentValue("${temperatureType}"), temperature, temperatureInfoLogDelta)) {
+			Object previousTemperature = device.currentValue("${temperatureType}")
+			if (temperature != previousTemperature) {
+				sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
+			}
+			if (temperatureType == "heatingSetpoint" || hasSignificantDecimalChange(previousTemperature, temperature, temperatureInfoLogDelta)) {
 				logging("${device} : ${temperatureType} : ${temperature} °${temperatureScale}", "info")
 			}
-			sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
 
 			if (temperatureType == "heatingSetpoint") {
 
 				// System is heating-only. The cooling setpoint can only ever be our heating target.
-				sendEvent(name: "coolingSetpoint", value: temperature, unit: "${temperatureScale}")
-				sendEvent(name: "thermostatSetpoint", value: temperature, unit: "${temperatureScale}")
+				if (temperature != device.currentValue("coolingSetpoint")) sendEvent(name: "coolingSetpoint", value: temperature, unit: "${temperatureScale}")
+				if (temperature != device.currentValue("thermostatSetpoint")) sendEvent(name: "thermostatSetpoint", value: temperature, unit: "${temperatureScale}")
 
 				// Now we need to check whether this was a scheduled or manual setpoint change.
 				getSystemMode()
 				getTemperatureSetpointHoldDuration()
-
 			}
 
 		} else if (map.attrId == "001C") {
@@ -265,7 +267,7 @@ void processMap(Map map) {
 				case "00":
 					// This always represents off.
 					logging("${device} : mode : heating off", "debug")
-					sendEvent(name: "thermostatMode", value: "off")
+					if (device.currentValue("thermostatMode") != "off") sendEvent(name: "thermostatMode", value: "off")
 					getThermostatRunningState()
 					break
 				case "04":
@@ -276,7 +278,7 @@ void processMap(Map map) {
 				case "05":
 					// This always represents boost mode.
 					logging("${device} : mode : heating boost", "debug")
-					sendEvent(name: "thermostatMode", value: "emergency heat")
+					if (device.currentValue("thermostatMode") != "emergency heat") sendEvent(name: "thermostatMode", value: "emergency heat")
 					break
 				default:
 					logging("${device} : mode : unknown heating mode received", "warn")
@@ -293,7 +295,7 @@ void processMap(Map map) {
 
 				case "00":
 					// This always represents scheduled mode as the hold is off, so the schedule is running.
-					sendEvent(name: "thermostatMode", value: "auto")
+					if (device.currentValue("thermostatMode") != "auto") sendEvent(name: "thermostatMode", value: "auto")
 					logging("${device} : setpoint hold : ${map.value} on endpoint ${map.endpoint}", "debug")
 					break
 				case "01":
@@ -302,7 +304,7 @@ void processMap(Map map) {
 					//         the system switches to a hybrid mode where the altered setpoint runs for the duration until the
 					//         next programme change in the schedule. At that point the programme resumes, but the thermostat
 					//         always reports "SCH" despite being in a manual state.
-					sendEvent(name: "thermostatMode", value: "heat")
+					if (device.currentValue("thermostatMode") != "heat") sendEvent(name: "thermostatMode", value: "heat")
 					break
 
 			}
@@ -315,7 +317,7 @@ void processMap(Map map) {
 
 			logging("${device} : overrideMinutes : ${holdDuration} (${map.value}) on endpoint ${map.endpoint}", "debug")
 
-			sendEvent(name: "overrideMinutes", value: holdDuration)
+			if (holdDuration != device.currentValue("overrideMinutes")) sendEvent(name: "overrideMinutes", value: holdDuration)
 
 		} else if (map.attrId == "0029") {
 			// ThermostatRunningState
@@ -325,11 +327,11 @@ void processMap(Map map) {
 			switch(map.value) {
 
 				case "0000":
-					sendEvent(name: "thermostatOperatingState", value: "idle")
+					if (device.currentValue("thermostatOperatingState") != "idle") sendEvent(name: "thermostatOperatingState", value: "idle")
 					logging("${device} : thermostatOperatingState : idle", "debug")
 					break
 				case "0001":
-					sendEvent(name: "thermostatOperatingState", value: "heating")
+					if (device.currentValue("thermostatOperatingState") != "heating") sendEvent(name: "thermostatOperatingState", value: "heating")
 					logging("${device} : thermostatOperatingState : heating", "debug")
 					break
 				default:

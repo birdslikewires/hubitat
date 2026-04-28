@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (28th April 2026)"
+@Field String driverVersion = "v1.03 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -157,10 +157,13 @@ void processMap(Map map) {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			if (hasSignificantDecimalChange(device.currentValue("temperature"), temperature, temperatureInfoLogDelta)) {
+			Object previousTemperature = device.currentValue("temperature")
+			if (temperature != previousTemperature) {
+				sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
+			}
+			if (hasSignificantDecimalChange(previousTemperature, temperature, temperatureInfoLogDelta)) {
 				logging("${device} : Temperature : ${temperature} °${temperatureScale}", "info")
 			}
-			sendEvent(name: "temperature", value: temperature, unit: "${temperatureScale}")
 
 		} else {
 

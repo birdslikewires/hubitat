@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.03 (28th April 2026)"
+@Field String driverVersion = "v1.04 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -68,37 +68,48 @@ void processMQTT(def json) {
 
 	if (json.containsKey('humidity')) {
 
+		Object previousHumidity = device.currentValue("humidity")
 		BigDecimal humidity = decimalValueOrNull(json.humidity)
-		if (hasSignificantDecimalChange(device.currentValue("humidity"), humidity, humidityInfoLogDelta)) {
+		if (humidity != previousHumidity) {
+			sendEvent(name: "humidity", value:"${json.humidity}", unit: "%rh")
+		}
+		if (hasSignificantDecimalChange(previousHumidity, humidity, humidityInfoLogDelta)) {
 			logging("${device} : Humidity : ${json.humidity}%", "info")
 		}
-		sendEvent(name: "humidity", value:"${json.humidity}", unit: "%rh")
 	
 	}
 
 	if (json.containsKey('local_temperature')) {
 
+		Object previousTemperature = device.currentValue("temperature")
 		BigDecimal temperature = decimalValueOrNull(json.local_temperature)
-		if (hasSignificantDecimalChange(device.currentValue("temperature"), temperature, temperatureInfoLogDelta)) {
+		if (temperature != previousTemperature) {
+			sendEvent(name: "temperature", value:"${json.local_temperature}", unit: "°C")
+		}
+		if (hasSignificantDecimalChange(previousTemperature, temperature, temperatureInfoLogDelta)) {
 			logging("${device} : Temperature : ${json.local_temperature}°C", "info")
 		}
-		sendEvent(name: "temperature", value:"${json.local_temperature}", unit: "°C")
 	
 	} else if (json.containsKey('temperature')) {
 
+		Object previousTemperature = device.currentValue("temperature")
 		BigDecimal temperature = decimalValueOrNull(json.temperature)
-		if (hasSignificantDecimalChange(device.currentValue("temperature"), temperature, temperatureInfoLogDelta)) {
+		if (temperature != previousTemperature) {
+			sendEvent(name: "temperature", value:"${json.temperature}", unit: "°C")
+		}
+		if (hasSignificantDecimalChange(previousTemperature, temperature, temperatureInfoLogDelta)) {
 			logging("${device} : Temperature : ${json.temperature}°C", "info")
 		}
-		sendEvent(name: "temperature", value:"${json.temperature}", unit: "°C")
 	
 	}
 
 	// Admin
 
-	if (json.containsKey('battery')) sendEvent(name: "battery", value:"${json.battery ?: 0}", unit: "%")
+	if (json.containsKey('battery') && "${json.battery ?: 0}" != "${device.currentValue("battery")}") {
+		sendEvent(name: "battery", value:"${json.battery ?: 0}", unit: "%")
+	}
 
-	device.name = "${json.device.model}"
+	if (json.device?.model && device.name != "${json.device.model}") device.name = "${json.device.model}"
 
 	mqttProcessBasics(json)
 	updateHealthStatus()

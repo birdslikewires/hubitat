@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (28th April 2026)"
+@Field String driverVersion = "v1.03 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -68,19 +68,24 @@ void processMQTT(def json) {
 
 	if (json.containsKey('soil_moisture')) {
 
+		Object previousMoisture = device.currentValue("moisture")
 		BigDecimal moisture = decimalValueOrNull(json.soil_moisture)
-		if (hasSignificantDecimalChange(device.currentValue("moisture"), moisture, moistureInfoLogDelta)) {
+		if (moisture != previousMoisture) {
+			sendEvent(name: "moisture", value:"${json.soil_moisture}", unit: "%")
+		}
+		if (hasSignificantDecimalChange(previousMoisture, moisture, moistureInfoLogDelta)) {
 			logging("${device} : Moisture : ${json.soil_moisture}%", "info")
 		}
-		sendEvent(name: "moisture", value:"${json.soil_moisture}", unit: "%")
 	
 	}
 
 	// Admin
 
-	if (json.containsKey('battery')) sendEvent(name: "battery", value:"${json.battery ?: 0}", unit: "%")
+	if (json.containsKey('battery') && "${json.battery ?: 0}" != "${device.currentValue("battery")}") {
+		sendEvent(name: "battery", value:"${json.battery ?: 0}", unit: "%")
+	}
 
-	device.name = "${json.device.model}"
+	if (json.device?.model && device.name != "${json.device.model}") device.name = "${json.device.model}"
 
 	mqttProcessBasics(json)
 	updateHealthStatus()
