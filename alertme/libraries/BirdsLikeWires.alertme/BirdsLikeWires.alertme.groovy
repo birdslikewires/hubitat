@@ -1,11 +1,12 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.26 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.27 (28th April 2026)
  *	
  */
 
 
 import hubitat.zigbee.clusters.iaszone.ZoneStatus
+import groovy.transform.Field
 
 
 library (
@@ -18,6 +19,9 @@ library (
 	namespace: "BirdsLikeWires"
 
 )
+
+@Field static final Integer batteryInfoDelta = 5
+@Field static final BigDecimal temperatureInfoDelta = 0.5G
 
 
 void lockedMode() {
@@ -231,6 +235,7 @@ void alertmeDeviceStatus(Map map) {
 	BigDecimal batteryPercentage = 0
 	BigDecimal batteryVoltageScaleMin = 2.80
 	BigDecimal batteryVoltageScaleMax = 3.10
+	Integer currentBatteryPercentage = device.currentValue("battery") as Integer
 
 	if ("$modelCheck" == "SmartPlug") {
 
@@ -245,13 +250,18 @@ void alertmeDeviceStatus(Map map) {
 		batteryPercentage = ((batteryVoltage - batteryVoltageScaleMin) / (batteryVoltageScaleMax - batteryVoltageScaleMin)) * 100.0
 		batteryPercentage = batteryPercentage.setScale(0, BigDecimal.ROUND_HALF_UP)
 		batteryPercentage = batteryPercentage > 100 ? 100 : batteryPercentage
+		batteryPercentage = batteryPercentage < 0 ? 0 : batteryPercentage
 
-		if (batteryPercentage != device.currentValue("battery")) {
+		boolean batteryChanged = batteryPercentage != currentBatteryPercentage
+		boolean significantBatteryChange = hasSignificantIntegerChange(currentBatteryPercentage, batteryPercentage, batteryInfoDelta)
+		boolean batteryBacked = device.currentValue("powerSource") != "mains"
+
+		if (batteryChanged) {
 			sendEvent(name: "battery", value: batteryPercentage, unit: "%")
-			if (batteryPercentage > 20) {
-				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
-			} else {
+			if (batteryPercentage <= 20) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
+			} else if (batteryBacked && significantBatteryChange) {
+				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			}
 		}
 
@@ -300,11 +310,14 @@ void alertmeDeviceStatus(Map map) {
 		temperatureValue = map.data[7..8].reverse().join()
 		logging("${device} : temperatureValue byte flipped : ${temperatureValue}", "trace")
 		BigDecimal temperatureCelsius = hexToBigDecimal(temperatureValue) / 16
+		BigDecimal currentTemperature = decimalValueOrNull(device.currentValue("temperature"))
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
 		if (temperatureCelsius != device.currentValue("temperature")) {
 			sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
-			logging("${device} : Temperature : $temperatureCelsius°C", "info")
+			if (hasSignificantDecimalChange(currentTemperature, temperatureCelsius, temperatureInfoDelta)) {
+				logging("${device} : Temperature : $temperatureCelsius°C", "info")
+			}
 		}
 
 	}

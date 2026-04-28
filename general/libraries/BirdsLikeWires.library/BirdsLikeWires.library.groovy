@@ -188,6 +188,8 @@ void updateHealthStatus() {
 	if (millisNow - (state.updatedHealthStatus ?: 0) > 30000) {
 		state.updatedHealthStatus = millisNow
 	}
+	clearRateLimitedLog("healthFirstReport")
+	clearRateLimitedLog("healthOffline")
 	if (device.currentValue("healthStatus") != "online") {
 		sendEvent(name: "healthStatus", value: "online")
 	}
@@ -215,7 +217,7 @@ void checkHealthStatus() {
 			if (hubUptime > uptimeAllowanceMinutes * 60) {
 
 				if (device.currentValue("healthStatus") != "offline") sendEvent(name: "healthStatus", value: "offline")
-				logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "warn")
+				logWarnOncePerWindow("healthOffline", "${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", 60)
 
 			} else {
 
@@ -235,7 +237,7 @@ void checkHealthStatus() {
 
 	} else {
 
-		logging("${device} : Health Status : Waiting for first report.", "warn")
+		logWarnOncePerWindow("healthFirstReport", "${device} : Health Status : Waiting for first report.", 60)
 
 	}
 
@@ -716,6 +718,71 @@ private String capitaliseFirstLetters(String input) {
     }
 
     return output.toString().trim()
+
+}
+
+
+private BigDecimal decimalValueOrNull(Object value) {
+
+	if (value == null || value == "") return null
+
+	try {
+		return new BigDecimal("${value}")
+	} catch (Exception ignored) {
+		return null
+	}
+
+}
+
+
+private boolean hasSignificantDecimalChange(Object currentValue, Object newValue, BigDecimal minimumDelta) {
+
+	BigDecimal currentDecimal = decimalValueOrNull(currentValue)
+	BigDecimal newDecimal = decimalValueOrNull(newValue)
+	if (newDecimal == null) return false
+	if (currentDecimal == null) return true
+	return (currentDecimal - newDecimal).abs() >= minimumDelta
+
+}
+
+
+private boolean hasSignificantIntegerChange(Object currentValue, Object newValue, Integer minimumDelta) {
+
+	BigDecimal currentDecimal = decimalValueOrNull(currentValue)
+	BigDecimal newDecimal = decimalValueOrNull(newValue)
+	if (newDecimal == null) return false
+	if (currentDecimal == null) return true
+	return (currentDecimal - newDecimal).abs() >= minimumDelta
+
+}
+
+
+private void clearRateLimitedLog(String key) {
+
+	if (state.rateLimitedLogs instanceof Map) {
+		state.rateLimitedLogs.remove(key)
+	}
+
+}
+
+
+private boolean logWarnOncePerWindow(String key, String message, Integer windowMinutes) {
+
+	if (!(state.rateLimitedLogs instanceof Map)) {
+		state.rateLimitedLogs = [:]
+	}
+
+	Long nowMillis = now()
+	Long lastLogged = state.rateLimitedLogs[key] as Long
+	Long windowMillis = Math.max(windowMinutes ?: 0, 0) * 60L * 1000L
+
+	if (lastLogged == null || windowMillis == 0L || (nowMillis - lastLogged) >= windowMillis) {
+		state.rateLimitedLogs[key] = nowMillis
+		logging(message, "warn")
+		return true
+	}
+
+	return false
 
 }
 

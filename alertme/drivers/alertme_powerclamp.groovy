@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.36 (28th April 2026)"
+@Field String driverVersion = "v1.37 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -15,6 +15,8 @@ import groovy.transform.Field
 @Field int reportIntervalMinutes = 6
 @Field int rangeEveryHours = 6
 @Field String deviceName = "AlertMe Power Clamp"
+@Field BigDecimal powerInfoLogDelta = 5G
+@Field BigDecimal energyInfoLogDelta = 0.1G
 
 
 metadata {
@@ -116,10 +118,13 @@ void processMap(Map map) {
 
 			powerValue = powerValue * sensorCorrectionMultiplier
 			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
+			BigDecimal currentPower = decimalValueOrNull(device.currentValue("power"))
 
 			if (powerValue != device.currentValue("power")) {
 				sendEvent(name: "power", value: powerValue, unit: "W")
-				logging("${device} : Power : ${powerValue} W", "info")
+				if (hasSignificantDecimalChange(currentPower, powerValue, powerInfoLogDelta)) {
+					logging("${device} : Power : ${powerValue} W", "info")
+				}
 			}
 
 		} else if (map.command == "82") {
@@ -137,10 +142,13 @@ void processMap(Map map) {
 
 			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
+			BigDecimal currentEnergy = decimalValueOrNull(device.currentValue("energy"))
 
 			if (energyValueDecimal != device.currentValue("energy")) {
 				sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
-				logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
+				if (hasSignificantDecimalChange(currentEnergy, energyValueDecimal, energyInfoLogDelta)) {
+					logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
+				}
 			}
 
 			// Uptime
