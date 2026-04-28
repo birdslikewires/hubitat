@@ -63,7 +63,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_nested_dimmer.groovy",
 			"required": true,
-			"version": "1.05"
+			"version": "1.06"
 		},
 		{
 			"id": "cad9d81a-fbe4-44f1-9d28-957e2f96001c",

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.05 (8th April 2026)"
+@Field String driverVersion = "v1.06 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -13,6 +13,7 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 50
 @Field String deviceName = "Zigbee2MQTT Nested Dimmer"
+@Field Integer levelInfoLogDelta = 5
 
 
 metadata {
@@ -97,14 +98,18 @@ void processMQTT(def json) {
 	String stateType = mqttGetStateType()
 
 	String switchState = json."$stateType".toLowerCase()
+	String currentSwitchState = "${device.currentValue("switch")}"
 	sendEvent(name: "switch", value: "$switchState")
 
 	Integer currentLevel = json.brightness
 	currentLevel = Math.round(currentLevel / 2.54).toInteger()
+	Integer previousLevel = device.currentValue("level") as Integer
 	sendEvent(name: "level", value: "${currentLevel}")
 
 	String capSwitchState = switchState.capitalize()
-	logging("${device} : Switch : $capSwitchState at $currentLevel%", "info")
+	if (currentSwitchState != switchState || hasSignificantIntegerChange(previousLevel, currentLevel, levelInfoLogDelta)) {
+		logging("${device} : Switch : $capSwitchState at $currentLevel%", "info")
+	}
 
 	device.name = "${deviceName}"
 
