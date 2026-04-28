@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.75 (28th April 2026)"
+@Field String driverVersion = "v1.76 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -167,7 +167,11 @@ void processMap(Map map) {
 				logging("${device} : Supply : incoming mains supply : present", "debug")
 
 				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
-				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
+				if (device.currentValue("powerSource") != "mains") {
+					sendEvent(name: "powerSource", value: "mains")
+					unschedule(enablePowerControl)
+					runIn(6, enablePowerControl)	// plugs require a few seconds before this will stick
+				}
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
 			} else {
@@ -181,7 +185,7 @@ void processMap(Map map) {
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
 				unschedule(enablePowerControl)
-				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
+				runIn(6,enablePowerControl)		// plugs require a few seconds before this will stick
 
 			}
 
