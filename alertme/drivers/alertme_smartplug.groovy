@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.74 (28th April 2026)"
+@Field String driverVersion = "v1.75 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -164,13 +164,9 @@ void processMap(Map map) {
 
 				// Supply present.
 
-				if (device.currentValue("powerSource") == "mains") {
+				logging("${device} : Supply : incoming mains supply : present", "debug")
 
-					logging("${device} : Supply : incoming mains supply : present", "debug")
-					if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
-
-				}
-
+				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
@@ -180,9 +176,10 @@ void processMap(Map map) {
 
 				logging("${device} : Supply : Device returning from shutdown, please check batteries!", "warn")
 
+				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
-				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
+
 				unschedule(enablePowerControl)
 				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 

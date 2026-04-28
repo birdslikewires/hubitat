@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.24 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.25 (28th April 2026)
  *	
  */
 
@@ -255,10 +255,7 @@ void alertmeDeviceStatus(Map map) {
 			}
 		}
 
-		String newBatteryState = "discharging"
-		if ("$modelCheck" == "SmartPlug" && device.currentValue("powerSource") == "mains") {
-			newBatteryState = "charging"
-		}
+		String newBatteryState = device.currentValue("powerSource") == "mains" ? "charging" : "discharging"
 		if (device.currentValue("batteryState") != newBatteryState) {
 			sendEvent(name: "batteryState", value: newBatteryState)
 		}
