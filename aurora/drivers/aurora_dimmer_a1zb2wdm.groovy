@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.10 (4th April 2026)"
+@Field String driverVersion = "v1.11 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -13,6 +13,7 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 10
 @Field String deviceName = "Aurora Dimmer AU-A1ZB2WDM"
+@Field Integer levelInfoLogDelta = 5
 
 
 metadata {
@@ -243,7 +244,9 @@ void processMap(map) {
 
 			int currentLevel = hexToPercentage("${map.value}")
 			sendEvent(name: "level", value: "${currentLevel}")
-			logging("${device} : Level : ${currentLevel}", "info")
+			if (hasSignificantIntegerChange(device.currentValue("level"), currentLevel, levelInfoLogDelta)) {
+				logging("${device} : Level : ${currentLevel}", "info")
+			}
 
 		} else if (map.command == "0B") {
 

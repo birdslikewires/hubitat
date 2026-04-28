@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.02 (8th April 2026)"
+@Field String driverVersion = "v1.03 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -13,6 +13,8 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 20
 @Field String deviceName = "Zigbee2MQTT Climate"
+@Field BigDecimal humidityInfoLogDelta = 5G
+@Field BigDecimal temperatureInfoLogDelta = 0.5G
 
 
 metadata {
@@ -66,19 +68,28 @@ void processMQTT(def json) {
 
 	if (json.containsKey('humidity')) {
 
-		logging("${device} : Humidity : ${json.humidity}%", "info")
+		BigDecimal humidity = decimalValueOrNull(json.humidity)
+		if (hasSignificantDecimalChange(device.currentValue("humidity"), humidity, humidityInfoLogDelta)) {
+			logging("${device} : Humidity : ${json.humidity}%", "info")
+		}
 		sendEvent(name: "humidity", value:"${json.humidity}", unit: "%rh")
 	
 	}
 
 	if (json.containsKey('local_temperature')) {
 
-		logging("${device} : Temperature : ${json.local_temperature}°C", "info")
+		BigDecimal temperature = decimalValueOrNull(json.local_temperature)
+		if (hasSignificantDecimalChange(device.currentValue("temperature"), temperature, temperatureInfoLogDelta)) {
+			logging("${device} : Temperature : ${json.local_temperature}°C", "info")
+		}
 		sendEvent(name: "temperature", value:"${json.local_temperature}", unit: "°C")
 	
 	} else if (json.containsKey('temperature')) {
 
-		logging("${device} : Temperature : ${json.temperature}°C", "info")
+		BigDecimal temperature = decimalValueOrNull(json.temperature)
+		if (hasSignificantDecimalChange(device.currentValue("temperature"), temperature, temperatureInfoLogDelta)) {
+			logging("${device} : Temperature : ${json.temperature}°C", "info")
+		}
 		sendEvent(name: "temperature", value:"${json.temperature}", unit: "°C")
 	
 	}

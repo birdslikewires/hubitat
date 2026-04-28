@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.00 (20th August 2025)"
+@Field String driverVersion = "v1.01 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -15,6 +15,7 @@ import groovy.transform.Field
 @Field int reportIntervalMinutes = 4
 @Field int receiverEndpoint = 5
 @Field String deviceName = "Hive Receiver Heating"
+@Field BigDecimal temperatureInfoLogDelta = 0.5G
 
 
 metadata {
@@ -237,7 +238,9 @@ void processMap(Map map) {
 				temperature = (temperature * 1.8) + 32
 			}
 
-			logging("${device} : ${temperatureType} : ${temperature} °${temperatureScale}", "info")
+			if (temperatureType == "heatingSetpoint" || hasSignificantDecimalChange(device.currentValue("${temperatureType}"), temperature, temperatureInfoLogDelta)) {
+				logging("${device} : ${temperatureType} : ${temperature} °${temperatureScale}", "info")
+			}
 			sendEvent(name: "${temperatureType}", value: temperature, unit: "${temperatureScale}")
 
 			if (temperatureType == "heatingSetpoint") {

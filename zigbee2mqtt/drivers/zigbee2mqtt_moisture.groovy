@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (8th April 2026)"
+@Field String driverVersion = "v1.02 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -13,6 +13,7 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 20
 @Field String deviceName = "Zigbee2MQTT Moisture"
+@Field BigDecimal moistureInfoLogDelta = 5G
 
 
 metadata {
@@ -67,7 +68,10 @@ void processMQTT(def json) {
 
 	if (json.containsKey('soil_moisture')) {
 
-		logging("${device} : Moisture : ${json.soil_moisture}%", "info")
+		BigDecimal moisture = decimalValueOrNull(json.soil_moisture)
+		if (hasSignificantDecimalChange(device.currentValue("moisture"), moisture, moistureInfoLogDelta)) {
+			logging("${device} : Moisture : ${json.soil_moisture}%", "info")
+		}
 		sendEvent(name: "moisture", value:"${json.soil_moisture}", unit: "%")
 	
 	}

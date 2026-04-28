@@ -30,7 +30,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_receiver_heating.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.01"
 		},
 		{
 			"id": "c2435505-88a7-4d60-b969-b363d192da95",
@@ -38,7 +38,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy",
 			"required": true,
-			"version": "1.01"
+			"version": "1.02"
 		}
 	]
 }

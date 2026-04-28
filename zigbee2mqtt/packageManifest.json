@@ -31,7 +31,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_climate.groovy",
 			"required": true,
-			"version": "1.02"
+			"version": "1.03"
 		},
 		{
 			"id": "bc6f635c-9a46-4a6e-92dd-9d3253cd48d2",
@@ -47,7 +47,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/zigbee2mqtt/drivers/zigbee2mqtt_moisture.groovy",
 			"required": true,
-			"version": "1.01"
+			"version": "1.02"
 		},
 		{
 			"id": "b6ea10aa-46c8-4c49-b52e-ae5e5fafd37f",
