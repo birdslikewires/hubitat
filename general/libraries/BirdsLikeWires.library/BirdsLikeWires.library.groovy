@@ -249,9 +249,13 @@ void checkDriver() {
 	if (state.driverVersion == driverVersion) return
 
 	String versionCheck = "${getDeviceDataByName('driver')}"
+	String loggedUpgradeVersion = "${getDeviceDataByName('driverLatest')}"
 
 	if ("$versionCheck" != "$driverVersion") {
-		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
+		if ("$loggedUpgradeVersion" != "$driverVersion") {
+			logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
+			updateDataValue("driverLatest", "$driverVersion")
+		}
 		configure()
 	}
 
