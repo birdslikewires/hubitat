@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.35 (25th April 2026)"
+@Field String driverVersion = "v1.36 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -37,7 +37,6 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "uptime", "string"
 		attribute "uptimeReadable", "string"
 
 		if (debugMode) {
@@ -118,8 +117,10 @@ void processMap(Map map) {
 			powerValue = powerValue * sensorCorrectionMultiplier
 			powerValue = powerValue.setScale(0, BigDecimal.ROUND_HALF_UP)
 
-			if (powerValue != device.currentValue("power")) sendEvent(name: "power", value: powerValue, unit: "W")
-			logging("${device} : Power : ${powerValue} W", "info")
+			if (powerValue != device.currentValue("power")) {
+				sendEvent(name: "power", value: powerValue, unit: "W")
+				logging("${device} : Power : ${powerValue} W", "info")
+			}
 
 		} else if (map.command == "82") {
 
@@ -137,9 +138,10 @@ void processMap(Map map) {
 			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 
-			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
-
-			if (energyValueDecimal != device.currentValue("energy")) sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+			if (energyValueDecimal != device.currentValue("energy")) {
+				sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+				logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
+			}
 
 			// Uptime
 
@@ -156,8 +158,7 @@ void processMap(Map map) {
 
 			logging("${device} : Uptime : ${uptimeReadable}", "debug")
 
-			sendEvent(name: "uptime", value: uptimeValue, unit: "s")
-			sendEvent(name: "uptimeReadable", value: uptimeReadable)
+			if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
 
 		} else {
 

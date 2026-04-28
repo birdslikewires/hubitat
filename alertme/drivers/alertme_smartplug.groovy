@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.71 (27th April 2026)"
+@Field String driverVersion = "v1.72 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -41,6 +41,7 @@ metadata {
 		//command "quietMode"
 
 		attribute "healthStatus", "enum", ["offline", "online"]
+		attribute "uptimeReadable", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -142,8 +143,8 @@ void processMap(Map map) {
 
 				// Supply failed.
 
-				sendEvent(name: "powerSource", value: "battery", isStateChange: true)
-				sendEvent(name: "tamper", value: "detected", isStateChange: true)
+				if (device.currentValue("powerSource") != "battery") sendEvent(name: "powerSource", value: "battery")
+				if (device.currentValue("tamper") != "detected") sendEvent(name: "tamper", value: "detected")
 				if (state.battery != "discharging") state.battery = "discharging"
 				if (state.supplyPresent) state.supplyPresent = false
 
@@ -183,11 +184,12 @@ void processMap(Map map) {
 
 				logging("${device} : Supply : Device returning from shutdown, please check batteries!", "warn")
 
-				sendEvent(name: "powerSource", value: "mains")
-				sendEvent(name: "tamper", value: "clear", isStateChange: true)
+				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
+				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 				if (state.battery != "charging") state.battery = "charging"
 				if (state.mismatch) state.mismatch = false
 				if (!state.supplyPresent) state.supplyPresent = true
+				unschedule(enablePowerControl)
 				runIn(20,enablePowerControl)		// plugs require a few seconds before this will stick
 
 			}
@@ -263,9 +265,10 @@ void processMap(Map map) {
 			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000)
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 
-			logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
-
-			if (energyValueDecimal != device.currentValue("energy")) sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+			if (energyValueDecimal != device.currentValue("energy")) {
+				sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
+				logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
+			}
 
 			// Uptime
 
@@ -281,9 +284,7 @@ void processMap(Map map) {
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			logging("${device} : Uptime : $uptimeReadable", "debug")
-
-			state.uptime = "$uptimeValue"
-			state.uptimeReadable = "$uptimeReadable"
+			if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
 
 		} else {
 
