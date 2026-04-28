@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.20 (28th April 2026)"
+@Field String driverVersion = "v1.21 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -224,26 +224,31 @@ void processMap(Map map) {
 
 			if (map.value == "00") {
 
+				boolean parentWasOff = device.currentValue("switch") == "off"
+				boolean childWasOff = false
 				if (state.relayCount > 1) {
 
 					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-					childDevice.parse([[name:"switch", value:"off"]])
+					childWasOff = childDevice.currentValue("switch") == "off"
+					if (!childWasOff) childDevice.parse([[name:"switch", value:"off"]])
 
 					List<String> currentChildStates = fetchChildStates("switch","${childDevice.id}")
 					logging("${device} : currentChildStates : ${childDevice.id} ${currentChildStates}", "debug")
 
 					if (currentChildStates.every{it == "off"}) {
-						logging("${device} : Switch : All Off", "info")
-						sendEvent(name: "switch", value: "off")
+						if (!parentWasOff) {
+							logging("${device} : Switch : All Off", "info")
+							sendEvent(name: "switch", value: "off")
+						}
 					}
 
 				} else {
 
-					sendEvent(name: "switch", value: "off")
+					if (!parentWasOff) sendEvent(name: "switch", value: "off")
 
 				}
 
-				logging("${device} : Switch ${map.endpoint} : Off", "info")
+				if (!parentWasOff || !childWasOff) logging("${device} : Switch ${map.endpoint} : Off", "info")
 
 			} else {
 

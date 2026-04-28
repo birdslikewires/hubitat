@@ -7,7 +7,7 @@
  */
 
 
-@Field String driverVersion = "v1.16 (28th April 2026)"
+@Field String driverVersion = "v1.17 (28th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -156,25 +156,31 @@ void processMap(map) {
 			if (map.value == "01") {
 
 				com.hubitat.app.ChildDeviceWrapper cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"on"]])
+				boolean childWasOn = cd.currentValue("switch") == "on"
+				boolean parentWasOn = device.currentValue("switch") == "on"
+				if (!childWasOn) cd.parse([[name:"switch", value:"on"]])
 
-				sendEvent(name: "switch", value: "on")
-				logging("${device} : Switch ${map.endpoint} : On", "info")
+				if (!parentWasOn) sendEvent(name: "switch", value: "on")
+				if (!parentWasOn || !childWasOn) logging("${device} : Switch ${map.endpoint} : On", "info")
 
 			} else {
 
 				com.hubitat.app.ChildDeviceWrapper cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"off"]])
+				boolean childWasOff = cd.currentValue("switch") == "off"
+				boolean parentWasOff = device.currentValue("switch") == "off"
+				if (!childWasOff) cd.parse([[name:"switch", value:"off"]])
 
 				List<String> currentChildStates = fetchChildStates("switch","${cd.id}")
 				logging("${device} : currentChildStates : ${currentChildStates}", "debug")
 
 				if (currentChildStates.every{it == "off"}) {
-					logging("${device} : All Devices Off", "info")
-					sendEvent(name: "switch", value: "off")
+					if (!parentWasOff) {
+						logging("${device} : All Devices Off", "info")
+						sendEvent(name: "switch", value: "off")
+					}
 				}
 
-				logging("${device} : Switch ${map.endpoint} : Off", "info")
+				if (!parentWasOff || !childWasOff) logging("${device} : Switch ${map.endpoint} : Off", "info")
 
 			}
 
@@ -191,16 +197,22 @@ void processMap(map) {
 			if (map.value == "01") {
 
 				com.hubitat.app.ChildDeviceWrapper cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"on"]])
-				refresh()
-				logging("${device} : Local Switch ${map.endpoint} : On", "info")
+				boolean childWasOn = cd.currentValue("switch") == "on"
+				if (!childWasOn) {
+					cd.parse([[name:"switch", value:"on"]])
+					refresh()
+					logging("${device} : Local Switch ${map.endpoint} : On", "info")
+				}
 
 			} else {
 
 				com.hubitat.app.ChildDeviceWrapper cd = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-				cd.parse([[name:"switch", value:"off"]])
-				refresh()
-				logging("${device} : Local Switch ${map.endpoint} : Off", "info")
+				boolean childWasOff = cd.currentValue("switch") == "off"
+				if (!childWasOff) {
+					cd.parse([[name:"switch", value:"off"]])
+					refresh()
+					logging("${device} : Local Switch ${map.endpoint} : Off", "info")
+				}
 
 			}			
 
