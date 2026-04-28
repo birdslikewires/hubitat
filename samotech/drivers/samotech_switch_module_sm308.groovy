@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.22 (28th April 2026)"
+@Field String driverVersion = "v1.23 (29th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -225,7 +225,8 @@ void processMap(Map map) {
 			if (map.value == "00") {
 
 				boolean parentWasOff = device.currentValue("switch") == "off"
-				boolean childWasOff = false
+				boolean childWasOff = true
+
 				if (state.relayCount > 1) {
 
 					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
@@ -252,13 +253,14 @@ void processMap(Map map) {
 
 			} else {
 
-					boolean parentWasOn = device.currentValue("switch") == "on"
-					boolean childWasOn = false
-					if (state.relayCount > 1) {
-						com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
-						childWasOn = childDevice.currentValue("switch") == "on"
-						if (!childWasOn) childDevice.parse([[name:"switch", value:"on"]])
-					}
+				boolean parentWasOn = device.currentValue("switch") == "on"
+				boolean childWasOn = true
+				
+				if (state.relayCount > 1) {
+					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "${map.endpoint}")
+					childWasOn = childDevice.currentValue("switch") == "on"
+					if (!childWasOn) childDevice.parse([[name:"switch", value:"on"]])
+				}
 
 				if (!parentWasOn) sendEvent(name: "switch", value: "on")
 				if (!parentWasOn || !childWasOn) logging("${device} : Switch ${map.endpoint} : On", "info")
@@ -278,7 +280,8 @@ void processMap(Map map) {
 			if (relayState == "00") {
 
 				boolean parentWasOff = device.currentValue("switch") == "off"
-				boolean childWasOff = false
+				boolean childWasOff = true
+
 				if (state.relayCount > 1) {
 
 					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
@@ -305,7 +308,8 @@ void processMap(Map map) {
 			} else {
 
 				boolean parentWasOn = device.currentValue("switch") == "on"
-				boolean childWasOn = false
+				boolean childWasOn = true
+				
 				if (state.relayCount > 1) {
 					com.hubitat.app.ChildDeviceWrapper childDevice = fetchChild("hubitat", "Generic Component Switch", "$relayActuated")
 					childWasOn = childDevice.currentValue("switch") == "on"

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.10 (28th April 2026)"
+@Field String driverVersion = "v1.11 (29th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -76,9 +76,10 @@ void processMQTT(def json) {
 	String stateType = mqttGetStateType()
 
 	String switchState = json."$stateType".toLowerCase()
-	String currentSwitchState = "${device.currentValue("switch")}"
+	String currentSwitchState = "${state.lastReportedSwitchState ?: device.currentValue("switch") ?: ""}"
 	if (currentSwitchState != switchState) {
 		sendEvent(name: "switch", value: "$switchState")
+		state.lastReportedSwitchState = switchState
 	}
 
 	String capSwitchState = switchState.capitalize()

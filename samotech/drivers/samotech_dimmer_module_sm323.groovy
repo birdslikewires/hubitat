@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.08 (28th April 2026)"
+@Field String driverVersion = "v1.09 (29th April 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -187,16 +187,23 @@ void processMap(Map map) {
 
 			boolean isDigital = state.lastDigitalCommand && (now() - (state.lastDigitalCommand as Long)) < 500
 			String eventType = isDigital ? "digital" : "physical"
+			String previousSwitch = "${state.lastReportedSwitchState ?: device.currentValue("switch") ?: ""}"
 
 			if (map.value == "00") {
 
-				sendEvent(name: "switch", value: "off", type: eventType)
-				logging("${device} : Switch : Off", "info")
+				if (previousSwitch != "off") {
+					sendEvent(name: "switch", value: "off", type: eventType)
+					logging("${device} : Switch : Off", "info")
+				}
+				state.lastReportedSwitchState = "off"
 
 			} else {
 
-				sendEvent(name: "switch", value: "on", type: eventType)
-				logging("${device} : Switch : On", "info")
+				if (previousSwitch != "on") {
+					sendEvent(name: "switch", value: "on", type: eventType)
+					logging("${device} : Switch : On", "info")
+				}
+				state.lastReportedSwitchState = "on"
 
 			}
 
