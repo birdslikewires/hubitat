@@ -77,7 +77,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/alertme/drivers/alertme_pendant.groovy",
 			"required": false,
-			"version": "1.15"
+			"version": "1.16"
 		},
 		{
 			"id": "81be6755-09ad-45af-91a8-52308e3fc319",

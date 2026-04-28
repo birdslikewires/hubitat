@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.25 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.26 (28th April 2026)
  *	
  */
 
@@ -223,7 +223,7 @@ void alertmeDeviceStatus(Map map) {
 		logging("${device} : Model and firmware data incomplete.", "debug")
 	}
 
-	batteryVoltage = batteryVoltage.setScale(3, BigDecimal.ROUND_HALF_UP)
+	batteryVoltage = batteryVoltage.setScale(2, BigDecimal.ROUND_HALF_UP)
 
 	logging("${device} : batteryVoltage : ${batteryVoltage}", "debug")
 	if (batteryVoltage != device.currentValue("voltage")) sendEvent(name: "voltage", value: batteryVoltage, unit: "V")

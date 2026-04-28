@@ -1,6 +1,6 @@
 /*
- * 
- *  BirdsLikeWires Library v1.66 (28th April 2026)
+ *
+ *  BirdsLikeWires Library v1.67 (28th April 2026)
  *	
  */
 
@@ -184,7 +184,7 @@ void levelEvent(int levelChange, String direction) {
 
 void updateHealthStatus() {
 
-	long millisNow = new Date().time
+	long millisNow = now()
 	if (millisNow - (state.updatedHealthStatus ?: 0) > 30000) {
 		state.updatedHealthStatus = millisNow
 	}
@@ -198,7 +198,7 @@ void updateHealthStatus() {
 void checkHealthStatus() {
 	// Check how long ago the health status was updated.
 
-	long millisNow = new Date().time
+	long millisNow = now()
 	int uptimeAllowanceMinutes = 20			// Busy hubs can take a while to settle after a reboot.
 
 	long storedHealthStatus = (state.updatedHealthStatus ?: 0) as long
@@ -244,15 +244,16 @@ void checkHealthStatus() {
 
 void checkDriver() {
 
-	String versionCheck = "unknown"
-	versionCheck = "${getDeviceDataByName('driver')}"
+	if (state.driverVersion == driverVersion) return
+
+	String versionCheck = "${getDeviceDataByName('driver')}"
 
 	if ("$versionCheck" != "$driverVersion") {
-
 		logging("${device} : Driver : Updating configuration from $versionCheck to $driverVersion.", "info")
 		configure()
-
 	}
+
+	state.driverVersion = driverVersion
 
 }
 
