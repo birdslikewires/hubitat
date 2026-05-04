@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.68 (28th April 2026)
+ *  BirdsLikeWires Library v1.69 (4th May 2026)
  *	
  */
 
@@ -49,9 +49,9 @@ void configure() {
 
 	// Schedule health status checking.
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
-	int reportIntervalMinutesClamped = Math.min(Math.max(1, reportIntervalMinutes), 59)
-	int randomMinute = Math.abs(new Random().nextInt() % reportIntervalMinutesClamped)
-	schedule("${randomSixty} ${randomMinute}/${reportIntervalMinutesClamped} * * * ? *", checkHealthStatus)
+	int healthCheckIntervalMinutes = getHealthCheckIntervalMinutes()
+	int randomMinute = Math.abs(new Random().nextInt() % healthCheckIntervalMinutes)
+	schedule("${randomSixty} ${randomMinute}/${healthCheckIntervalMinutes} * * * ? *", checkHealthStatus)
 
 	// Set device specifics.
 	updateDataValue("driver", "$driverVersion")
@@ -197,6 +197,14 @@ void updateHealthStatus() {
 }
 
 
+int getHealthCheckIntervalMinutes() {
+	// A healthy device does not need to be checked every time it is expected to report.
+	// `updateHealthStatus()` marks devices online immediately, so a coarser schedule reduces
+	// scheduled job volume without changing the offline timeout logic.
+	return Math.min(Math.max(10, reportIntervalMinutes), 59)
+}
+
+
 void checkHealthStatus() {
 	// Check how long ago the health status was updated.
 
@@ -210,10 +218,10 @@ void checkHealthStatus() {
 		long timeoutMillis = ((reportIntervalMinutes * 2) + 10) * 60000
 		long reportIntervalMillis = reportIntervalMinutes * 60000
 		BigInteger secondsElapsed = BigDecimal.valueOf(millisElapsed / 1000)
-		BigInteger hubUptime = location.hub.uptime
 
 		if (millisElapsed > timeoutMillis) {
 
+			BigInteger hubUptime = location.hub.uptime
 			if (hubUptime > uptimeAllowanceMinutes * 60) {
 
 				if (device.currentValue("healthStatus") != "offline") sendEvent(name: "healthStatus", value: "offline")
