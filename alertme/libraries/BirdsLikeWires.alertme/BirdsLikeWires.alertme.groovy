@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.31 (6th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.32 (6th May 2026)
  *	
  */
 
@@ -51,7 +51,7 @@ void normalMode() {
 
 	def cmds = new ArrayList<String>()
 	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}")									// Sets normal operating mode.
-	("${modelCheck}" == "SmartPlug") ?: cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
+	if ("${modelCheck}" == "SmartPlug") cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
 	sendZigbeeCommands(cmds)
 
 	logging("${device} : Operation : Normal", "debug")

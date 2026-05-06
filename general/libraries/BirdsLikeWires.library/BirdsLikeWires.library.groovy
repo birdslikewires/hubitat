@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.70 (6th May 2026)
+ *  BirdsLikeWires Library v1.71 (6th May 2026)
  *	
  */
 
@@ -81,8 +81,8 @@ void updated() {
 	unschedule(traceLogOff)
 
 	if (!debugMode) {
-		runIn(2400,debugLogOff)
-		runIn(1200,traceLogOff)
+		if (debugLogging) runIn(2400, debugLogOff)
+		if (traceLogging) runIn(1200, traceLogOff)
 	}
 
 	updateSpecifics()
