@@ -24,6 +24,20 @@ library (
 @Field static final BigDecimal temperatureInfoDelta = 0.5G
 
 
+void scheduleRangingIfEnabled() {
+
+	if (periodicRanging != true) {
+		unschedule(rangingMode)
+		return
+	}
+
+	int randomSixty = Math.abs(new Random().nextInt() % 60)
+	int randomTwentyFour = Math.abs(new Random().nextInt() % 24)
+	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
+
+}
+
+
 void lockedMode() {
 	// Disables the local power button on a SmartPlug.
 

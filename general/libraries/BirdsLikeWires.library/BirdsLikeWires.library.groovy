@@ -185,7 +185,7 @@ void levelEvent(int levelChange, String direction) {
 void updateHealthStatus() {
 
 	long millisNow = now()
-	if (millisNow - (state.updatedHealthStatus ?: 0) > 30000) {
+	if (millisNow - (state.updatedHealthStatus ?: 0) > getHealthStatusWriteIntervalMillis()) {
 		state.updatedHealthStatus = millisNow
 	}
 	if (state.rateLimitedLogs) {
@@ -196,6 +196,14 @@ void updateHealthStatus() {
 		sendEvent(name: "healthStatus", value: "online")
 	}
 
+}
+
+
+long getHealthStatusWriteIntervalMillis() {
+	// Chatty devices can report far more often than the offline timeout requires.
+	// Persist health updates no more than once per report interval, capped to five minutes.
+	int intervalMinutes = Math.min(Math.max(1, reportIntervalMinutes), 5)
+	return intervalMinutes * 60000L
 }
 
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.39 (6th May 2026)"
+@Field String driverVersion = "v1.40 (6th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -56,7 +56,7 @@ metadata {
 preferences {
 	
 	input name: "sensorCorrection", type: "decimal", title: "Sensor Correction Multiplier", defaultValue: 1.00
-
+	input name: "periodicRanging", type: "bool", title: "Enable diagnostics", defaultValue: false
 	input name: "infoLogging", type: "bool", title: "Enable logging", defaultValue: true
 	input name: "debugLogging", type: "bool", title: "Enable debug logging", defaultValue: false
 	input name: "traceLogging", type: "bool", title: "Enable trace logging", defaultValue: false
@@ -79,10 +79,7 @@ void configureSpecifics() {
 
 	state.operatingMode = "normal"
 
-	// Schedule ranging report.
-	int randomSixty = Math.abs(new Random().nextInt() % 60)
-	int randomTwentyFour = Math.abs(new Random().nextInt() % 24)
-	schedule("${randomSixty} ${randomSixty} ${randomTwentyFour}/${rangeEveryHours} * * ? *", rangingMode)
+	scheduleRangingIfEnabled()
 
 }
 
@@ -90,7 +87,7 @@ void configureSpecifics() {
 void updateSpecifics() {
 	// Called by library updated() method in BirdsLikeWires.library
 
-	rangingMode()
+	scheduleRangingIfEnabled()
 
 }
 
