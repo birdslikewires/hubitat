@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.30 (6th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.31 (6th May 2026)
  *	
  */
 
@@ -46,6 +46,8 @@ void normalMode() {
 	// Normal operation.
 
 	state.operatingMode = "normal"
+
+	String modelCheck = "${getDeviceDataByName('model')}"
 
 	def cmds = new ArrayList<String>()
 	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}")									// Sets normal operating mode.
@@ -255,11 +257,11 @@ void alertmeDeviceStatus(Map map) {
 		boolean significantBatteryChange = hasSignificantIntegerChange(currentBatteryPercentage, batteryPercentage, batteryInfoDelta)
 		boolean batteryBacked = device.currentValue("powerSource") != "mains"
 
-		if (batteryChanged) {
+		if (batteryChanged && (batteryPercentage <= 20 || significantBatteryChange)) {
 			sendEvent(name: "battery", value: batteryPercentage, unit: "%")
 			if (batteryPercentage <= 20) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "warn")
-			} else if (batteryBacked && significantBatteryChange) {
+			} else if (batteryBacked) {
 				logging("${device} : Battery : $batteryPercentage% ($batteryVoltage V)", "info")
 			}
 		}
