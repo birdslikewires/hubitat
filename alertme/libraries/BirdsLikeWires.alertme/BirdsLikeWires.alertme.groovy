@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.28 (28th April 2026)
+ *  BirdsLikeWires AlertMe Library v1.29 (6th May 2026)
  *	
  */
 
@@ -313,11 +313,9 @@ void alertmeDeviceStatus(Map map) {
 		BigDecimal currentTemperature = decimalValueOrNull(device.currentValue("temperature"))
 
 		logging("${device} : temperatureCelsius sensor value : ${temperatureCelsius}", "trace")
-		if (temperatureCelsius != device.currentValue("temperature")) {
+		if (hasSignificantDecimalChange(currentTemperature, temperatureCelsius, temperatureInfoDelta)) {
 			sendEvent(name: "temperature", value: temperatureCelsius, unit: "C")
-			if (hasSignificantDecimalChange(currentTemperature, temperatureCelsius, temperatureInfoDelta)) {
-				logging("${device} : Temperature : $temperatureCelsius°C", "info")
-			}
+			logging("${device} : Temperature : $temperatureCelsius°C", "info")
 		}
 
 	}

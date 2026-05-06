@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.38 (4th May 2026)"
+@Field String driverVersion = "v1.39 (6th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -144,11 +144,9 @@ void processMap(Map map) {
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 			BigDecimal currentEnergy = decimalValueOrNull(device.currentValue("energy"))
 
-			if (energyValueDecimal != device.currentValue("energy")) {
+			if (hasSignificantDecimalChange(currentEnergy, energyValueDecimal, energyInfoLogDelta)) {
 				sendEvent(name: "energy", value: energyValueDecimal, unit: "kWh")
-				if (hasSignificantDecimalChange(currentEnergy, energyValueDecimal, energyInfoLogDelta)) {
-					logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
-				}
+				logging("${device} : Energy : ${energyValueDecimal} kWh", "info")
 			}
 
 			// Uptime
@@ -165,8 +163,11 @@ void processMap(Map map) {
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			logging("${device} : Uptime : ${uptimeReadable}", "debug")
-
-			if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
+			long nowMillis = now()
+			if (!state.lastUptimeUpdate || (nowMillis - (state.lastUptimeUpdate as long)) >= 3600000) {
+				state.lastUptimeUpdate = nowMillis
+				if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
+			}
 
 		} else {
 

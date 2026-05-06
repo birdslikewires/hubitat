@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.69 (4th May 2026)
+ *  BirdsLikeWires Library v1.70 (6th May 2026)
  *	
  */
 
@@ -188,8 +188,10 @@ void updateHealthStatus() {
 	if (millisNow - (state.updatedHealthStatus ?: 0) > 30000) {
 		state.updatedHealthStatus = millisNow
 	}
-	clearRateLimitedLog("healthFirstReport")
-	clearRateLimitedLog("healthOffline")
+	if (state.rateLimitedLogs) {
+		clearRateLimitedLog("healthFirstReport")
+		clearRateLimitedLog("healthOffline")
+	}
 	if (device.currentValue("healthStatus") != "online") {
 		sendEvent(name: "healthStatus", value: "online")
 	}
@@ -460,13 +462,12 @@ void reportToDev(map) {
 }
 
 
-@Field static Boolean debouncingParentState = false
-void debounceParentState(String attribute, String state, String message, String level, Integer duration) {
+void debounceParentState(String attribute, String stateValue, String message, String level, Integer duration) {
 
-	if (debouncingParentState) return
-	debouncingParentState = true
+	if (state.debouncingParentState) return
+	state.debouncingParentState = true
 
-	sendEvent(name: "$attribute", value: "$state")
+	sendEvent(name: "$attribute", value: "$stateValue")
 	logging("${device} : $message", "$level")
 
 	runInMillis(duration, "clearDebounceParentState")
@@ -475,26 +476,25 @@ void debounceParentState(String attribute, String state, String message, String 
 
 void clearDebounceParentState() {
 
-	debouncingParentState = false
+	state.debouncingParentState = false
 
 }
 
 
 void withDebounce(String id, long debouncePeriod, Closure closure) {
 
-	if (!state.debounceTimestamps) {
+	if (!(state.debounceTimestamps instanceof Map)) {
 		state.debounceTimestamps = [:]
 	}
-	if (!state.debounceTimestamps.containsKey(id)) {
-		state.debounceTimestamps[id] = 0
-	}
 
-    long lastExecTime = state.debounceTimestamps[id] as long
+    long lastExecTime = (state.debounceTimestamps[id] ?: 0) as long
     long currentTime = now()
 	long thisExecTime = currentTime - lastExecTime
 
     if (thisExecTime >= debouncePeriod || thisExecTime < 0) {
 
+		// Prune stale entries to prevent unbounded map growth.
+		state.debounceTimestamps = state.debounceTimestamps.findAll { k, v -> (currentTime - (v as long)) < debouncePeriod * 10 }
         state.debounceTimestamps[id] = currentTime
         closure.call()
 
