@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.71 (6th May 2026)
+ *  BirdsLikeWires Library v1.72 (6th May 2026)
  *	
  */
 
@@ -264,8 +264,6 @@ void checkHealthStatus() {
 
 void checkDriver() {
 
-	if (state.driverVersion == driverVersion) return
-
 	String versionCheck = "${getDeviceDataByName('driver')}"
 	String loggedUpgradeVersion = "${getDeviceDataByName('driverLatest')}"
 
@@ -276,8 +274,6 @@ void checkDriver() {
 		}
 		configure()
 	}
-
-	state.driverVersion = driverVersion
 
 }
 
