@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.29 (6th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.30 (6th May 2026)
  *	
  */
 
@@ -221,7 +221,6 @@ void alertmeDeviceStatus(Map map) {
 			// Early SmartPlug firmware fudges the voltage reading to match other 3 volt battery devices. Cheeky.
 			// This converts to a reasonable approximation of the actual voltage. All newer firmwares report accurately.
 			batteryVoltage = batteryVoltage * 1.43
-			logging("${device} : Early firmware requires batteryVoltage correction!", "debug")
 		}
 	} else {
 		logging("${device} : Model and firmware data incomplete.", "debug")
