@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.72 (6th May 2026)
+ *  BirdsLikeWires Library v1.73 (7th May 2026)
  *	
  */
 
@@ -159,12 +159,12 @@ void levelEvent(int levelChange, String direction) {
 
 	if ("$direction" == "decrease") {
 
-		newLevel = device.currentState("level").value.toInteger() - levelChange
+		newLevel = initialLevel - levelChange
 		levelChange *= -1
 
 	} else if ("$direction" == "increase") {
 
-		newLevel = device.currentState("level").value.toInteger() + levelChange
+		newLevel = initialLevel + levelChange
 
 	} else {
 
@@ -457,7 +457,7 @@ void reportToDev(map) {
 
 	if (map.endpoint == null) return		// If the message doesn't even have an endpoint, it's garbage. Discard!
 
-	String dataCount = map.data != null ? "${map.data.length} bits of " : ""
+	String dataCount = map.data != null ? "${map.data.size()} bits of " : ""
 
 	logging("${device} : UNKNOWN DATA! Please report these messages to the developer.", "warn")
 	logging("${device} : Received : endpoint: ${map.endpoint}, cluster: ${map.cluster}, clusterId: ${map.clusterId}, attrId: ${map.attrId}, command: ${map.command} with value: ${map.value} and ${dataCount}data: ${map.data}", "warn")
