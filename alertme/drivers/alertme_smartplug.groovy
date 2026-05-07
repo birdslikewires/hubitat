@@ -44,7 +44,6 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "uptimeReadable", "string"
 
 		if (debugMode) {
 			command "testCommand"
@@ -294,11 +293,7 @@ void processMap(Map map) {
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			logging("${device} : Uptime : ${uptimeReadable}", "debug")
-			long nowMillis = now()
-			if (!state.lastUptimeUpdate || (nowMillis - (state.lastUptimeUpdate as long)) >= 3600000) {
-				state.lastUptimeUpdate = nowMillis
-				if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
-			}
+			state.uptimeReadable = uptimeReadable
 
 		} else {
 
