@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.34 (7th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.35 (7th May 2026)
  *	
  */
 
@@ -76,7 +76,6 @@ void normalMode() {
 void rangingMode() {
 	// Ranging mode double-flashes (good signal) or triple-flashes (poor signal) the indicator while reporting LQI values.
 
-	state.preRangingMode = state.operatingMode ?: "normal"
 	state.rangingPulses = 0
 
 	sendZigbeeCommands(["he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 01 01} {0xC216}"])
@@ -359,7 +358,7 @@ void alertmeDiscovery(Map map) {
 			// This is ranging mode, which must be temporary. Make sure we come out of it.
 			state.rangingPulses = (state.rangingPulses ?: 0) + 1
 			if (state.rangingPulses > 10) {
-				"${state.preRangingMode ?: state.operatingMode ?: 'normal'}Mode"()
+				"${state.operatingMode ?: 'normal'}Mode"()
 			}
 
 		} else if (map.data[1] == "FF") {
