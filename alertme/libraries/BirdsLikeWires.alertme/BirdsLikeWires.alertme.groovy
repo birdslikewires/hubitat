@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.32 (6th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.33 (7th May 2026)
  *	
  */
 
@@ -356,7 +356,7 @@ void alertmeDiscovery(Map map) {
 		if (map.data[1] == "77") {
 
 			// This is ranging mode, which must be temporary. Make sure we come out of it.
-			state.rangingPulses++
+			state.rangingPulses = (state.rangingPulses ?: 0) + 1
 			if (state.rangingPulses > 10) {
 				"${state.operatingMode}Mode"()
 			}
