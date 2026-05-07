@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.84 (7th May 2026)"
+@Field String driverVersion = "v1.85 (7th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -197,7 +197,7 @@ void processMap(Map map) {
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
 				unschedule(enablePowerControl)
-				runIn(6,enablePowerControl)		// plugs require a few seconds before this will stick
+				runIn(18,enablePowerControl)		// plugs require a few seconds before this will stick
 
 			}
 
