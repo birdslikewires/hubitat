@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.85 (7th May 2026)"
+@Field String driverVersion = "v1.86 (8th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -236,6 +236,11 @@ void processMap(Map map) {
 
 			// Power Reading
 
+			if (map.data == null || map.data.size() < 2) {
+				logging("${device} : processMap : Power reading (command 81) response too short, ignoring.", "warn")
+				return
+			}
+
 			def powerValueHex = "undefined"
 			BigDecimal powerValue = 0
 
@@ -259,6 +264,11 @@ void processMap(Map map) {
 		} else if (map.command == "82") {
 
 			// Command 82 returns energy summary in watt-hours with an uptime counter.
+
+			if (map.data == null || map.data.size() < 9) {
+				logging("${device} : processMap : Energy summary (command 82) response too short, ignoring.", "warn")
+				return
+			}
 
 			// Energy
 

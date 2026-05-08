@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.73 (7th May 2026)
+ *  BirdsLikeWires Library v1.74 (8th May 2026)
  *	
  */
 
@@ -1012,8 +1012,9 @@ void mqttProcessBasics(Map json) {
 
 String mqttGetStateType() {
 
-	String[] details = "${device.deviceNetworkId}".split('-')
-	String stateType = ("${details[-2]}".toInteger() > 1) ? "state_l${details[-1]}" : "state"
+	List<String> details = "${device.deviceNetworkId}".split('-') as List
+	if (details.size() < 2) return "state"
+	String stateType = (details[-2].toInteger() > 1) ? "state_l${details[-1]}" : "state"
 	return stateType
 
 }

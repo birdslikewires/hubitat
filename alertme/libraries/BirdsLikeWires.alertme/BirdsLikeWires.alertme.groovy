@@ -1,6 +1,6 @@
 /*
  * 
- *  BirdsLikeWires AlertMe Library v1.35 (7th May 2026)
+ *  BirdsLikeWires AlertMe Library v1.36 (8th May 2026)
  *	
  */
 
@@ -214,6 +214,11 @@ void alertmeDeviceStatus(Map map) {
 
 	// 00F0 - Device Status Cluster
 
+	if (map.data == null || map.data.size() < 9) {
+		logging("${device} : alertmeDeviceStatus : frame too short (${map.data?.size()} bytes), ignoring.", "warn")
+		return
+	}
+
 	String modelCheck = "${getDeviceDataByName('model')}"
 
 	// Report the battery voltage and calculated percentage.
@@ -404,13 +409,17 @@ void alertmeDiscovery(Map map) {
 
 		String deviceManufacturer = "AlertMe"
 		String deviceModel = ""
-		String deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
+		String deviceFirmware = ""
 
-		// Sometimes the model name contains spaces.
-		if (versionInfoBlockCount == 2) {
+		if (versionInfoBlockCount == 1) {
+			deviceFirmware = versionInfoBlocks[0]
+			deviceModel = "Unknown"
+		} else if (versionInfoBlockCount == 2) {
 			deviceModel = versionInfoBlocks[0]
+			deviceFirmware = versionInfoBlocks[1]
 		} else {
 			deviceModel = versionInfoBlocks[0..versionInfoBlockCount - 2].join(' ').toString()
+			deviceFirmware = versionInfoBlocks[versionInfoBlockCount - 1]
 		}
 
 		logging("${device} : Device : ${deviceModel}", "info")
