@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.40 (6th May 2026)"
+@Field String driverVersion = "v1.41 (25th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -28,7 +28,6 @@ metadata {
 		capability "EnergyMeter"
 		capability "PowerMeter"
 		capability "Refresh"
-		capability "SignalStrength"
 		capability "TamperAlert"
 		capability "TemperatureMeasurement"
 		capability "VoltageMeasurement"
@@ -39,7 +38,7 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
-		attribute "uptimeReadable", "string"
+		attribute "lqi", "number"
 
 		if (debugMode) {
 			command "testCommand"
@@ -160,11 +159,7 @@ void processMap(Map map) {
 			String uptimeReadable = "${newDhmsUptime[3]}d ${newDhmsUptime[2]}h ${newDhmsUptime[1]}m"
 
 			logging("${device} : Uptime : ${uptimeReadable}", "debug")
-			long nowMillis = now()
-			if (!state.lastUptimeUpdate || (nowMillis - (state.lastUptimeUpdate as long)) >= 3600000) {
-				state.lastUptimeUpdate = nowMillis
-				if (uptimeReadable != device.currentValue("uptimeReadable")) sendEvent(name: "uptimeReadable", value: uptimeReadable)
-			}
+			state.uptimeReadable = uptimeReadable
 
 		} else {
 

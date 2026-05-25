@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.74 (8th May 2026)
+ *  BirdsLikeWires Library v1.75 (25th May 2026)
  *	
  */
 
@@ -194,6 +194,7 @@ void updateHealthStatus() {
 	}
 	if (device.currentValue("healthStatus") != "online") {
 		sendEvent(name: "healthStatus", value: "online")
+		deviceOnlineActions()
 	}
 
 }
@@ -234,7 +235,7 @@ void checkHealthStatus() {
 			BigInteger hubUptime = location.hub.uptime
 			if (hubUptime > uptimeAllowanceMinutes * 60) {
 
-				if (device.currentValue("healthStatus") != "offline") sendEvent(name: "healthStatus", value: "offline")
+				if (device.currentValue("healthStatus") != "offline") { sendEvent(name: "healthStatus", value: "offline"); deviceOfflineActions() }
 				logWarnOncePerWindow("healthOffline", "${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", 60)
 
 			} else {
@@ -245,7 +246,7 @@ void checkHealthStatus() {
 
 		} else {
 
-			if (device.currentValue("healthStatus") != "online") sendEvent(name: "healthStatus", value: "online")
+			if (device.currentValue("healthStatus") != "online") { sendEvent(name: "healthStatus", value: "online"); deviceOnlineActions() }
 			logging("${device} : Health Status : Last report received ${secondsElapsed} seconds ago.", "debug")
 
 		}
@@ -260,6 +261,10 @@ void checkHealthStatus() {
 	}
 
 }
+
+
+void deviceOnlineActions() {}
+void deviceOfflineActions() {}
 
 
 void checkDriver() {

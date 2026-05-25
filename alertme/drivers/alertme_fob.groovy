@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.41 (6th May 2026)"
+@Field String driverVersion = "v1.42 (25th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -23,11 +23,10 @@ metadata {
 
 		capability "Battery"
 		capability "Configuration"
-		//capability "PresenceSensor"	// to be re-enabled as this is a real thing this device would be used for
+		capability "PresenceSensor"
 		capability "PushableButton"
 		capability "Refresh"
 		capability "ReleasableButton"
-		capability "SignalStrength"
 		capability "VoltageMeasurement"
 
 		command "normalMode"
@@ -36,6 +35,7 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
+		attribute "lqi", "number"
 
 		if (debugMode) {
 			command "testCommand"
@@ -99,6 +99,20 @@ void updateSpecifics() {
 	// Called by library updated() method in BirdsLikeWires.library
 
 	scheduleRangingIfEnabled()
+
+}
+
+
+void deviceOnlineActions() {
+
+	if (device.currentValue("presence") != "present") sendEvent(name: "presence", value: "present")
+
+}
+
+
+void deviceOfflineActions() {
+
+	if (device.currentValue("presence") != "not present") sendEvent(name: "presence", value: "not present")
 
 }
 

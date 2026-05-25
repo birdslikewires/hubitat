@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.38 (6th May 2026)"
+@Field String driverVersion = "v1.39 (25th May 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -28,7 +28,6 @@ metadata {
 		capability "Configuration"
 		capability "Light"
 		capability "Refresh"
-		capability "SignalStrength"
 		capability "Switch"
 		capability "SwitchLevel"
 		capability "VoltageMeasurement"
@@ -43,6 +42,7 @@ metadata {
 
 		attribute "batteryState", "string"
 		attribute "healthStatus", "enum", ["offline", "online"]
+		attribute "lqi", "number"
 
 		if (debugMode) {
 			command "testCommand"
