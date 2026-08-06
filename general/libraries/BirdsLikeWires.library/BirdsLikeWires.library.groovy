@@ -1,7 +1,7 @@
 /*
  *
- *  BirdsLikeWires Library v1.76 (25th May 2026)
- *	
+ *  BirdsLikeWires Library v1.78 (6th August 2026)
+ *
  */
 
 
@@ -280,16 +280,22 @@ void checkDriver() {
 }
 
 
-void requestBasic() {
+void requestBasic(Integer endpoint = null) {
 
 	// Request manufacturer, cluster library version, application version, model name,
 	// power source and Tuya's "attributeReportingStatus" from the Basic cluster.
 	// This is mostly information we want anyway, but we request it in "Tuya Magic Spell" format as
 	// this may be advantageous in putting some of their devices into the correct mode.
+
+	// Pass an endpoint to target a specific one - useful when device.endpointId doesn't reliably
+	// resolve to the endpoint that actually carries the Basic cluster.
+	String targetEndpoint = endpoint != null ? Integer.toHexString(endpoint).padLeft(2, '0').toUpperCase() : device.endpointId
+	Map additionalParams = endpoint != null ? [destEndpoint: endpoint] : [:]
+
 	ArrayList<String> cmds = []
-	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe])
-	cmds += "he rattr 0x${device.deviceNetworkId} 0x${device.endpointId} 0x0000 0x4000 {}"
-	cmds += "he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} 01} {0x0000}"
+	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe], additionalParams)
+	cmds += "he rattr 0x${device.deviceNetworkId} 0x${targetEndpoint} 0x0000 0x4000 {}"
+	cmds += "he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} ${targetEndpoint}} {0x0000}"
 	sendZigbeeCommands(cmds)
 
 }
