@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_motion.groovy",
 			"required": true,
-			"version": "1.00"
+			"version": "1.01"
 		},
 		{
 			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",
@@ -46,7 +46,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_thermostat.groovy",
 			"required": true,
-			"version": "1.03"
+			"version": "1.04"
 		}
 	]
 }

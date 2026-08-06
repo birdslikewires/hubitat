@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires Library v1.78 (6th August 2026)
+ *  BirdsLikeWires Library v1.79 (6th August 2026)
  *
  */
 
@@ -294,6 +294,15 @@ void requestBasic(Integer endpoint = null) {
 
 	ArrayList<String> cmds = []
 	cmds += zigbee.readAttribute(0x0000, [0x0004, 0x0000, 0x0001, 0x0005, 0x0007, 0xfffe], additionalParams)
+
+	// The bundled read above can trigger Tuya devices into the right mode, but when several attributes
+	// come back in one response frame, Hubitat's "read attr" description only ever surfaces one of them -
+	// the rest silently never reach processBasic(). Follow up with individual reads for the ones we
+	// actually store (manufacturer, model, application) so each gets its own single-attribute response.
+	cmds += zigbee.readAttribute(0x0000, 0x0004, additionalParams)
+	cmds += zigbee.readAttribute(0x0000, 0x0005, additionalParams)
+	cmds += zigbee.readAttribute(0x0000, 0x0001, additionalParams)
+
 	cmds += "he rattr 0x${device.deviceNetworkId} 0x${targetEndpoint} 0x0000 0x4000 {}"
 	cmds += "he raw ${device.deviceNetworkId} 0x0000 0x0000 0x0004 {00 ${zigbee.swapOctets(device.deviceNetworkId)} ${targetEndpoint}} {0x0000}"
 	sendZigbeeCommands(cmds)
