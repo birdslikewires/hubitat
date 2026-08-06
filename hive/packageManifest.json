@@ -17,6 +17,14 @@
 	],
 	"drivers": [
 		{
+			"id": "a0bb43b7-d06c-4e53-8249-61c80e87f625",
+			"name": "Hive Motion Sensor",
+			"namespace": "BirdsLikeWires",
+			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_motion.groovy",
+			"required": false,
+			"version": "1.00"
+		},
+		{
 			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",
 			"name": "Hive Receiver",
 			"namespace": "BirdsLikeWires",
