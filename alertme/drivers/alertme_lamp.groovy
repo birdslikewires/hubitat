@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.39 (25th May 2026)"
+@Field String driverVersion = "v1.40 (6th August 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -75,7 +75,6 @@ void testCommand() {
 
 
 void configureSpecifics() {
-	// Called by main configure() method in BirdsLikeWires.alertme
 
 	device.name = "$deviceName"
 
@@ -90,7 +89,7 @@ void configureSpecifics() {
 	cmds.add("he raw ${device.deviceNetworkId} 0 2 0x00F5 {11 00 05 01 01} {0xC216}")
 	sendZigbeeCommands(cmds)
 
-	state.operatingMode = "normal"
+	pairingRangingSequence()
 
 	scheduleRangingIfEnabled()
 

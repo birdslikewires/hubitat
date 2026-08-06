@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.42 (25th May 2026)"
+@Field String driverVersion = "v1.43 (6th August 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -88,7 +88,7 @@ void configureSpecifics() {
 
 	}
 
-	state.operatingMode = "normal"
+	pairingRangingSequence()
 
 	scheduleRangingIfEnabled()
 

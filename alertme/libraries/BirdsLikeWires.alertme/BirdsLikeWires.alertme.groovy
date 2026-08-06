@@ -1,7 +1,7 @@
 /*
- * 
- *  BirdsLikeWires AlertMe Library v1.36 (8th May 2026)
- *	
+ *
+ *  BirdsLikeWires AlertMe Library v1.37 (6th August 2026)
+ *
  */
 
 
@@ -22,6 +22,16 @@ library (
 
 @Field static final Integer batteryInfoDelta = 5
 @Field static final BigDecimal temperatureInfoDelta = 0.5G
+
+
+void pairingRangingSequence() {
+	// Run a ranging report and then switch to normal operating mode.
+	// This is required for reliable pairing.
+
+	rangingMode()
+	runIn(12, normalMode)
+
+}
 
 
 void scheduleRangingIfEnabled() {
