@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires AlertMe Library v1.37 (6th August 2026)
+ *  BirdsLikeWires AlertMe Library v1.38 (6th August 2026)
  *
  */
 
@@ -136,8 +136,9 @@ void refresh() {
 
 void parse(String description) {
 
-	updateHealthStatus()
-	checkDriver()
+	// Respond to the device first - checkDriver() can trigger a full reconfigure, and we don't want
+	// that traffic queued ahead of a time-sensitive response like the IAS Zone enrolment reply.
+	// Health/version bookkeeping happens afterward.
 
 	if (description.startsWith("zone status")) {
 
@@ -199,6 +200,9 @@ void parse(String description) {
 		}
 
 	}
+
+	updateHealthStatus()
+	checkDriver()
 
 }
 

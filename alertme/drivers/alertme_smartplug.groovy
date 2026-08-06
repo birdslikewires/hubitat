@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.88 (6th August 2026)"
+@Field String driverVersion = "v1.89 (6th August 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
