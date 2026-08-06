@@ -22,7 +22,7 @@
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_motion.groovy",
 			"required": true,
-			"version": "1.01"
+			"version": "1.02"
 		},
 		{
 			"id": "6334c827-cd71-4e06-aba5-22d80b9ba6c1",

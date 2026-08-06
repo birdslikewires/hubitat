@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.01 (6th August 2026)"
+@Field String driverVersion = "v1.02 (6th August 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.library
@@ -37,7 +37,7 @@ metadata {
 			command "testCommand"
 		}
 
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,0400,0402,0500", outClusters: "0019", manufacturer: "HiveHome.com", model: "MOT003", deviceJoinName: "$deviceName"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0020,0400,0402,0406,0500", outClusters: "0019", manufacturer: "HiveHome.com", model: "MOT003", deviceJoinName: "$deviceName"
 
 	}
 
