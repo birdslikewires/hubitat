@@ -21,7 +21,7 @@
 			"name": "Hive Motion Sensor",
 			"namespace": "BirdsLikeWires",
 			"location": "https://raw.githubusercontent.com/birdslikewires/hubitat/main/hive/drivers/hive_motion.groovy",
-			"required": false,
+			"required": true,
 			"version": "1.00"
 		},
 		{
