@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.90 (3rd November 2026)"
+@Field String driverVersion = "v1.91 (3rd November 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -14,7 +14,7 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 2
 @Field int rangeEveryHours = 6
-@Field int powerControlEveryMinutes = 60
+@Field int powerControlEveryMinutes = 60		// an hour at most
 @Field String deviceName = "AlertMe Smart Plug"
 @Field BigDecimal powerInfoLogDelta = 5G
 @Field BigDecimal energyInfoLogDelta = 0.1G
@@ -104,7 +104,10 @@ void schedulePowerControlKeepalive() {
 
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
 	int randomMinute = Math.abs(new Random().nextInt() % powerControlEveryMinutes)
-	schedule("${randomSixty} ${randomMinute}/${powerControlEveryMinutes} * * * ? *", powerControlKeepalive)
+
+	// Cron rejects an increment of 60, so hourly has to be a fixed minute.
+	String minutes = powerControlEveryMinutes < 60 ? "${randomMinute}/${powerControlEveryMinutes}" : "${randomMinute}"
+	schedule("${randomSixty} ${minutes} * * * ? *", powerControlKeepalive)
 
 }
 
