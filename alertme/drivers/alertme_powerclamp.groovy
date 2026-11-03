@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.43 (6th August 2026)"
+@Field String driverVersion = "v1.44 (3rd November 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -135,7 +135,7 @@ void processMap(Map map) {
 			BigInteger energyValue = new BigInteger(energyValueHex, 16)
 			logging("${device} : energy counter reports : ${energyValue}", "debug")
 
-			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrection
+			BigDecimal energyValueDecimal = BigDecimal.valueOf(energyValue / 3600 / 1000) * sensorCorrectionMultiplier
 			energyValueDecimal = energyValueDecimal.setScale(4, BigDecimal.ROUND_HALF_UP)
 			BigDecimal currentEnergy = decimalValueOrNull(device.currentValue("energy"))
 

@@ -1,6 +1,6 @@
 /*
  *
- *  BirdsLikeWires AlertMe Library v1.38 (6th August 2026)
+ *  BirdsLikeWires AlertMe Library v1.39 (3rd November 2026)
  *
  */
 
@@ -22,6 +22,16 @@ library (
 
 @Field static final Integer batteryInfoDelta = 5
 @Field static final BigDecimal temperatureInfoDelta = 0.5G
+@Field static final Integer powerControlSettleSeconds = 18
+
+
+boolean isSmartPlug() {
+	// The model data value can't be trusted for this. It's only corrected by a version response, which
+	// we only ask for on refresh(), and the fingerprint has it as "Smart Plug" rather than "SmartPlug".
+
+	return "$deviceName" == "AlertMe Smart Plug"
+
+}
 
 
 void pairingRangingSequence() {
@@ -71,11 +81,9 @@ void normalMode() {
 
 	state.operatingMode = "normal"
 
-	String modelCheck = "${getDeviceDataByName('model')}"
-
 	def cmds = new ArrayList<String>()
-	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}")									// Sets normal operating mode.
-	if ("${modelCheck}" == "SmartPlug") cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
+	cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00F0 {11 00 FA 00 01} {0xC216}")					// Sets normal operating mode.
+	if (isSmartPlug()) cmds.add("he raw ${device.deviceNetworkId} 0 ${device.endpointId} 0x00EE {11 00 01 01} {0xC216}")	// Sets power control mode.
 	sendZigbeeCommands(cmds)
 
 	logging("${device} : Operation : Normal", "debug")
@@ -115,16 +123,22 @@ void enablePowerControl() {
 }
 
 
+void restorePowerControl() {
+	// Plugs require some time after a reboot or a return of mains before power control will stick.
+
+	runIn(powerControlSettleSeconds, enablePowerControl)
+
+}
+
+
 void refresh() {
 
 	logging("${device} : Refreshing", "info")
 
-	String modelCheck = "${getDeviceDataByName('model')}"
-
-	if ("${modelCheck}" == "SmartPlug") {
+	if (isSmartPlug()) {
 
 		enablePowerControl()
-		
+
 	}
 
 	def cmds = new ArrayList<String>()
@@ -271,7 +285,7 @@ void alertmeDeviceStatus(Map map) {
 	BigDecimal batteryVoltageScaleMax = 3.10
 	Integer currentBatteryPercentage = device.currentValue("battery") as Integer
 
-	if ("$modelCheck" == "SmartPlug") {
+	if (isSmartPlug()) {
 
 		// NiMH backup battery; fully charged plugs observed between 4.15 V and 4.30 V.
 		batteryVoltageScaleMin = 4.10
@@ -390,7 +404,7 @@ void alertmeDiscovery(Map map) {
 			// This is the ranging report received when the smart plug reboots.
 			// After rebooting power control must be re-enabled.
 			logging("${device} : reboot ranging report received", "debug")
-			enablePowerControl()
+			restorePowerControl()
 
 		} else {
 

@@ -5,7 +5,7 @@
  */
 
 
-@Field String driverVersion = "v1.89 (6th August 2026)"
+@Field String driverVersion = "v1.90 (3rd November 2026)"
 @Field boolean debugMode = false
 
 #include BirdsLikeWires.alertme
@@ -14,6 +14,7 @@ import groovy.transform.Field
 
 @Field int reportIntervalMinutes = 2
 @Field int rangeEveryHours = 6
+@Field int powerControlEveryMinutes = 60
 @Field String deviceName = "AlertMe Smart Plug"
 @Field BigDecimal powerInfoLogDelta = 5G
 @Field BigDecimal energyInfoLogDelta = 0.1G
@@ -99,11 +100,27 @@ void updateSpecifics() {
 
 void schedulePowerControlKeepalive() {
 
-	unschedule(enablePowerControl)
+	unschedule(powerControlKeepalive)
 
 	int randomSixty = Math.abs(new Random().nextInt() % 60)
-	int randomMinute = Math.abs(new Random().nextInt() % 60)
-	schedule("${randomSixty} ${randomMinute} */6 * * ? *", enablePowerControl)
+	int randomMinute = Math.abs(new Random().nextInt() % powerControlEveryMinutes)
+	schedule("${randomSixty} ${randomMinute}/${powerControlEveryMinutes} * * * ? *", powerControlKeepalive)
+
+}
+
+
+void powerControlKeepalive() {
+	// Has its own handler so that one-shot restores of enablePowerControl can't disturb this schedule.
+
+	enablePowerControl()
+
+}
+
+
+void deviceOnlineActions() {
+	// A plug that has been quiet long enough to go offline may well have lost power control.
+
+	restorePowerControl()
 
 }
 
@@ -180,8 +197,7 @@ void processMap(Map map) {
 				if (device.currentValue("batteryState") != "charging") sendEvent(name: "batteryState", value: "charging")
 				if (device.currentValue("powerSource") != "mains") {
 					sendEvent(name: "powerSource", value: "mains")
-					unschedule(enablePowerControl)
-					runIn(6, enablePowerControl)	// plugs require a few seconds before this will stick
+					restorePowerControl()
 				}
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
@@ -195,8 +211,7 @@ void processMap(Map map) {
 				if (device.currentValue("powerSource") != "mains") sendEvent(name: "powerSource", value: "mains")
 				if (device.currentValue("tamper") != "clear") sendEvent(name: "tamper", value: "clear")
 
-				unschedule(enablePowerControl)
-				runIn(18,enablePowerControl)		// plugs require a few seconds before this will stick
+				restorePowerControl()
 
 			}
 
